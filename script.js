@@ -33,6 +33,12 @@ function makeCard(entry) {
   const category = document.createElement('span');
   category.textContent = entry.category;
   meta.append(category);
+  if (entry.level) {
+    const level = document.createElement('span');
+    level.className = 'entry-level';
+    level.textContent = entry.level;
+    meta.append(level);
+  }
   if (entry.date) {
     const date = document.createElement('time');
     date.dateTime = entry.date;
@@ -76,7 +82,7 @@ function renderCollection() {
   const query = search.value.trim().toLocaleLowerCase();
   const matched = entries.filter(entry =>
     (selectedType === 'all' || entry.type === selectedType) &&
-    [entry.title, entry.category, entry.description, entry.organization, entry.dateLabel, ...(entry.tags || [])]
+    [entry.title, entry.category, entry.level, entry.description, entry.organization, entry.dateLabel, ...(entry.tags || [])]
       .filter(Boolean).join(' ').toLocaleLowerCase().includes(query)
   );
   for (const type of ['project', 'workshop']) {

@@ -23,7 +23,7 @@ For a workshop, add:
 ```
 Create the linked detail page before adding the entry. Use a unique `id` and ISO start date. Omit `artwork` for an automatic initial illustration, or use `guess`, `quiz`, `shop`, `analog`, or `pcb`.
 
-For a project use `type: 'project'`, a playable/live website in `href`, and an action such as `Play game` or `Open website`. Date and organizer are optional. Never use a repository URL as the game’s play link.
+For a project use `type: 'project'`, a playable/live website in `href`, and an action such as `Play game` or `Open website`. Date and organizer are optional. Never use a repository URL as the game’s play link. Hardware projects without a live site link to their own detail page instead. Add an optional `level` (for example `'Basic'` or `'Real-world use'`) to show a badge on the card; it is also searchable. Artwork options also include `rfid` and `attendance`.
 
 ## Files
 - `index.html`: intro, education, collection structure and illustration templates.
@@ -31,6 +31,7 @@ For a project use `type: 'project'`, a playable/live website in `href`, and an a
 - `script.js`: cards, search, filters and mobile navigation.
 - `style.css` and `collection.css`: base styling and collection layout.
 - `analog-circuit-analysis-design.html`, `pcb-designing-bootcamp.html`: detailed workshop pages.
+- `rfid-card-detection.html` (basic) and `smart-id-attendance.html` (real-world use): hardware project pages, styled by `project-report.css`.
 - `workshops/`: existing alternate routes retained.
 - `assets/`: portrait and workshop material.
 

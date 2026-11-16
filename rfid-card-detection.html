@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#151b19">
+  <title>RFID Card Detection System · Arduino UNO + MFRC522 | Aakash</title>
+  <meta name="description" content="A basic embedded systems project by Aakash: detecting 13.56 MHz RFID cards with an Arduino UNO and MFRC522 reader over SPI, with LED and buzzer feedback.">
+  <meta property="og:title" content="RFID Card Detection System · Arduino UNO + MFRC522">
+  <meta property="og:description" content="Contactless card identification over SPI with UID checking, LEDs and a buzzer.">
+  <meta property="og:type" content="article">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css?v=20261116-3">
+  <link rel="stylesheet" href="collection.css?v=20261116-3">
+  <link rel="stylesheet" href="project-report.css?v=20261116-3">
+</head>
+<body class="report-page theme-rfid">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="report-header wrap">
+    <a class="back-link" href="index.html#rfid-card-detection"><span aria-hidden="true">←</span> Back to portfolio</a>
+    <span class="report-tag">PROJECT · BASIC BUILD</span>
+    <a class="github-nav" href="https://github.com/aakash9972sn" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+  </header>
+  <nav class="report-subnav" aria-label="On this page"><div class="wrap">
+    <a href="#overview">Overview</a><a href="#principle">How RFID works</a><a href="#hardware">Hardware</a><a href="#wiring">Wiring</a><a href="#software">Software</a><a href="#testing">Testing</a><a href="#limits">Limitations</a><a href="#next">What's next</a>
+  </div></nav>
+  <main id="main">
+    <section class="report-hero wrap" id="overview" aria-labelledby="page-title">
+      <div class="report-meta"><span class="pill level">BASIC PROJECT</span><span class="pill">EMBEDDED SYSTEMS</span><span class="pill">13.56 MHz HF RFID</span></div>
+      <h1 id="page-title">RFID Card<br><em>Detection System.</em></h1>
+      <p class="report-lede">My starting point in contactless identification. An Arduino UNO talks to an MFRC522 reader over SPI, reads the Unique Identifier (UID) of a nearby card, checks it against a registered list, and responds with a green or red LED, a short beep and a line on the Serial Monitor.</p>
+      <div class="spec-grid">
+        <div><span>Controller</span><strong>Arduino UNO R3 (ATmega328P, 16 MHz)</strong></div>
+        <div><span>Reader</span><strong>MFRC522 · ISO/IEC 14443 A</strong></div>
+        <div><span>Interface</span><strong>SPI (D10–D13)</strong></div>
+        <div><span>Feedback</span><strong>Green / red LED, active buzzer, serial</strong></div>
+        <div><span>Language</span><strong>Arduino C++</strong></div>
+      </div>
+      <p class="status-note"><strong>Project status:</strong> design and documentation are complete, covering the circuit, wiring, firmware and test plan. Measured results such as read range and success rate will be added after testing the assembled hardware. No measurements are assumed here.</p>
+    </section>
+
+    <section class="report-section" id="principle" aria-labelledby="principle-title"><div class="wrap section-grid">
+      <div><p class="section-index">01 / THEORY</p><h2 id="principle-title">How passive RFID works.</h2></div>
+      <div class="section-body">
+        <p>The reader drives a 13.56 MHz alternating magnetic field through its antenna coil. When a passive card enters the field, a voltage is induced in the card's coil, which powers its chip. There's no battery in the card.</p>
+        <div class="formula">e = −N · dΦ<sub>B</sub>/dt &nbsp;&nbsp;→&nbsp;&nbsp; for Φ<sub>B</sub> = Φ<sub>m</sub> sin ωt, &nbsp; e = −NωΦ<sub>m</sub> cos ωt</div>
+        <p>The reader sends commands by modulating its carrier. The card replies through <strong>load modulation</strong>: it changes the loading on its antenna, and the reader detects that change. The free-space wavelength at 13.56 MHz is about 22 m, so at a few centimetres the link is pure near-field magnetic coupling, not radio broadcasting. The reader antenna is a resonant LC circuit tuned near f<sub>0</sub> = 1 / (2π√LC).</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Band</th><th>Typical frequency</th><th>Typical use</th></tr></thead>
+          <tbody><tr><td>Low frequency</td><td>125–134.2 kHz</td><td>Short range, animal tagging</td></tr>
+          <tr><td><strong>High frequency (this project)</strong></td><td>13.56 MHz</td><td>Contactless cards, libraries, NFC</td></tr>
+          <tr><td>Ultra-high frequency</td><td>≈ 860–960 MHz</td><td>Inventory and logistics</td></tr></tbody>
+        </table></div>
+      </div>
+    </div></section>
+
+    <section class="report-section paper" id="hardware" aria-labelledby="hardware-title"><div class="wrap section-grid">
+      <div><p class="section-index">02 / HARDWARE</p><h2 id="hardware-title">System architecture.</h2></div>
+      <div class="section-body">
+        <div class="diagram" role="img" aria-label="Block diagram: RFID card to MFRC522 reader over 13.56 MHz, reader to Arduino UNO over SPI, Arduino drives LEDs, buzzer and Serial Monitor">
+          <div class="diagram-row"><div class="node"><strong>RFID card / tag</strong>Passive · 13.56 MHz</div></div>
+          <span class="link">↓ NEAR-FIELD COUPLING</span>
+          <div class="diagram-row"><div class="node"><strong>MFRC522 reader</strong>RF sensing &amp; card selection</div></div>
+          <span class="link">↓ SPI</span>
+          <div class="diagram-row"><div class="node core"><strong>Arduino UNO</strong>UID detection &amp; logic</div></div>
+          <span class="link">↓ OUTPUTS</span>
+          <div class="diagram-row"><div class="node"><strong>LEDs</strong>Visual status</div><div class="node"><strong>Buzzer</strong>Audible beep</div><div class="node"><strong>Serial Monitor</strong>UID display</div></div>
+        </div>
+        <h3>Components</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Component</th><th>Qty</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>Arduino UNO R3</td><td>1</td><td>Main microcontroller board</td></tr>
+            <tr><td>MFRC522 RFID reader module</td><td>1</td><td>13.56 MHz card detection</td></tr>
+            <tr><td>Compatible RFID cards / tags</td><td>2</td><td>Registered and unregistered test cards</td></tr>
+            <tr><td>Green and red LEDs</td><td>1 + 1</td><td>Registered / unregistered indication</td></tr>
+            <tr><td>Active buzzer module</td><td>1</td><td>Audible feedback</td></tr>
+            <tr><td>220–330 Ω resistors</td><td>2</td><td>LED current limiting</td></tr>
+            <tr><td>Logic-level converter</td><td>1</td><td>5 V → 3.3 V SPI signals</td></tr>
+            <tr><td>Breadboard, jumpers, USB cable</td><td>—</td><td>Assembly, power and programming</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div></section>
+
+    <section class="report-section" id="wiring" aria-labelledby="wiring-title"><div class="wrap section-grid">
+      <div><p class="section-index">03 / CIRCUIT</p><h2 id="wiring-title">Wiring &amp; interfacing.</h2></div>
+      <div class="section-body">
+        <div class="table-wrap"><table>
+          <thead><tr><th>MFRC522 pin</th><th>Arduino UNO</th><th>Function</th></tr></thead>
+          <tbody>
+            <tr><td>SDA / SS</td><td>D10</td><td>SPI slave select</td></tr>
+            <tr><td>SCK</td><td>D13</td><td>SPI clock</td></tr>
+            <tr><td>MOSI</td><td>D11</td><td>Master out, slave in</td></tr>
+            <tr><td>MISO</td><td>D12</td><td>Master in, slave out</td></tr>
+            <tr><td>RST</td><td>D9</td><td>Reader reset</td></tr>
+            <tr><td>3.3V / GND</td><td>3.3V / GND</td><td>Power and common ground</td></tr>
+            <tr><td>Green LED · Red LED · Buzzer</td><td>D6 · D7 · D8</td><td>Through 220–330 Ω (LEDs)</td></tr>
+          </tbody>
+        </table></div>
+        <p><strong class="accent-text">Electrical precaution:</strong> the UNO uses 5 V logic, but the MFRC522 is a 3.3 V device. The reader is powered from 3.3 V, and the SCK, MOSI, SS and RST lines pass through level conversion.</p>
+        <h3>LED resistor</h3>
+        <div class="formula">R = (V<sub>out</sub> − V<sub>f</sub>) / I<sub>f</sub> = (5 − 2) / 0.01 = 300 Ω &nbsp;→&nbsp; use 330 Ω</div>
+      </div>
+    </div></section>
+
+    <section class="report-section" id="software" aria-labelledby="software-title"><div class="wrap section-grid">
+      <div><p class="section-index">04 / FIRMWARE</p><h2 id="software-title">Detection loop.</h2></div>
+      <div class="section-body">
+        <ol class="flow">
+          <li><strong>Initialize</strong>Serial, SPI bus, reader and output pins</li>
+          <li><strong>Poll</strong>Wait for a new card in the field</li>
+          <li><strong>Read UID</strong>Anticollision, selection and UID transfer</li>
+          <li><strong>Compare</strong>Match full UID and its length</li>
+          <li><strong>Respond</strong>LED, beep and serial log, then halt the card</li>
+        </ol>
+        <pre><code>#include &lt;SPI.h&gt;
+#include &lt;MFRC522.h&gt;
+
+#define SS_PIN 10
+#define RST_PIN 9
+#define GREEN_LED 6
+#define RED_LED 7
+#define BUZZER 8
+
+MFRC522 rfid(SS_PIN, RST_PIN);
+const byte registeredUID[] = {0x12, 0x34, 0x56, 0x78}; // replace with your card's UID
+
+bool isRegisteredCard() {
+  if (rfid.uid.size != sizeof(registeredUID)) return false;
+  for (byte i = 0; i &lt; sizeof(registeredUID); i++)
+    if (rfid.uid.uidByte[i] != registeredUID[i]) return false;
+  return true;
+}
+
+void setup() {
+  Serial.begin(9600);
+  SPI.begin();
+  rfid.PCD_Init();
+  pinMode(GREEN_LED, OUTPUT); pinMode(RED_LED, OUTPUT); pinMode(BUZZER, OUTPUT);
+  Serial.println("Place an RFID card near the reader");
+}
+
+void loop() {
+  if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) return;
+  Serial.print("UID:");
+  for (byte i = 0; i &lt; rfid.uid.size; i++) {
+    Serial.print(rfid.uid.uidByte[i] &lt; 0x10 ? " 0" : " ");
+    Serial.print(rfid.uid.uidByte[i], HEX);
+  }
+  bool ok = isRegisteredCard();
+  Serial.println(ok ? "  REGISTERED" : "  UNREGISTERED");
+  digitalWrite(ok ? GREEN_LED : RED_LED, HIGH);
+  digitalWrite(BUZZER, HIGH); delay(150); digitalWrite(BUZZER, LOW);
+  delay(850);
+  digitalWrite(GREEN_LED, LOW); digitalWrite(RED_LED, LOW);
+  rfid.PICC_HaltA();
+  rfid.PCD_StopCrypto1();
+}</code></pre>
+        <p>The comparison checks the UID length as well as its bytes, because cards can carry 4-, 7- or 10-byte UIDs. To register a card, I scan it, copy its UID from the Serial Monitor into <code>registeredUID</code> and upload the sketch again.</p>
+      </div>
+    </div></section>
+
+    <section class="report-section paper" id="testing" aria-labelledby="testing-title"><div class="wrap section-grid">
+      <div><p class="section-index">05 / VALIDATION</p><h2 id="testing-title">Test plan.</h2></div>
+      <div class="section-body">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Case</th><th>Input</th><th>Expected outcome</th></tr></thead>
+          <tbody>
+            <tr><td>TC-01</td><td>No card present</td><td>Remains in detection mode</td></tr>
+            <tr><td>TC-02</td><td>Registered card</td><td>UID shown, green LED and beep</td></tr>
+            <tr><td>TC-03</td><td>Unregistered 13.56 MHz card</td><td>UID shown, red LED and beep</td></tr>
+            <tr><td>TC-04</td><td>125 kHz card</td><td>No valid UID read</td></tr>
+            <tr><td>TC-05</td><td>Card out of range</td><td>No successful read</td></tr>
+            <tr><td>TC-06</td><td>Card removed and presented again</td><td>Detected again</td></tr>
+            <tr><td>TC-07</td><td>Different angles and distances (0–5 cm)</td><td>Detection varies with coupling</td></tr>
+          </tbody>
+        </table></div>
+        <div class="formula">Detection success rate = N<sub>s</sub> / N<sub>t</sub> × 100% &nbsp;&nbsp;·&nbsp;&nbsp; T<sub>response</sub> = T<sub>output</sub> − T<sub>start</sub></div>
+        <p>The MFRC522 datasheet gives a typical range of up to about 50 mm, depending on the antenna. A low-cost breakout board may reach less, so the range will be measured, not assumed.</p>
+      </div>
+    </div></section>
+
+    <section class="report-section" id="limits" aria-labelledby="limits-title"><div class="wrap section-grid">
+      <div><p class="section-index">06 / HONEST LIMITS</p><h2 id="limits-title">What it can't do (yet).</h2></div>
+      <div class="section-body">
+        <div class="card-grid">
+          <article><h3>UID ≠ security</h3><p>Some UIDs can be copied or changed. A UID match is identification, not authentication.</p></article>
+          <article><h3>Short range</h3><p>Designed for close-proximity reads. Orientation, metal and supply noise all affect detection.</p></article>
+          <article><h3>HF only</h3><p>Cannot read 125 kHz LF or UHF tags.</p></article>
+          <article><h3>No memory of time</h3><p>Without an RTC or storage there are no timestamps and no history of scans.</p></article>
+        </div>
+      </div>
+    </div></section>
+
+    <section class="report-section" id="learned" aria-labelledby="learned-title"><div class="wrap section-grid">
+      <div><p class="section-index">07 / LEARNING</p><h2 id="learned-title">ECE concepts in practice.</h2></div>
+      <div class="section-body">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Concept</th><th>Where it shows up</th></tr></thead>
+          <tbody>
+            <tr><td>Electromagnetic induction</td><td>Powering a passive card from the reader field</td></tr>
+            <tr><td>Resonance</td><td>Reader antenna tuning near 13.56 MHz</td></tr>
+            <tr><td>Digital communication</td><td>SPI master/peripheral data transfer</td></tr>
+            <tr><td>Embedded C++</td><td>Polling, UID processing and output control</td></tr>
+            <tr><td>Interfacing</td><td>Logic levels, current limiting and common ground</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div></section>
+
+    <section class="report-next wrap" id="next" aria-label="Next project">
+      <a class="next-card" href="smart-id-attendance.html"><div><span>NEXT · REAL-WORLD USE</span><strong>Taking it further: Smart ID entry–exit &amp; time analytics with an ESP32-S3.</strong></div><b aria-hidden="true">→</b></a>
+    </section>
+  </main>
+  <footer class="wrap footer"><a class="wordmark" href="index.html">aakash<span>✳</span></a><span>© 2026 Aakash</span><a href="index.html#work">ALL WORK ↑</a></footer>
+</body>
+</html>

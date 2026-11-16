@@ -1,5 +1,5 @@
 // Add future projects and workshops here. Cards, filters and counts update automatically.
-// See README.md for examples.
+// See README.md for examples. Optional `level` adds a badge such as 'Basic' or 'Real-world use'.
 window.portfolioEntries = [
   {
     id: 'perfect-guess', type: 'project', title: 'Perfect Guess',
@@ -21,6 +21,20 @@ window.portfolioEntries = [
     description: 'A storefront prototype exploring product layouts, responsive styling, and simple cart interactions.',
     tags: ['HTML / CSS', 'JavaScript'],
     href: 'https://aakash9972sn.github.io/my-website/', action: 'Open website'
+  },
+  {
+    id: 'rfid-card-detection', type: 'project', title: 'RFID Card Detection System',
+    category: 'Embedded systems', level: 'Basic', artwork: 'rfid',
+    description: 'An Arduino UNO and MFRC522 reader that detects 13.56 MHz cards over SPI, reads their UID and signals registered or unregistered cards with LEDs and a buzzer.',
+    tags: ['Arduino UNO', 'MFRC522', 'SPI'],
+    href: 'rfid-card-detection.html', action: 'Explore the build'
+  },
+  {
+    id: 'smart-id-attendance', type: 'project', title: 'Smart ID Entry–Exit & Time Analytics',
+    category: 'Embedded IoT', level: 'Real-world use', artwork: 'attendance',
+    description: 'An ESP32-S3 system with entry and exit NFC readers, an RTC and offline microSD logging that turns card scans into daily, monthly and custom-range presence reports.',
+    tags: ['ESP32-S3', 'PN532 NFC', 'Data analytics'],
+    href: 'smart-id-attendance.html', action: 'Explore the system'
   },
   {
     id: 'analog-workshop', type: 'workshop', title: 'Analog Circuit Analysis, Design & Testing',
