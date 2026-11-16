@@ -18,12 +18,9 @@
   
   <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../../style.css">
-  <link rel="stylesheet" href="../../analog-workshop.css?v=20261116-7">
-  <script src="../../analog-workshop.js" defer></script>
+  <link rel="stylesheet" href="../../analog-workshop.css?v=book-math-1">
+  <script src="../../analog-workshop.js?v=book-math-1" defer></script>
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.min.css" integrity="sha384-WwGtaC6ywCHxA5cstpj/3+xIZvTez8dq2IcBQaXRkenHZ7FVVq1ZROtURwfbtTlG" crossorigin="anonymous">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.min.js" integrity="sha384-a1WQdjRj162i159OYq041X6I4K8NenkrI09LlPmiHg0YOb7CR+wJOraXwK9abpnE" crossorigin="anonymous"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/contrib/auto-render.min.js" integrity="sha384-bjyGPfbij8/NDKJhSGZNP/khQVgtHUE5exjm4Ydllo42FwIgYsdLO2lXGmRBf5Mz" crossorigin="anonymous"></script>
 </head>
 <body class="case-study-page">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -284,10 +281,10 @@
             <span class="compare-tag">Traditional Circuit Analysis</span>
             <h3>Given Circuit Topology → Find Outputs</h3>
             <p>
-              In conventional classroom analysis, the circuit diagram, all component values ($R_1, R_2, C, \beta$), and source characteristics are completely known beforehand.
+              In conventional classroom analysis, the circuit diagram, all component values (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>R</mi><mn>2</mn></msub><mo separator="true">,</mo><mi>C</mi><mo separator="true">,</mo><mi>β</mi></mrow><annotation encoding="application/x-tex">R_1, R_2, C, \beta</annotation></semantics></math>), and source characteristics are completely known beforehand.
             </p>
             <ul class="bullet-points">
-              <li><span class="dot">•</span> <strong>Determined System:</strong> $N_{\text{equations}} = N_{\text{variables}}$. Solvable by mechanical application of KCL/KVL or Cramer's rule.</li>
+              <li><span class="dot">•</span> <strong>Determined System:</strong> <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mtext>equations</mtext></msub><mo>=</mo><msub><mi>N</mi><mtext>variables</mtext></msub></mrow><annotation encoding="application/x-tex">N_{\text{equations}} = N_{\text{variables}}</annotation></semantics></math>. Solvable by mechanical application of KCL/KVL or Cramer's rule.</li>
               <li><span class="dot">•</span> <strong>Brute-Force Algebra:</strong> Produces monstrous polynomials where individual component values are entangled and obscured.</li>
               <li><span class="dot">•</span> <strong>Zero Design Insight:</strong> If the gain is too low or bandwidth too narrow, the equations give no clue which resistor or capacitor to adjust.</li>
             </ul>
@@ -297,10 +294,10 @@
             <span class="compare-tag">Engineering Circuit Design (DOA)</span>
             <h3>Given Specifications → Synthesize Circuit</h3>
             <p>
-              In engineering design, you begin with a blank sheet and target performance specifications: gain $A_v$, bandwidth $f_{\text{cutoff}}$, input impedance $R_{\text{in}}$, and dynamic range.
+              In engineering design, you begin with a blank sheet and target performance specifications: gain <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mi>v</mi></msub></mrow><annotation encoding="application/x-tex">A_v</annotation></semantics></math>, bandwidth <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mtext>cutoff</mtext></msub></mrow><annotation encoding="application/x-tex">f_{\text{cutoff}}</annotation></semantics></math>, input impedance <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mtext>in</mtext></msub></mrow><annotation encoding="application/x-tex">R_{\text{in}}</annotation></semantics></math>, and dynamic range.
             </p>
             <ul class="bullet-points">
-              <li><span class="dot">•</span> <strong>Under-Constrained System:</strong> $N_{\text{variables}} > N_{\text{equations}}$. There are infinite possible component combinations.</li>
+              <li><span class="dot">•</span> <strong>Under-Constrained System:</strong> <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mtext>variables</mtext></msub><mo>&gt;</mo><msub><mi>N</mi><mtext>equations</mtext></msub></mrow><annotation encoding="application/x-tex">N_{\text{variables}} &gt; N_{\text{equations}}</annotation></semantics></math>. There are infinite possible component combinations.</li>
               <li><span class="dot">•</span> <strong>Engineering Choices:</strong> The designer must make informed choices using rules of thumb, trade-offs, standard E24 series values, and thermal margins.</li>
               <li><span class="dot">•</span> <strong>Low-Entropy Form:</strong> Expressions must be written so that every parameter corresponds directly to a physical circuit element or asymptotic corner.</li>
             </ul>
@@ -317,9 +314,7 @@
           <div class="entropy-comparison-split">
             <div class="entropy-panel bad">
               <span class="entropy-label">High-Entropy Expression (Avoid)</span>
-              <div class="math-display">
-                H(s) = \frac{a_0 + a_1 s + a_2 s^2}{b_0 + b_1 s + b_2 s^2 + b_3 s^3}
-              </div>
+              <div class="math-display book-equation" id="equation-1"><div class="equation-content"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>H</mi><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mrow><msub><mi>a</mi><mn>0</mn></msub><mo>+</mo><msub><mi>a</mi><mn>1</mn></msub><mi>s</mi><mo>+</mo><msub><mi>a</mi><mn>2</mn></msub><msup><mi>s</mi><mn>2</mn></msup></mrow><mrow><msub><mi>b</mi><mn>0</mn></msub><mo>+</mo><msub><mi>b</mi><mn>1</mn></msub><mi>s</mi><mo>+</mo><msub><mi>b</mi><mn>2</mn></msub><msup><mi>s</mi><mn>2</mn></msup><mo>+</mo><msub><mi>b</mi><mn>3</mn></msub><msup><mi>s</mi><mn>3</mn></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">H(s) = \frac{a_0 + a_1 s + a_2 s^2}{b_0 + b_1 s + b_2 s^2 + b_3 s^3}</annotation></semantics></math></div><span class="equation-number">(1)</span></div>
               <p>
                 A high-entropy polynomial has all coefficients expanded out. It hides where the poles and zeros are located, making it impossible to see which capacitor limits high-frequency response or how to adjust feedback.
               </p>
@@ -327,11 +322,9 @@
 
             <div class="entropy-panel good">
               <span class="entropy-label">Low-Entropy Expression (Design-Oriented)</span>
-              <div class="math-display">
-                H(s) = A_0 \cdot \frac{1 + \frac{s}{\omega_z}}{\left(1 + \frac{s}{\omega_{p1}}\right)\left(1 + \frac{s}{\omega_{p2}}\right)}
-              </div>
+              <div class="math-display book-equation" id="equation-2"><div class="equation-content"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>H</mi><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>A</mi><mn>0</mn></msub><mo>⋅</mo><mfrac><mrow><mn>1</mn><mo>+</mo><mfrac><mi>s</mi><msub><mi>ω</mi><mi>z</mi></msub></mfrac></mrow><mrow><mrow><mo fence="true">(</mo><mn>1</mn><mo>+</mo><mfrac><mi>s</mi><msub><mi>ω</mi><mrow><mi>p</mi><mn>1</mn></mrow></msub></mfrac><mo fence="true">)</mo></mrow><mrow><mo fence="true">(</mo><mn>1</mn><mo>+</mo><mfrac><mi>s</mi><msub><mi>ω</mi><mrow><mi>p</mi><mn>2</mn></mrow></msub></mfrac><mo fence="true">)</mo></mrow></mrow></mfrac></mrow><annotation encoding="application/x-tex">H(s) = A_0 \cdot \frac{1 + \frac{s}{\omega_z}}{\left(1 + \frac{s}{\omega_{p1}}\right)\left(1 + \frac{s}{\omega_{p2}}\right)}</annotation></semantics></math></div><span class="equation-number">(2)</span></div>
               <p>
-                A low-entropy expression expresses the transfer function in terms of midband reference gain $A_0$ and salient corner frequencies ($\omega_z, \omega_p$). Any shift in a component immediately shows its exact effect on the Bode plot!
+                A low-entropy expression expresses the transfer function in terms of midband reference gain <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">A_0</annotation></semantics></math> and salient corner frequencies (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ω</mi><mi>z</mi></msub><mo separator="true">,</mo><msub><mi>ω</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">\omega_z, \omega_p</annotation></semantics></math>). Any shift in a component immediately shows its exact effect on the Bode plot!
               </p>
             </div>
           </div>
@@ -344,9 +337,9 @@
             A key skill in DOA is finding the equivalent resistance seen by any capacitor or node without redrawing large small-signal networks:
           </p>
           <ul class="bullet-points">
-            <li><span class="dot">•</span> <strong>Parallel Dominance:</strong> When two or more resistive paths exist in parallel ($R_1 \parallel R_2$), the smallest resistance strictly dominates the equivalent impedance ($R_{\text{eq}} \approx R_{\text{small}}$).</li>
-            <li><span class="dot">•</span> <strong>Series Dominance:</strong> When impedances are in series ($R_1 + R_2$), the largest resistance dominates ($R_{\text{eq}} \approx R_{\text{large}}$).</li>
-            <li><span class="dot">•</span> <strong>Source Loading Effect:</strong> An ideal voltage source has zero output impedance ($R_s = 0$). Real-world signal generators and microphones have finite $R_s$, attenuating the signal if the amplifier's input impedance $R_{\text{in}}$ is not engineered significantly higher than $R_s$.</li>
+            <li><span class="dot">•</span> <strong>Parallel Dominance:</strong> When two or more resistive paths exist in parallel (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mn>1</mn></msub><mo>∥</mo><msub><mi>R</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">R_1 \parallel R_2</annotation></semantics></math>), the smallest resistance strictly dominates the equivalent impedance (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mtext>eq</mtext></msub><mo>≈</mo><msub><mi>R</mi><mtext>small</mtext></msub></mrow><annotation encoding="application/x-tex">R_{\text{eq}} \approx R_{\text{small}}</annotation></semantics></math>).</li>
+            <li><span class="dot">•</span> <strong>Series Dominance:</strong> When impedances are in series (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mn>1</mn></msub><mo>+</mo><msub><mi>R</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">R_1 + R_2</annotation></semantics></math>), the largest resistance dominates (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mtext>eq</mtext></msub><mo>≈</mo><msub><mi>R</mi><mtext>large</mtext></msub></mrow><annotation encoding="application/x-tex">R_{\text{eq}} \approx R_{\text{large}}</annotation></semantics></math>).</li>
+            <li><span class="dot">•</span> <strong>Source Loading Effect:</strong> An ideal voltage source has zero output impedance (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>s</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">R_s = 0</annotation></semantics></math>). Real-world signal generators and microphones have finite <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>s</mi></msub></mrow><annotation encoding="application/x-tex">R_s</annotation></semantics></math>, attenuating the signal if the amplifier's input impedance <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mtext>in</mtext></msub></mrow><annotation encoding="application/x-tex">R_{\text{in}}</annotation></semantics></math> is not engineered significantly higher than <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>s</mi></msub></mrow><annotation encoding="application/x-tex">R_s</annotation></semantics></math>.</li>
           </ul>
         </div>
       </div>
@@ -357,48 +350,44 @@
       <div class="wrap">
         <header class="section-lead-header">
           <span class="section-num">04 / BIPOLAR JUNCTION TRANSISTORS</span>
-          <h2 id="biasing-heading">Thermal Sensitivity &amp; Negative Feedback:<br><em>The Emitter Degeneration ($R_E$) Solution.</em></h2>
+          <h2 id="biasing-heading">Thermal Sensitivity &amp; Negative Feedback:<br><em>The Emitter Degeneration (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>E</mi></msub></mrow><annotation encoding="application/x-tex">R_E</annotation></semantics></math>) Solution.</em></h2>
           <p class="lead-subtitle">
-            Analyzing why fixed base-biasing fails catastrophically, and how the 10% $V_{CC}$ rule establishes rock-solid operating points.
+            Analyzing why fixed base-biasing fails catastrophically, and how the 10% <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>C</mi><mi>C</mi></mrow></msub></mrow><annotation encoding="application/x-tex">V_{CC}</annotation></semantics></math> rule establishes rock-solid operating points.
           </p>
         </header>
 
         <div class="doa-compare-grid">
           <div class="compare-card analysis">
             <span class="compare-tag" style="color:#f87171; background:rgba(239,68,68,0.1);">The Thermal Instability Trap</span>
-            <h3>The Exponential $I_C - V_{BE}$ Relation</h3>
+            <h3>The Exponential <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>C</mi></msub><mo>−</mo><msub><mi>V</mi><mrow><mi>B</mi><mi>E</mi></mrow></msub></mrow><annotation encoding="application/x-tex">I_C - V_{BE}</annotation></semantics></math> Relation</h3>
             <p>
               In a bipolar junction transistor, collector current follows the Shockley diode equation:
             </p>
-            <div class="math-display" style="margin:12px 0;">
-              I_C = I_S \exp\left(\frac{V_{BE}}{V_T}\right) \iff V_{BE} = V_T \ln\left(\frac{I_C}{I_S}\right)
-            </div>
+            <div class="math-display book-equation" id="equation-3"><div class="equation-content"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>I</mi><mi>C</mi></msub><mo>=</mo><msub><mi>I</mi><mi>S</mi></msub><mi>exp</mi><mo>⁡</mo><mrow><mo fence="true">(</mo><mfrac><msub><mi>V</mi><mrow><mi>B</mi><mi>E</mi></mrow></msub><msub><mi>V</mi><mi>T</mi></msub></mfrac><mo fence="true">)</mo></mrow><mtext>  </mtext><mo>⟺</mo><mtext>  </mtext><msub><mi>V</mi><mrow><mi>B</mi><mi>E</mi></mrow></msub><mo>=</mo><msub><mi>V</mi><mi>T</mi></msub><mi>ln</mi><mo>⁡</mo><mrow><mo fence="true">(</mo><mfrac><msub><mi>I</mi><mi>C</mi></msub><msub><mi>I</mi><mi>S</mi></msub></mfrac><mo fence="true">)</mo></mrow></mrow><annotation encoding="application/x-tex">I_C = I_S \exp\left(\frac{V_{BE}}{V_T}\right) \iff V_{BE} = V_T \ln\left(\frac{I_C}{I_S}\right)</annotation></semantics></math></div><span class="equation-number">(3)</span></div>
             <p>
-              Where $V_T = \frac{kT}{q} \approx 26\text{ mV}$ at room temperature. Because of this exponential relationship:
+              Where <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>T</mi></msub><mo>=</mo><mfrac><mrow><mi>k</mi><mi>T</mi></mrow><mi>q</mi></mfrac><mo>≈</mo><mn>26</mn><mtext> mV</mtext></mrow><annotation encoding="application/x-tex">V_T = \frac{kT}{q} \approx 26\text{ mV}</annotation></semantics></math> at room temperature. Because of this exponential relationship:
             </p>
             <ul class="bullet-points">
-              <li><span class="dot">•</span> <strong>$V_{BE}$ Temperature Drift:</strong> $V_{BE}$ drops by approximately $-2\text{ mV}/^\circ\text{C}$ as the transistor heats up.</li>
-              <li><span class="dot">•</span> <strong>The 300% Surge Catastrophe:</strong> A mere $10\%$ decrease in $V_{BE}$ (or slight temperature rise) causes an explosive $+300\%$ surge in collector current $I_C$!</li>
-              <li><span class="dot">•</span> <strong>Thermal Runaway:</strong> Without stabilization, rising $I_C$ generates internal $I^2 R$ heat, which increases temperature, further increasing $I_C$ until the transistor melts or saturates.</li>
+              <li><span class="dot">•</span> <strong><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>B</mi><mi>E</mi></mrow></msub></mrow><annotation encoding="application/x-tex">V_{BE}</annotation></semantics></math> Temperature Drift:</strong> <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>B</mi><mi>E</mi></mrow></msub></mrow><annotation encoding="application/x-tex">V_{BE}</annotation></semantics></math> drops by approximately <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>2</mn><mtext> mV</mtext><msup><mi mathvariant="normal">/</mi><mo>∘</mo></msup><mtext>C</mtext></mrow><annotation encoding="application/x-tex">-2\text{ mV}/^\circ\text{C}</annotation></semantics></math> as the transistor heats up.</li>
+              <li><span class="dot">•</span> <strong>The 300% Surge Catastrophe:</strong> A mere <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>10</mn><mi mathvariant="normal">%</mi></mrow><annotation encoding="application/x-tex">10\%</annotation></semantics></math> decrease in <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>B</mi><mi>E</mi></mrow></msub></mrow><annotation encoding="application/x-tex">V_{BE}</annotation></semantics></math> (or slight temperature rise) causes an explosive <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>+</mo><mn>300</mn><mi mathvariant="normal">%</mi></mrow><annotation encoding="application/x-tex">+300\%</annotation></semantics></math> surge in collector current <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>C</mi></msub></mrow><annotation encoding="application/x-tex">I_C</annotation></semantics></math>!</li>
+              <li><span class="dot">•</span> <strong>Thermal Runaway:</strong> Without stabilization, rising <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>C</mi></msub></mrow><annotation encoding="application/x-tex">I_C</annotation></semantics></math> generates internal <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>I</mi><mn>2</mn></msup><mi>R</mi></mrow><annotation encoding="application/x-tex">I^2 R</annotation></semantics></math> heat, which increases temperature, further increasing <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>C</mi></msub></mrow><annotation encoding="application/x-tex">I_C</annotation></semantics></math> until the transistor melts or saturates.</li>
             </ul>
           </div>
 
           <div class="compare-card design">
             <span class="compare-tag">The Negative Feedback Cure</span>
-            <h3>Emitter Degeneration ($R_E$) Feedback</h3>
+            <h3>Emitter Degeneration (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>E</mi></msub></mrow><annotation encoding="application/x-tex">R_E</annotation></semantics></math>) Feedback</h3>
             <p>
-              Inserting an emitter resistor $R_E$ introduces series-series negative feedback that self-regulates the collector current:
+              Inserting an emitter resistor <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>E</mi></msub></mrow><annotation encoding="application/x-tex">R_E</annotation></semantics></math> introduces series-series negative feedback that self-regulates the collector current:
             </p>
-            <div class="math-display" style="margin:12px 0; color:var(--cyan);">
-              I_C \uparrow \implies V_E = I_E R_E \uparrow \implies V_{BE} = (V_B - V_E) \downarrow \implies I_C \downarrow
-            </div>
+            <div class="math-display book-equation" id="equation-4"><div class="equation-content"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>I</mi><mi>C</mi></msub><mo>↑</mo><mtext>  </mtext><mo>⟹</mo><mtext>  </mtext><msub><mi>V</mi><mi>E</mi></msub><mo>=</mo><msub><mi>I</mi><mi>E</mi></msub><msub><mi>R</mi><mi>E</mi></msub><mo>↑</mo><mtext>  </mtext><mo>⟹</mo><mtext>  </mtext><msub><mi>V</mi><mrow><mi>B</mi><mi>E</mi></mrow></msub><mo>=</mo><mo stretchy="false">(</mo><msub><mi>V</mi><mi>B</mi></msub><mo>−</mo><msub><mi>V</mi><mi>E</mi></msub><mo stretchy="false">)</mo><mo>↓</mo><mtext>  </mtext><mo>⟹</mo><mtext>  </mtext><msub><mi>I</mi><mi>C</mi></msub><mo>↓</mo></mrow><annotation encoding="application/x-tex">I_C \uparrow \implies V_E = I_E R_E \uparrow \implies V_{BE} = (V_B - V_E) \downarrow \implies I_C \downarrow</annotation></semantics></math></div><span class="equation-number">(4)</span></div>
             <p>
               The loop gain automatically stabilizes the operating point:
             </p>
             <ul class="bullet-points">
-              <li><span class="dot">•</span> <strong>$\beta$-Insensitive Bias:</strong> Collector current becomes fixed primarily by passive resistors: $I_C \approx \frac{V_B - 0.7\text{V}}{R_E}$.</li>
-              <li><span class="dot">•</span> <strong>The Industry 10% Rule of Thumb:</strong> Allocate $10\%$ of rail supply across $R_E$ ($V_{RE} \approx 0.1 V_{CC}$). For $V_{CC}=20\text{V}$, $V_{RE}=2\text{V}$; for $I_C=10\text{mA}$, $R_E=200\ \Omega$.</li>
-              <li><span class="dot">•</span> <strong>Base Divider Stiffening:</strong> Design divider current $I_{\text{divider}} \ge 10 I_B$ so base voltage $V_B$ is immune to loading, then match to standard E24 laboratory resistors (e.g. 47k and 8.2k).</li>
+              <li><span class="dot">•</span> <strong><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math>-Insensitive Bias:</strong> Collector current becomes fixed primarily by passive resistors: <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>C</mi></msub><mo>≈</mo><mfrac><mrow><msub><mi>V</mi><mi>B</mi></msub><mo>−</mo><mn>0.7</mn><mtext>V</mtext></mrow><msub><mi>R</mi><mi>E</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">I_C \approx \frac{V_B - 0.7\text{V}}{R_E}</annotation></semantics></math>.</li>
+              <li><span class="dot">•</span> <strong>The Industry 10% Rule of Thumb:</strong> Allocate <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>10</mn><mi mathvariant="normal">%</mi></mrow><annotation encoding="application/x-tex">10\%</annotation></semantics></math> of rail supply across <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>E</mi></msub></mrow><annotation encoding="application/x-tex">R_E</annotation></semantics></math> (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>R</mi><mi>E</mi></mrow></msub><mo>≈</mo><mn>0.1</mn><msub><mi>V</mi><mrow><mi>C</mi><mi>C</mi></mrow></msub></mrow><annotation encoding="application/x-tex">V_{RE} \approx 0.1 V_{CC}</annotation></semantics></math>). For <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>C</mi><mi>C</mi></mrow></msub><mo>=</mo><mn>20</mn><mtext>V</mtext></mrow><annotation encoding="application/x-tex">V_{CC}=20\text{V}</annotation></semantics></math>, <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>R</mi><mi>E</mi></mrow></msub><mo>=</mo><mn>2</mn><mtext>V</mtext></mrow><annotation encoding="application/x-tex">V_{RE}=2\text{V}</annotation></semantics></math>; for <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>C</mi></msub><mo>=</mo><mn>10</mn><mtext>mA</mtext></mrow><annotation encoding="application/x-tex">I_C=10\text{mA}</annotation></semantics></math>, <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>E</mi></msub><mo>=</mo><mn>200</mn><mtext> </mtext><mi mathvariant="normal">Ω</mi></mrow><annotation encoding="application/x-tex">R_E=200\ \Omega</annotation></semantics></math>.</li>
+              <li><span class="dot">•</span> <strong>Base Divider Stiffening:</strong> Design divider current <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mtext>divider</mtext></msub><mo>≥</mo><mn>10</mn><msub><mi>I</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">I_{\text{divider}} \ge 10 I_B</annotation></semantics></math> so base voltage <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">V_B</annotation></semantics></math> is immune to loading, then match to standard E24 laboratory resistors (e.g. 47k and 8.2k).</li>
             </ul>
           </div>
         </div>
@@ -411,7 +400,7 @@
 
             <div class="slider-group">
               <div class="slider-header">
-                <span class="lbl">Supply Voltage ($V_{CC}$)</span>
+                <span class="lbl">Supply Voltage (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>C</mi><mi>C</mi></mrow></msub></mrow><annotation encoding="application/x-tex">V_{CC}</annotation></semantics></math>)</span>
                 <span class="val" id="vcc-val-disp">20.0 V</span>
               </div>
               <input type="range" class="range-slider" id="calc-vcc" min="10" max="30" step="1" value="20">
@@ -419,7 +408,7 @@
 
             <div class="slider-group">
               <div class="slider-header">
-                <span class="lbl">Target Collector Current ($I_C$)</span>
+                <span class="lbl">Target Collector Current (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>C</mi></msub></mrow><annotation encoding="application/x-tex">I_C</annotation></semantics></math>)</span>
                 <span class="val" id="ic-val-disp">10.0 mA</span>
               </div>
               <input type="range" class="range-slider" id="calc-ic" min="1" max="25" step="0.5" value="10">
@@ -427,7 +416,7 @@
 
             <div class="slider-group">
               <div class="slider-header">
-                <span class="lbl">Transistor Current Gain ($\beta$)</span>
+                <span class="lbl">Transistor Current Gain (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math>)</span>
                 <span class="val" id="beta-val-disp">100</span>
               </div>
               <input type="range" class="range-slider" id="calc-beta" min="50" max="300" step="10" value="100">
@@ -437,42 +426,42 @@
           <div class="calc-results-col">
             <div class="results-grid">
               <div class="res-box">
-                <span class="label">Emitter Voltage ($V_{RE}$)</span>
+                <span class="label">Emitter Voltage (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>R</mi><mi>E</mi></mrow></msub></mrow><annotation encoding="application/x-tex">V_{RE}</annotation></semantics></math>)</span>
                 <span class="value" id="out-vre">2.00 V</span>
-                <span class="note">10% of $V_{CC}$ budget</span>
+                <span class="note">10% of <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>C</mi><mi>C</mi></mrow></msub></mrow><annotation encoding="application/x-tex">V_{CC}</annotation></semantics></math> budget</span>
               </div>
               <div class="res-box">
-                <span class="label">Degeneration Resistor ($R_E$)</span>
+                <span class="label">Degeneration Resistor (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>E</mi></msub></mrow><annotation encoding="application/x-tex">R_E</annotation></semantics></math>)</span>
                 <span class="value" id="out-re">200 Ω</span>
-                <span class="note">$V_{RE} / I_C$</span>
+                <span class="note"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>R</mi><mi>E</mi></mrow></msub><mi mathvariant="normal">/</mi><msub><mi>I</mi><mi>C</mi></msub></mrow><annotation encoding="application/x-tex">V_{RE} / I_C</annotation></semantics></math></span>
               </div>
               <div class="res-box">
-                <span class="label">Base Bias Voltage ($V_B$)</span>
+                <span class="label">Base Bias Voltage (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">V_B</annotation></semantics></math>)</span>
                 <span class="value" id="out-vb">2.70 V</span>
-                <span class="note">$V_{RE} + 0.7\text{V}$</span>
+                <span class="note"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>R</mi><mi>E</mi></mrow></msub><mo>+</mo><mn>0.7</mn><mtext>V</mtext></mrow><annotation encoding="application/x-tex">V_{RE} + 0.7\text{V}</annotation></semantics></math></span>
               </div>
               <div class="res-box">
-                <span class="label">Collector Resistor ($R_C$)</span>
+                <span class="label">Collector Resistor (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>C</mi></msub></mrow><annotation encoding="application/x-tex">R_C</annotation></semantics></math>)</span>
                 <span class="value" id="out-rc">885 Ω</span>
                 <span class="note">Mid-rail dynamic swing</span>
               </div>
               <div class="res-box">
-                <span class="label">Upper Divider ($R_1$)</span>
+                <span class="label">Upper Divider (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">R_1</annotation></semantics></math>)</span>
                 <span class="value" id="out-r1">15.7 kΩ</span>
-                <span class="note">Stiff $10 I_B$ sizing</span>
+                <span class="note">Stiff <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>10</mn><msub><mi>I</mi><mi>B</mi></msub></mrow><annotation encoding="application/x-tex">10 I_B</annotation></semantics></math> sizing</span>
               </div>
               <div class="res-box">
-                <span class="label">Lower Divider ($R_2$)</span>
+                <span class="label">Lower Divider (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">R_2</annotation></semantics></math>)</span>
                 <span class="value" id="out-r2">2.7 kΩ</span>
-                <span class="note">Immune to $\beta$ variations</span>
+                <span class="note">Immune to <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi></mrow><annotation encoding="application/x-tex">\beta</annotation></semantics></math> variations</span>
               </div>
               <div class="res-box">
-                <span class="label">Dynamic Resistance ($r_e$)</span>
+                <span class="label">Dynamic Resistance (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">r_e</annotation></semantics></math>)</span>
                 <span class="value" id="out-re-small">2.60 Ω</span>
-                <span class="note">$V_T / I_C$ small-signal</span>
+                <span class="note"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>T</mi></msub><mi mathvariant="normal">/</mi><msub><mi>I</mi><mi>C</mi></msub></mrow><annotation encoding="application/x-tex">V_T / I_C</annotation></semantics></math> small-signal</span>
               </div>
               <div class="res-box">
-                <span class="label">Quiescent $V_C$</span>
+                <span class="label">Quiescent <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mi>C</mi></msub></mrow><annotation encoding="application/x-tex">V_C</annotation></semantics></math></span>
                 <span class="value" id="out-vc">11.15 V</span>
                 <span class="note">Symmetric audio swing</span>
               </div>
@@ -500,15 +489,13 @@
         <div class="doa-compare-grid">
           <div class="compare-card analysis">
             <span class="compare-tag">Small-Signal Parameters</span>
-            <h3>Dynamic Emitter Resistance ($r_e$)</h3>
+            <h3>Dynamic Emitter Resistance (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">r_e</annotation></semantics></math>)</h3>
             <p>
               Looking into the emitter terminal of a forward-biased BJT reveals an intrinsic AC dynamic resistance governed strictly by thermal voltage and DC bias current:
             </p>
-            <div class="math-display" style="margin:12px 0;">
-              r_e = \frac{V_T}{I_C} \approx \frac{26\text{ mV}}{10\text{ mA}} = 2.6\ \Omega
-            </div>
+            <div class="math-display book-equation" id="equation-5"><div class="equation-content"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>r</mi><mi>e</mi></msub><mo>=</mo><mfrac><msub><mi>V</mi><mi>T</mi></msub><msub><mi>I</mi><mi>C</mi></msub></mfrac><mo>≈</mo><mfrac><mrow><mn>26</mn><mtext> mV</mtext></mrow><mrow><mn>10</mn><mtext> mA</mtext></mrow></mfrac><mo>=</mo><mn>2.6</mn><mtext> </mtext><mi mathvariant="normal">Ω</mi></mrow><annotation encoding="application/x-tex">r_e = \frac{V_T}{I_C} \approx \frac{26\text{ mV}}{10\text{ mA}} = 2.6\ \Omega</annotation></semantics></math></div><span class="equation-number">(5)</span></div>
             <p>
-              Because $r_e$ is remarkably small ($2.6\ \Omega$), the intrinsic transconductance $g_m = 1/r_e \approx 385\text{ mS}$ provides tremendous voltage gain capability when un-degenerated.
+              Because <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">r_e</annotation></semantics></math> is remarkably small (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2.6</mn><mtext> </mtext><mi mathvariant="normal">Ω</mi></mrow><annotation encoding="application/x-tex">2.6\ \Omega</annotation></semantics></math>), the intrinsic transconductance <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>g</mi><mi>m</mi></msub><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><msub><mi>r</mi><mi>e</mi></msub><mo>≈</mo><mn>385</mn><mtext> mS</mtext></mrow><annotation encoding="application/x-tex">g_m = 1/r_e \approx 385\text{ mS}</annotation></semantics></math> provides tremendous voltage gain capability when un-degenerated.
             </p>
           </div>
 
@@ -516,28 +503,24 @@
             <span class="compare-tag">Gain by Inspection</span>
             <h3>The Complete Midband Transfer Function</h3>
             <p>
-              Using Design-Oriented Analysis, the voltage gain from source $v_s$ to output $v_o$ is written down in a single glance:
+              Using Design-Oriented Analysis, the voltage gain from source <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>s</mi></msub></mrow><annotation encoding="application/x-tex">v_s</annotation></semantics></math> to output <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>o</mi></msub></mrow><annotation encoding="application/x-tex">v_o</annotation></semantics></math> is written down in a single glance:
             </p>
-            <div class="math-display" style="margin:12px 0; color:var(--cyan); font-size:12px;">
-              A_v = \frac{v_o}{v_s} = -\left(\frac{R_B}{R_s + R_B}\right) \cdot \frac{\alpha R_C}{r_e + R_E + \frac{R_s \parallel R_B}{1+\beta}}
-            </div>
+            <div class="math-display book-equation" id="equation-6"><div class="equation-content"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>A</mi><mi>v</mi></msub><mo>=</mo><mfrac><msub><mi>v</mi><mi>o</mi></msub><msub><mi>v</mi><mi>s</mi></msub></mfrac><mo>=</mo><mo>−</mo><mrow><mo fence="true">(</mo><mfrac><msub><mi>R</mi><mi>B</mi></msub><mrow><msub><mi>R</mi><mi>s</mi></msub><mo>+</mo><msub><mi>R</mi><mi>B</mi></msub></mrow></mfrac><mo fence="true">)</mo></mrow><mo>⋅</mo><mfrac><mrow><mi>α</mi><msub><mi>R</mi><mi>C</mi></msub></mrow><mrow><msub><mi>r</mi><mi>e</mi></msub><mo>+</mo><msub><mi>R</mi><mi>E</mi></msub><mo>+</mo><mfrac><mrow><msub><mi>R</mi><mi>s</mi></msub><mo>∥</mo><msub><mi>R</mi><mi>B</mi></msub></mrow><mrow><mn>1</mn><mo>+</mo><mi>β</mi></mrow></mfrac></mrow></mfrac></mrow><annotation encoding="application/x-tex">A_v = \frac{v_o}{v_s} = -\left(\frac{R_B}{R_s + R_B}\right) \cdot \frac{\alpha R_C}{r_e + R_E + \frac{R_s \parallel R_B}{1+\beta}}</annotation></semantics></math></div><span class="equation-number">(6)</span></div>
             <p>
-              Where $R_B = R_1 \parallel R_2$ and $\alpha = \frac{\beta}{1+\beta} \approx 0.99$. The leading factor accounts for input source attenuation, while the denominator transparently sums all resistances in the emitter loop!
+              Where <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>B</mi></msub><mo>=</mo><msub><mi>R</mi><mn>1</mn></msub><mo>∥</mo><msub><mi>R</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">R_B = R_1 \parallel R_2</annotation></semantics></math> and <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mfrac><mi>β</mi><mrow><mn>1</mn><mo>+</mo><mi>β</mi></mrow></mfrac><mo>≈</mo><mn>0.99</mn></mrow><annotation encoding="application/x-tex">\alpha = \frac{\beta}{1+\beta} \approx 0.99</annotation></semantics></math>. The leading factor accounts for input source attenuation, while the denominator transparently sums all resistances in the emitter loop!
             </p>
           </div>
         </div>
 
         <!-- Coupling Capacitor & Frequency Response -->
         <div class="objective-list-box">
-          <h3><span>✦</span> Input Coupling Capacitor ($C_1$) Sizing &amp; The $f_1 / 10$ Safety Rule (Sheets 12 &amp; 13)</h3>
+          <h3><span>✦</span> Input Coupling Capacitor (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">C_1</annotation></semantics></math>) Sizing &amp; The <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mn>1</mn></msub><mi mathvariant="normal">/</mi><mn>10</mn></mrow><annotation encoding="application/x-tex">f_1 / 10</annotation></semantics></math> Safety Rule (Sheets 12 &amp; 13)</h3>
           <p style="font-size:14px; color:var(--muted-light); margin-bottom:12px;">
-            The input coupling capacitor $C_1$ isolates the sensitive DC base bias from external audio sources while passing AC audio signals. Sizing $C_1$ requires calculating the total resistance in its loop:
+            The input coupling capacitor <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">C_1</annotation></semantics></math> isolates the sensitive DC base bias from external audio sources while passing AC audio signals. Sizing <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">C_1</annotation></semantics></math> requires calculating the total resistance in its loop:
           </p>
-          <div class="math-display" style="margin-bottom:14px;">
-            R_{\text{in}} = R_B \parallel \left[(1+\beta)(r_e + R_E)\right] \implies f_{p1} = \frac{1}{2\pi C_1 (R_s + R_{\text{in}})}
-          </div>
+          <div class="math-display book-equation" id="equation-7"><div class="equation-content"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>R</mi><mtext>in</mtext></msub><mo>=</mo><msub><mi>R</mi><mi>B</mi></msub><mo>∥</mo><mrow><mo fence="true">[</mo><mo stretchy="false">(</mo><mn>1</mn><mo>+</mo><mi>β</mi><mo stretchy="false">)</mo><mo stretchy="false">(</mo><msub><mi>r</mi><mi>e</mi></msub><mo>+</mo><msub><mi>R</mi><mi>E</mi></msub><mo stretchy="false">)</mo><mo fence="true">]</mo></mrow><mtext>  </mtext><mo>⟹</mo><mtext>  </mtext><msub><mi>f</mi><mrow><mi>p</mi><mn>1</mn></mrow></msub><mo>=</mo><mfrac><mn>1</mn><mrow><mn>2</mn><mi>π</mi><msub><mi>C</mi><mn>1</mn></msub><mo stretchy="false">(</mo><msub><mi>R</mi><mi>s</mi></msub><mo>+</mo><msub><mi>R</mi><mtext>in</mtext></msub><mo stretchy="false">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">R_{\text{in}} = R_B \parallel \left[(1+\beta)(r_e + R_E)\right] \implies f_{p1} = \frac{1}{2\pi C_1 (R_s + R_{\text{in}})}</annotation></semantics></math></div><span class="equation-number">(7)</span></div>
           <p style="font-size:14px; color:var(--muted-light);">
-            <strong>The 10x Safety Rule:</strong> If the lowest audio frequency of interest is $f_1 = 100\text{ Hz}$ (or $20\text{ Hz}$ for high-fidelity bass), never set the $-3\text{ dB}$ corner right at $f_1$. At the corner frequency, the signal is attenuated by $3\text{ dB}$ ($30\%$) and suffers a massive $45^\circ$ phase distortion. Instead, the workshop taught to design $f_{corner} = f_1 / 10 = 10\text{ Hz}$, ensuring $< 0.04\text{ dB}$ attenuation and zero perceptible phase shift in the audio band!
+            <strong>The 10x Safety Rule:</strong> If the lowest audio frequency of interest is <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mn>1</mn></msub><mo>=</mo><mn>100</mn><mtext> Hz</mtext></mrow><annotation encoding="application/x-tex">f_1 = 100\text{ Hz}</annotation></semantics></math> (or <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>20</mn><mtext> Hz</mtext></mrow><annotation encoding="application/x-tex">20\text{ Hz}</annotation></semantics></math> for high-fidelity bass), never set the <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>3</mn><mtext> dB</mtext></mrow><annotation encoding="application/x-tex">-3\text{ dB}</annotation></semantics></math> corner right at <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">f_1</annotation></semantics></math>. At the corner frequency, the signal is attenuated by <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn><mtext> dB</mtext></mrow><annotation encoding="application/x-tex">3\text{ dB}</annotation></semantics></math> (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>30</mn><mi mathvariant="normal">%</mi></mrow><annotation encoding="application/x-tex">30\%</annotation></semantics></math>) and suffers a massive <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>45</mn><mo>∘</mo></msup></mrow><annotation encoding="application/x-tex">45^\circ</annotation></semantics></math> phase distortion. Instead, the workshop taught to design <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mrow><mi>c</mi><mi>o</mi><mi>r</mi><mi>n</mi><mi>e</mi><mi>r</mi></mrow></msub><mo>=</mo><msub><mi>f</mi><mn>1</mn></msub><mi mathvariant="normal">/</mi><mn>10</mn><mo>=</mo><mn>10</mn><mtext> Hz</mtext></mrow><annotation encoding="application/x-tex">f_{corner} = f_1 / 10 = 10\text{ Hz}</annotation></semantics></math>, ensuring <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>&lt;</mo><mn>0.04</mn><mtext> dB</mtext></mrow><annotation encoding="application/x-tex">&lt; 0.04\text{ dB}</annotation></semantics></math> attenuation and zero perceptible phase shift in the audio band!
           </p>
         </div>
       </div>
@@ -550,7 +533,7 @@
           <span class="section-num">06 / ADVANCED CIRCUIT THEOREMS</span>
           <h2 id="eet-heading">Middlebrook's Extra Element Theorem (EET):<br><em>Adding Components Without Re-Solving.</em></h2>
           <p class="lead-subtitle">
-            One of the most powerful theorems in analog design: modify any circuit with an extra impedance $Z$ using driving-point and null double-injection impedances.
+            One of the most powerful theorems in analog design: modify any circuit with an extra impedance <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi></mrow><annotation encoding="application/x-tex">Z</annotation></semantics></math> using driving-point and null double-injection impedances.
           </p>
         </header>
 
@@ -558,28 +541,24 @@
           <div class="eet-math-card">
             <h3><span>⚡</span> The Master EET Formulation</h3>
             <p>
-              If a circuit transfer function $A\big|_{Z\to\infty}$ is known when element $Z$ is absent (open circuit), the exact transfer function with $Z$ connected is given by:
+              If a circuit transfer function <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><msub><mo fence="false" stretchy="true" minsize="1.2em" maxsize="1.2em">∣</mo><mrow><mi>Z</mi><mo>→</mo><mi mathvariant="normal">∞</mi></mrow></msub></mrow><annotation encoding="application/x-tex">A\big|_{Z\to\infty}</annotation></semantics></math> is known when element <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi></mrow><annotation encoding="application/x-tex">Z</annotation></semantics></math> is absent (open circuit), the exact transfer function with <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi></mrow><annotation encoding="application/x-tex">Z</annotation></semantics></math> connected is given by:
             </p>
-            <div class="eet-formula-box">
-              A(s) = A\Big|_{Z\to\infty} \cdot \frac{1 + \frac{Z_n}{Z}}{1 + \frac{Z_d}{Z}}
-            </div>
+            <div class="eet-formula-box book-equation" id="equation-8"><div class="equation-content"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>A</mi><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo><mo>=</mo><mi>A</mi><msub><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">∣</mo><mrow><mi>Z</mi><mo>→</mo><mi mathvariant="normal">∞</mi></mrow></msub><mo>⋅</mo><mfrac><mrow><mn>1</mn><mo>+</mo><mfrac><msub><mi>Z</mi><mi>n</mi></msub><mi>Z</mi></mfrac></mrow><mrow><mn>1</mn><mo>+</mo><mfrac><msub><mi>Z</mi><mi>d</mi></msub><mi>Z</mi></mfrac></mrow></mfrac></mrow><annotation encoding="application/x-tex">A(s) = A\Big|_{Z\to\infty} \cdot \frac{1 + \frac{Z_n}{Z}}{1 + \frac{Z_d}{Z}}</annotation></semantics></math></div><span class="equation-number">(8)</span></div>
             <p>
-              Where $Z_d$ is the driving-point impedance seen by $Z$ when input $v_s = 0$, and $Z_n$ is the null double-injection impedance seen by $Z$ when output $v_o$ is held at null ($v_o \equiv 0$).
+              Where <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">Z_d</annotation></semantics></math> is the driving-point impedance seen by <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi></mrow><annotation encoding="application/x-tex">Z</annotation></semantics></math> when input <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>s</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">v_s = 0</annotation></semantics></math>, and <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">Z_n</annotation></semantics></math> is the null double-injection impedance seen by <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi></mrow><annotation encoding="application/x-tex">Z</annotation></semantics></math> when output <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>o</mi></msub></mrow><annotation encoding="application/x-tex">v_o</annotation></semantics></math> is held at null (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>o</mi></msub><mo>≡</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">v_o \equiv 0</annotation></semantics></math>).
             </p>
           </div>
 
           <div class="eet-math-card">
-            <h3><span>🔍</span> Calculating $Z_d$ and $Z_n$ by Inspection</h3>
+            <h3><span>🔍</span> Calculating <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">Z_d</annotation></semantics></math> and <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">Z_n</annotation></semantics></math> by Inspection</h3>
             <p>
-              Applying EET to the <strong>Emitter Bypass Capacitor ($C_2$)</strong> across $R_E$:
+              Applying EET to the <strong>Emitter Bypass Capacitor (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">C_2</annotation></semantics></math>)</strong> across <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>E</mi></msub></mrow><annotation encoding="application/x-tex">R_E</annotation></semantics></math>:
             </p>
             <ul style="padding-left:18px; margin:10px 0; font-size:13px; color:#374151;">
-              <li><strong>Driving Point Impedance ($Z_d$):</strong> With input shorted ($v_s=0$), looking into $R_E$ terminals reveals $Z_d = R_E \parallel r_e'$.</li>
-              <li><strong>Null Injection Impedance ($Z_n$):</strong> Under the condition $v_o = 0$, collector current $i_c = 0 \implies i_e = 0$. No current enters the emitter; hence $Z$ sees only $Z_n = R_E$!</li>
+              <li><strong>Driving Point Impedance (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">Z_d</annotation></semantics></math>):</strong> With input shorted (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>s</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">v_s=0</annotation></semantics></math>), looking into <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>E</mi></msub></mrow><annotation encoding="application/x-tex">R_E</annotation></semantics></math> terminals reveals <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mi>d</mi></msub><mo>=</mo><msub><mi>R</mi><mi>E</mi></msub><mo>∥</mo><msubsup><mi>r</mi><mi>e</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msubsup></mrow><annotation encoding="application/x-tex">Z_d = R_E \parallel r_e&#x27;</annotation></semantics></math>.</li>
+              <li><strong>Null Injection Impedance (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">Z_n</annotation></semantics></math>):</strong> Under the condition <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>o</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">v_o = 0</annotation></semantics></math>, collector current <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>i</mi><mi>c</mi></msub><mo>=</mo><mn>0</mn><mtext>  </mtext><mo>⟹</mo><mtext>  </mtext><msub><mi>i</mi><mi>e</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">i_c = 0 \implies i_e = 0</annotation></semantics></math>. No current enters the emitter; hence <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi></mrow><annotation encoding="application/x-tex">Z</annotation></semantics></math> sees only <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mi>n</mi></msub><mo>=</mo><msub><mi>R</mi><mi>E</mi></msub></mrow><annotation encoding="application/x-tex">Z_n = R_E</annotation></semantics></math>!</li>
             </ul>
-            <div class="eet-formula-box">
-              \omega_z = \frac{1}{C_2 R_E}, \quad \omega_p = \frac{1}{C_2 (R_E \parallel r_e')}
-            </div>
+            <div class="eet-formula-box book-equation" id="equation-9"><div class="equation-content"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>ω</mi><mi>z</mi></msub><mo>=</mo><mfrac><mn>1</mn><mrow><msub><mi>C</mi><mn>2</mn></msub><msub><mi>R</mi><mi>E</mi></msub></mrow></mfrac><mo separator="true">,</mo><mspace width="1em"/><msub><mi>ω</mi><mi>p</mi></msub><mo>=</mo><mfrac><mn>1</mn><mrow><msub><mi>C</mi><mn>2</mn></msub><mo stretchy="false">(</mo><msub><mi>R</mi><mi>E</mi></msub><mo>∥</mo><msubsup><mi>r</mi><mi>e</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msubsup><mo stretchy="false">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">\omega_z = \frac{1}{C_2 R_E}, \quad \omega_p = \frac{1}{C_2 (R_E \parallel r_e&#x27;)}</annotation></semantics></math></div><span class="equation-number">(9)</span></div>
           </div>
         </div>
 
@@ -589,7 +568,7 @@
             <div>
               <h3>Interactive Bode Magnitude Response &amp; Pole-Zero Shelf</h3>
               <p style="font-size:13px; color:var(--muted); margin:4px 0 0;">
-                Observe how the Extra Element Theorem creates a low-frequency shelf (governed by $R_E$) and transitions to high-gain midband (governed by $r_e$).
+                Observe how the Extra Element Theorem creates a low-frequency shelf (governed by <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>E</mi></msub></mrow><annotation encoding="application/x-tex">R_E</annotation></semantics></math>) and transitions to high-gain midband (governed by <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">r_e</annotation></semantics></math>).
               </p>
             </div>
             <div class="bode-button-group" role="group" aria-label="Select bypass capacitor value">
@@ -634,8 +613,8 @@
           </div>
 
           <div class="bode-chart-legend">
-            <span><span class="legend-dot zero"></span> Zero Frequency ($f_z = \omega_z/2\pi$): <strong id="bode-fz-disp" style="color:#f59e0b; margin-left:4px;">17 Hz</strong></span>
-            <span><span class="legend-dot pole"></span> Pole Frequency ($f_p = \omega_p/2\pi$): <strong id="bode-fp-disp" style="color:#38bdf8; margin-left:4px;">1.3 kHz</strong></span>
+            <span><span class="legend-dot zero"></span> Zero Frequency (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>z</mi></msub><mo>=</mo><msub><mi>ω</mi><mi>z</mi></msub><mi mathvariant="normal">/</mi><mn>2</mn><mi>π</mi></mrow><annotation encoding="application/x-tex">f_z = \omega_z/2\pi</annotation></semantics></math>): <strong id="bode-fz-disp" style="color:#f59e0b; margin-left:4px;">17 Hz</strong></span>
+            <span><span class="legend-dot pole"></span> Pole Frequency (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>p</mi></msub><mo>=</mo><msub><mi>ω</mi><mi>p</mi></msub><mi mathvariant="normal">/</mi><mn>2</mn><mi>π</mi></mrow><annotation encoding="application/x-tex">f_p = \omega_p/2\pi</annotation></semantics></math>): <strong id="bode-fp-disp" style="color:#38bdf8; margin-left:4px;">1.3 kHz</strong></span>
             <span><span class="legend-dot gain"></span> Midband AC Gain: <strong id="bode-midgain-disp" style="color:#34d399; margin-left:4px;">~51.7 dB</strong></span>
           </div>
         </div>
@@ -644,13 +623,11 @@
         <div class="eet-math-card" style="margin-top:24px;">
           <h3><span>✦</span> Dual Extra Element Theorem (DEET) for Series Elements (Sheet 17)</h3>
           <p>
-            When adding a series element (such as an input coupling capacitor $C_1$), the natural reference condition is a short circuit ($Z \to 0$) rather than an open circuit. Middlebrook formulated the Dual EET:
+            When adding a series element (such as an input coupling capacitor <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">C_1</annotation></semantics></math>), the natural reference condition is a short circuit (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo>→</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">Z \to 0</annotation></semantics></math>) rather than an open circuit. Middlebrook formulated the Dual EET:
           </p>
-          <div class="eet-formula-box">
-            A(s) = A\Big|_{Z\to 0} \cdot \frac{1 + \frac{Z}{Z_n^*}}{1 + \frac{Z}{Z_d^*}}
-          </div>
+          <div class="eet-formula-box book-equation" id="equation-10"><div class="equation-content"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>A</mi><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo><mo>=</mo><mi>A</mi><msub><mo fence="false" stretchy="true" minsize="1.8em" maxsize="1.8em">∣</mo><mrow><mi>Z</mi><mo>→</mo><mn>0</mn></mrow></msub><mo>⋅</mo><mfrac><mrow><mn>1</mn><mo>+</mo><mfrac><mi>Z</mi><msubsup><mi>Z</mi><mi>n</mi><mo>∗</mo></msubsup></mfrac></mrow><mrow><mn>1</mn><mo>+</mo><mfrac><mi>Z</mi><msubsup><mi>Z</mi><mi>d</mi><mo>∗</mo></msubsup></mfrac></mrow></mfrac></mrow><annotation encoding="application/x-tex">A(s) = A\Big|_{Z\to 0} \cdot \frac{1 + \frac{Z}{Z_n^*}}{1 + \frac{Z}{Z_d^*}}</annotation></semantics></math></div><span class="equation-number">(10)</span></div>
           <p>
-            Where $Z_d^*$ and $Z_n^*$ represent the driving-point and null short-circuit impedances across the cut port, providing seamless duality for series vs parallel circuit modifications.
+            Where <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>Z</mi><mi>d</mi><mo>∗</mo></msubsup></mrow><annotation encoding="application/x-tex">Z_d^*</annotation></semantics></math> and <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>Z</mi><mi>n</mi><mo>∗</mo></msubsup></mrow><annotation encoding="application/x-tex">Z_n^*</annotation></semantics></math> represent the driving-point and null short-circuit impedances across the cut port, providing seamless duality for series vs parallel circuit modifications.
           </p>
         </div>
       </div>
@@ -709,7 +686,7 @@
             <span class="takeaway-num">TAKEAWAY 01</span>
             <h3>Design is an Under-Constrained Craft</h3>
             <p>
-              Classroom problem-solving often tricks students into believing circuits have a single predetermined algebraic answer. In reality, design is inherently under-constrained ($N_{\text{variables}} > N_{\text{equations}}$). Mastery lies in making intelligent engineering choices—sizing bias networks with the 10% rule, preventing source loading, and selecting available standard E24 components.
+              Classroom problem-solving often tricks students into believing circuits have a single predetermined algebraic answer. In reality, design is inherently under-constrained (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mtext>variables</mtext></msub><mo>&gt;</mo><msub><mi>N</mi><mtext>equations</mtext></msub></mrow><annotation encoding="application/x-tex">N_{\text{variables}} &gt; N_{\text{equations}}</annotation></semantics></math>). Mastery lies in making intelligent engineering choices—sizing bias networks with the 10% rule, preventing source loading, and selecting available standard E24 components.
             </p>
           </article>
 
@@ -725,7 +702,7 @@
             <span class="takeaway-num">TAKEAWAY 03</span>
             <h3>Negative Feedback is Nature's Autopilot</h3>
             <p>
-              Understanding the exponential $I_C = I_S e^{V_{BE}/V_T}$ sensitivity demonstrated why simple base resistors lead to thermal runaway. Adding emitter degeneration ($R_E$) turns the circuit into a self-regulating feedback system: as current tries to surge, emitter voltage rises, choking $V_{BE}$ and pinning the operating point with unwavering stability.
+              Understanding the exponential <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>C</mi></msub><mo>=</mo><msub><mi>I</mi><mi>S</mi></msub><msup><mi>e</mi><mrow><msub><mi>V</mi><mrow><mi>B</mi><mi>E</mi></mrow></msub><mi mathvariant="normal">/</mi><msub><mi>V</mi><mi>T</mi></msub></mrow></msup></mrow><annotation encoding="application/x-tex">I_C = I_S e^{V_{BE}/V_T}</annotation></semantics></math> sensitivity demonstrated why simple base resistors lead to thermal runaway. Adding emitter degeneration (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>E</mi></msub></mrow><annotation encoding="application/x-tex">R_E</annotation></semantics></math>) turns the circuit into a self-regulating feedback system: as current tries to surge, emitter voltage rises, choking <math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>V</mi><mrow><mi>B</mi><mi>E</mi></mrow></msub></mrow><annotation encoding="application/x-tex">V_{BE}</annotation></semantics></math> and pinning the operating point with unwavering stability.
             </p>
           </article>
 
@@ -733,7 +710,7 @@
             <span class="takeaway-num">TAKEAWAY 04</span>
             <h3>Middlebrook's EET as an Analytical Superpower</h3>
             <p>
-              Instead of resolving entire KCL matrices when a bypass capacitor or feedback resistor is introduced, the Extra Element Theorem allows calculating driving-point ($Z_d$) and null double-injection ($Z_n$) impedances by inspection. It turns what would be three pages of painful algebra into a clean, intuitive transfer function.
+              Instead of resolving entire KCL matrices when a bypass capacitor or feedback resistor is introduced, the Extra Element Theorem allows calculating driving-point (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">Z_d</annotation></semantics></math>) and null double-injection (<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Z</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">Z_n</annotation></semantics></math>) impedances by inspection. It turns what would be three pages of painful algebra into a clean, intuitive transfer function.
             </p>
           </article>
         </div>

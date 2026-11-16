@@ -382,14 +382,4 @@ function initScrollSpy() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (!window.katex || !window.renderMathInElement) return;
-  document.querySelectorAll('.math-display, .eet-formula-box').forEach(element => {
-    katex.render(element.textContent.trim(), element, { displayMode: true, throwOnError: false, trust: false });
-  });
-  renderMathInElement(document.body, {
-    delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}],
-    throwOnError: false, trust: false,
-    ignoredClasses: ['math-display', 'eet-formula-box']
-  });
-});
+// Equations are native MathML in the HTML, so they display without JavaScript.

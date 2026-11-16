@@ -35,7 +35,7 @@ For a project use `type: 'project'`, a playable/live website in `href`, and an a
 - `workshops/`: existing alternate routes retained.
 - `assets/`: portrait and workshop material.
 
-No build step or backend is needed. Serve this folder with a static HTTP server, or open `index.html` directly. Collection data uses a regular script so it works without fetching a JSON file. Workshop formulas use pinned KaTeX 0.19.1 from jsDelivr; Google Fonts and KaTeX require internet access.
+No build step or backend is needed. Serve this folder with a static HTTP server, or open `index.html` directly. Collection data uses a regular script so it works without fetching a JSON file. Workshop equations are saved as native MathML with textbook-style fractions, scripts and equation numbers. They work without a CDN or JavaScript; the source TeX is retained in each MathML annotation. Google Fonts is optional.
 
 ## Publish with GitHub Pages
 Commit the changed files to this repository’s `main` branch. GitHub Pages deploys from `main` at the repository root. Wait for the Pages deployment to succeed.
