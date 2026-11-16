@@ -1682,3 +1682,19 @@ button {
     scroll-behavior: auto !important;
   }
 }
+
+/* Alternate sections use dark blue against the dark green base */
+.editorial-section.paper-theme { --paper-card: #18263b; --paper-muted: #1d2d45; --line-light: #2a3a52; --muted-dark: #9fb0c6; background: #111c2e; color: var(--paper); border-top-color: #2a3a52; color-scheme: dark; }
+.paper-theme .section-lead-header h2, .paper-theme .prose-block p strong { color: var(--paper); }
+.paper-theme .lead-subtitle, .paper-theme .section-lead-text, .paper-theme .prose-block p { color: #b6c3d3; }
+.paper-theme .section-label, .paper-theme .section-heading-text span { color: #9fc8f0; }
+.paper-theme .white-panel, .paper-theme .element-pill-card, .paper-theme .concept-box-card { background: #18263b; }
+.paper-theme .white-panel h3, .paper-theme .element-pill-card h4, .paper-theme .concept-box-card h4 { color: var(--paper); }
+.paper-theme .white-panel p, .paper-theme .concept-box-card p { color: #b6c3d3; }
+.paper-theme .app-pill { background: #1f3350; color: #cfe0f3; }
+.paper-theme .concept-idx { background: #1f3350; color: #9fc8f0; }
+.paper-theme div[style*="#f6f8f6"] { background: #1d2d45 !important; color: #d3dce7; }
+.paper-theme div[style*="#f6f8f6"] strong, .paper-theme [style*="color: var(--ink)"] { color: var(--paper) !important; }
+.paper-theme div[style*="#f6f8f6"] p { color: #b6c3d3 !important; }
+.paper-theme [style*="color: #1f422e"], .paper-theme [style*="color:#1f422e"] { color: #9fc8f0 !important; }
+.paper-theme .element-pill-card p { color: #b6c3d3; }
