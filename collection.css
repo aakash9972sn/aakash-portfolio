@@ -159,3 +159,31 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }
+
+/* Alternate sections use dark blue against the dark green base */
+.work-section, .education-section { background: #111c2e; color: var(--paper); color-scheme: dark; }
+.section-heading h2 span, .collection-heading h2 em { color: #9fc8f0; }
+.section-heading > p, .collection-title > p, .results-status, .collection-count { color: #9fb0c6; }
+.work-footer { border-top-color: #2a3a52; color: #9fb0c6; }
+.work-section .text-link, .education-section .text-link { color: var(--paper); }
+.education-list li { border-top-color: #2a3a52; }
+.education-level, .education-list p { color: #9fb0c6; }
+.education-badge { background: #1f3350; color: #cfe0f3; }
+.collection-toolbar { border-color: #2a3a52; }
+.collection-filters button { border-color: #34486a; color: #c9d5e3; }
+.collection-filters button:hover { background: #1b2a42; }
+.collection-filters button[aria-pressed="true"] { background: var(--mint); border-color: var(--mint); color: var(--ink); }
+.collection-search { border-bottom-color: #4a5f80; color: #9fb0c6; }
+.collection-search input, .collection-search button { color: var(--paper); }
+.collection-search input::placeholder { color: #8396b0; }
+.collection-card { border-color: #2a3a52; background: #16233a; }
+.collection-card:hover { box-shadow: 0 14px 30px #0006; border-color: #4a6286; }
+.entry-meta, .entry-meta time, .entry-organization { color: #9fb0c6; }
+.entry-description { color: #c0ccda; }
+.entry-tags li { color: #cfe0f3; background: #1f3350; }
+.entry-action { border-top-color: #2a3a52; }
+.entry-action span { border-color: #3a5070; }
+.entry-level { color: var(--ink); background: var(--mint); }
+.empty-results { border-color: #3a5070; }
+.empty-results > span { color: #9fc8f0; }
+.empty-results p { color: #9fb0c6; }

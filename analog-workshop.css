@@ -1539,3 +1539,15 @@ button {
 
 .math-display, .eet-formula-box { overflow-x:auto; max-width:100%; }
 .katex-display { margin:.7em 0; }
+
+/* Alternate sections use dark blue against the dark green base */
+.editorial-section.paper-theme { --paper-card: #18263b; --paper-muted: #1d2d45; --line-light: #2a3a52; --muted-dark: #9fb0c6; background: #111c2e; color: var(--paper); border-top-color: #2a3a52; color-scheme: dark; }
+.paper-theme .section-lead-header h2, .paper-theme .prose-block p strong { color: var(--paper); }
+.paper-theme .lead-subtitle, .paper-theme .section-lead-text, .paper-theme .prose-block p { color: #b6c3d3; }
+.paper-theme .section-label, .paper-theme .section-heading-text span { color: #9fc8f0; }
+.paper-theme .section-num, .paper-theme .section-lead-header h2 em, .paper-theme .lineage-badge { color: var(--cyan); }
+.paper-theme .lineage-card h3, .paper-theme .eet-math-card h3 { color: var(--paper); }
+.paper-theme .lineage-quote { color: #d3dce7; background: #1d2d45; border-left-color: var(--cyan); }
+.paper-theme .lineage-contributions, .paper-theme .eet-math-card p { color: #b6c3d3; }
+.paper-theme .eet-formula-box { color: #e8edf3; background: #1d2d45; border-left-color: var(--cyan); }
+.paper-theme [style*="color:#374151"], .paper-theme [style*="color: #374151"] { color: #b6c3d3 !important; }
