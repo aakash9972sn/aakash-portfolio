@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#151b19">
+  <title>Smart ID Entry–Exit &amp; Time Analytics · ESP32-S3 | Aakash</title>
+  <meta name="description" content="A real-world embedded IoT project by Aakash: a low-cost ESP32-S3 smart ID card entry–exit system with PN532 NFC readers, DS3231 RTC, offline microSD logging, lost-card management and time analytics.">
+  <meta property="og:title" content="Smart ID Entry–Exit &amp; Time Analytics · ESP32-S3">
+  <meta property="og:description" content="Turning NFC card scans into accurate daily, monthly and custom-range presence reports, offline.">
+  <meta property="og:type" content="article">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css?v=20261116-3">
+  <link rel="stylesheet" href="collection.css?v=20261116-3">
+  <link rel="stylesheet" href="project-report.css?v=20261116-4">
+</head>
+<body class="report-page theme-attendance">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="report-header wrap">
+    <a class="back-link" href="index.html#smart-id-attendance"><span aria-hidden="true">←</span> Back to portfolio</a>
+    <span class="report-tag">PROJECT · REAL-WORLD USE</span>
+    <a class="github-nav" href="https://github.com/aakash9972sn" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+  </header>
+  <nav class="report-subnav" aria-label="On this page"><div class="wrap">
+    <a href="#overview">Overview</a><a href="#problem">Problem</a><a href="#architecture">Architecture</a><a href="#cards">Lost cards</a><a href="#data">Data</a><a href="#analytics">Time analytics</a><a href="#budget">Budget</a><a href="#validation">Validation</a><a href="#roadmap">Roadmap</a>
+  </div></nav>
+  <main id="main">
+    <section class="report-hero wrap" id="overview" aria-labelledby="page-title">
+      <div class="report-meta"><span class="pill level">REAL-WORLD USE</span><span class="pill">EMBEDDED IoT</span><span class="pill">ESP32-S3 · NFC</span></div>
+      <h1 id="page-title">Smart ID entry–exit<br>&amp; <em>time analytics.</em></h1>
+      <p class="report-lede">My basic RFID reader, scaled up into a system for a lab, classroom or library doorway. Two NFC readers record who came in and who left. A battery-backed clock timestamps every scan, and a microSD card keeps the history offline. Software then rebuilds each visit to report real presence time per day, per month or between any two dates.</p>
+      <div class="spec-grid">
+        <div><span>Controller</span><strong>ESP32-S3 N16R8 (dual-core LX7, 240 MHz)</strong></div>
+        <div><span>Readers</span><strong>2 × PN532 NFC over UART</strong></div>
+        <div><span>Credentials</span><strong>NTAG213 NFC cards</strong></div>
+        <div><span>Timekeeping</span><strong>DS3231 RTC · ±2 ppm</strong></div>
+        <div><span>Storage</span><strong>microSD · CSV event log</strong></div>
+        <div><span>Planning budget</span><strong>≈ ₹2,300–4,800</strong></div>
+      </div>
+      <p class="status-note"><strong>Project status:</strong> this is a verified technical design. The component capabilities come from manufacturer documentation, and I've checked the time-calculation algorithms by hand. Building the hardware prototype is next. Dual-reader operation, read range, response time and dashboard integration are still to be tested.</p>
+    </section>
+
+    <section class="report-section" id="problem" aria-labelledby="problem-title"><div class="wrap section-grid">
+      <div><p class="section-index">01 / THE PROBLEM</p><h2 id="problem-title">Detecting a card isn't measuring time.</h2></div>
+      <div class="section-body">
+        <p>Most RFID demos stop at printing a UID. Take someone who enters at 9:00, leaves at 12:00, returns at 13:00 and leaves at 17:00. Subtracting the first scan from the last gives 8 hours, but they were actually present for <strong>7</strong>. A practical system has to rebuild every visit separately. It also has to keep working without the internet, let a lost card be disabled without erasing its owner's history, and produce reports without manual calculation.</p>
+        <div class="card-grid">
+          <article><h3>Identify</h3><p>Contactless card detection at designated entry and exit points.</p></article>
+          <article><h3>Record</h3><p>A timestamp for every event, stored offline on removable media.</p></article>
+          <article><h3>Manage</h3><p>Register, revoke and replace cards while history stays tied to the person.</p></article>
+          <article><h3>Analyze</h3><p>Session-accurate daily, monthly and custom date-range reports.</p></article>
+        </div>
+      </div>
+    </div></section>
+
+    <section class="report-section paper" id="architecture" aria-labelledby="arch-title"><div class="wrap section-grid">
+      <div><p class="section-index">02 / ARCHITECTURE</p><h2 id="arch-title">System design.</h2></div>
+      <div class="section-body">
+        <div class="diagram" role="img" aria-label="Architecture: entry and exit PN532 readers over UART feed the ESP32-S3, which uses a DS3231 RTC and microSD storage, then analytics software and a web dashboard">
+          <div class="diagram-row"><div class="node"><strong>Entry reader</strong>PN532 · UART 1 → IN</div><div class="node"><strong>Exit reader</strong>PN532 · UART 2 → OUT</div></div>
+          <span class="link">↓</span>
+          <div class="diagram-row"><div class="node core"><strong>ESP32-S3</strong>Validation · event processing</div></div>
+          <span class="link">↕ I²C · SPI</span>
+          <div class="diagram-row"><div class="node"><strong>DS3231 RTC</strong>Date &amp; time</div><div class="node"><strong>microSD</strong>Offline event log</div></div>
+          <span class="link">↓ Wi-Fi</span>
+          <div class="diagram-row"><div class="node"><strong>Analytics + web dashboard</strong>Individual · monthly · custom dates</div></div>
+        </div>
+        <h3>Why these parts</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Choice</th><th>Reason</th></tr></thead>
+          <tbody>
+            <tr><td>ESP32-S3</td><td>Wi-Fi, BLE, 3 UARTs, SPI and I²C. Enough compute for card handling, files and light reports without a Linux board.</td></tr>
+            <tr><td>Two PN532 readers</td><td>The reader that sees the card sets the direction (IN or OUT), so no button or guessing about alternating scans is needed.</td></tr>
+            <tr><td>NTAG213 cards</td><td>Cheap standard 13.56 MHz NFC tags with a 7-byte factory UID. Good for a budget prototype.</td></tr>
+            <tr><td>DS3231</td><td>Temperature-compensated, battery-backed clock, so timestamps stay right during network outages.</td></tr>
+            <tr><td>microSD</td><td>Several GB is far more than needed. About 600,000 events a year at 150 bytes each is roughly 90 MB.</td></tr>
+          </tbody>
+        </table></div>
+        <p>On a tighter budget, one PN532 with ENTRY and EXIT buttons gives the same data model for less money, at the cost of choosing the direction by hand.</p>
+      </div>
+    </div></section>
+
+    <section class="report-section" id="cards" aria-labelledby="cards-title"><div class="wrap section-grid">
+      <div><p class="section-index">03 / IDENTITY</p><h2 id="cards-title">Lost-card management.</h2></div>
+      <div class="section-body">
+        <p>The key idea is to separate <strong>who a person is</strong> from <strong>which card they carry</strong>. Each person has a permanent Person ID, and cards are replaceable credentials linked to it. When a card is lost, it is marked revoked and a new one is issued to the same Person ID. Past attendance stays intact.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Person ID</th><th>Credential</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>P001</td><td>Old card</td><td><span class="badge">Revoked</span></td></tr>
+            <tr><td>P001</td><td>Replacement card</td><td><span class="badge ok">Active</span></td></tr>
+          </tbody>
+        </table></div>
+        <p>Scans from revoked or unknown cards are rejected and never counted. This check is identifier-based: it stops a known lost UID, but it can't detect a cloned one. That's why the system is classed as <em>non-security-critical attendance logging</em>. The upgrade path is MIFARE DESFire EV3 cards with AES mutual authentication.</p>
+      </div>
+    </div></section>
+
+    <section class="report-section" id="data" aria-labelledby="data-title"><div class="wrap section-grid">
+      <div><p class="section-index">04 / DATA</p><h2 id="data-title">Store every event.</h2></div>
+      <div class="section-body">
+        <div class="table-wrap"><table>
+          <thead><tr><th>File</th><th>Contents</th></tr></thead>
+          <tbody>
+            <tr><td><code>PEOPLE.CSV</code></td><td>Person ID, name, department</td></tr>
+            <tr><td><code>CARDS.CSV</code></td><td>Card UID, Person ID, status</td></tr>
+            <tr><td><code>EVENTS.CSV</code></td><td>Timestamped scan history (the source of truth)</td></tr>
+            <tr><td><code>DEVICES.CSV</code></td><td>Reader identities and directions</td></tr>
+            <tr><td><code>CONFIG.JSON</code></td><td>Settings and reporting preferences</td></tr>
+          </tbody>
+        </table></div>
+        <pre><code>event_id,person_id,credential_id,timestamp,direction,status
+E001,P001,C001,2026-11-16T09:00:00+05:30,IN,ACCEPTED
+E002,P001,C001,2026-11-16T12:00:00+05:30,OUT,ACCEPTED
+E003,P001,C001,2026-11-16T13:00:00+05:30,IN,ACCEPTED
+E004,P001,C001,2026-11-16T17:00:00+05:30,OUT,ACCEPTED</code></pre>
+        <p>I keep raw events instead of daily totals, so every report can be recalculated, audited and checked when a record is disputed. Timestamps carry an explicit time-zone offset. Each write is checked, flushed and closed before the device confirms a scan. If storage fails, the terminal shows an error instead of a false success.</p>
+      </div>
+    </div></section>
+
+    <section class="report-section paper" id="analytics" aria-labelledby="analytics-title"><div class="wrap section-grid">
+      <div><p class="section-index">05 / MATHEMATICS</p><h2 id="analytics-title">Time analytics engine.</h2></div>
+      <div class="section-body">
+        <h3>Presence is a sum of sessions</h3>
+        <div class="formula">T<sub>day</sub> = Σ<sub>i</sub> (t<sub>exit,i</sub> − t<sub>entry,i</sub>) &nbsp;&nbsp;·&nbsp;&nbsp; T<sub>p,m</sub> = Σ<sub>d∈m</sub> T<sub>p,d</sub></div>
+        <h3>Custom date range: clip each session</h3>
+        <div class="formula">T<sub>i</sub>(A, B) = max(0, min(t<sub>exit,i</sub>, B) − max(t<sub>entry,i</sub>, A))</div>
+        <p>Clipping lets an overnight visit split correctly across days or months. For example, a session from 22:30 on 30 November to 01:15 on 1 December counts 1 h 30 m in November and 1 h 15 m in December, not 2 h 45 m on the entry date.</p>
+        <h3>Session reconstruction</h3>
+        <p>A two-state machine (OUTSIDE or INSIDE) pairs events. Only a valid IN → OUT produces a completed session. Anything else is flagged for review. The system never invents a timestamp.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Sequence</th><th>Interpretation</th></tr></thead>
+          <tbody>
+            <tr><td>IN → OUT</td><td>Complete valid session</td></tr>
+            <tr><td>IN → IN</td><td>Missed exit or duplicate entry (flagged)</td></tr>
+            <tr><td>OUT → OUT · OUT with no IN</td><td>Missed entry or orphan exit (flagged)</td></tr>
+            <tr><td>IN with no later OUT</td><td>Open session</td></tr>
+            <tr><td>Revoked card</td><td>Rejected, not counted</td></tr>
+          </tbody>
+        </table></div>
+        <h3>Reports</h3>
+        <p>Each person's report includes total hours, completed visits, days present, average daily presence, first entry and last exit, longest and shortest session, and inconsistent scans. Group reports show person-hours, average visit length and peak periods. Occupancy, O(t) = O(t₀) + N<sub>IN</sub> − N<sub>OUT</sub>, is labelled an estimate, because a card scan doesn't prove someone walked through the door. Clock error adds directly to duration error: |ε<sub>T</sub>| ≤ |ε<sub>in</sub>| + |ε<sub>out</sub>|. That's why the RTC matters.</p>
+      </div>
+    </div></section>
+
+    <section class="report-section" id="budget" aria-labelledby="budget-title"><div class="wrap section-grid">
+      <div><p class="section-index">06 / ECONOMICS</p><h2 id="budget-title">Built for a student budget.</h2></div>
+      <div class="section-body">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Component</th><th>Qty</th><th>Estimated cost</th></tr></thead>
+          <tbody>
+            <tr><td>ESP32-S3 N16R8</td><td>1</td><td>₹600–850</td></tr>
+            <tr><td>PN532 NFC readers</td><td>2</td><td>₹540–1,200</td></tr>
+            <tr><td>DS3231 RTC</td><td>1</td><td>₹165–350</td></tr>
+            <tr><td>microSD adapter + card</td><td>1 + 1</td><td>₹250–550</td></tr>
+            <tr><td>NFC test cards</td><td>Small qty</td><td>₹250–600</td></tr>
+            <tr><td>Power supply</td><td>1</td><td>₹150–300</td></tr>
+            <tr><td>Wiring, PCB and enclosure</td><td>Set</td><td>₹300–900</td></tr>
+            <tr><td><strong>Total (planning range)</strong></td><td></td><td><strong>≈ ₹2,300–4,800</strong></td></tr>
+          </tbody>
+        </table></div>
+        <p>These are approximate retail planning prices from a November 2026 market check. Card replacement stays cheap too: C = N·p·C<sub>card</sub>, so 500 users × 3% annual loss × ₹30 ≈ <strong>₹450 a year</strong>.</p>
+      </div>
+    </div></section>
+
+    <section class="report-section paper" id="validation" aria-labelledby="validation-title"><div class="wrap section-grid">
+      <div><p class="section-index">07 / VALIDATION</p><h2 id="validation-title">What's verified, what's next.</h2></div>
+      <div class="section-body">
+        <div class="table-wrap"><table>
+          <thead><tr><th>Test</th><th>Expected outcome</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Multiple visits per day</td><td>Correct completed-session total</td><td><span class="badge ok">Algorithm verified</span></td></tr>
+            <tr><td>Overnight visit</td><td>Duration split by date</td><td><span class="badge ok">Algorithm verified</span></td></tr>
+            <tr><td>Month boundary clipping</td><td>Time assigned to the right month</td><td><span class="badge ok">Algorithm verified</span></td></tr>
+            <tr><td>Entry / exit reader communication</td><td>Both readers respond over UART</td><td><span class="badge">Hardware test pending</span></td></tr>
+            <tr><td>RTC time + microSD writes</td><td>Valid timestamp saved per scan</td><td><span class="badge">Hardware test pending</span></td></tr>
+            <tr><td>Lost-card revocation</td><td>Revoked UID rejected</td><td><span class="badge">Hardware test pending</span></td></tr>
+            <tr><td>Power restart / storage failure</td><td>Records retained; failure indicated</td><td><span class="badge">Hardware test pending</span></td></tr>
+            <tr><td>Browser reporting</td><td>Date filters return results</td><td><span class="badge">Hardware test pending</span></td></tr>
+          </tbody>
+        </table></div>
+        <p>Planned measurements: scan success rate R = N<sub>s</sub>/N<sub>t</sub> × 100%, detection-to-save latency (average and 95th percentile), range across distances and angles, and offline and power-failure recovery.</p>
+      </div>
+    </div></section>
+
+    <section class="report-section" id="roadmap" aria-labelledby="roadmap-title"><div class="wrap section-grid">
+      <div><p class="section-index">08 / ROADMAP</p><h2 id="roadmap-title">From breadboard to doorway.</h2></div>
+      <div class="section-body">
+        <ol class="flow">
+          <li><strong>Card detection</strong>One PN532 reads a UID over serial</li>
+          <li><strong>Direction</strong>Second reader produces separate IN / OUT</li>
+          <li><strong>Timekeeping</strong>DS3231 set and backup verified</li>
+          <li><strong>Logging</strong>Persistent CSV event history</li>
+          <li><strong>Credentials</strong>Register, revoke, replace</li>
+          <li><strong>Analytics</strong>Sessions, clipping, monthly summaries</li>
+          <li><strong>Dashboard</strong>Search, date range, CSV export</li>
+          <li><strong>Validation</strong>Measure, stress-test, document</li>
+        </ol>
+        <p>Future work: DESFire EV3 authentication, fault-tolerant journaling, central database sync across buildings, OTA updates, an on-device display and passage sensors to verify that someone actually walked through. Attendance data is personal, so the reports need access control, and raw data should never be exposed over open Wi-Fi.</p>
+      </div>
+    </div></section>
+
+    <section class="report-next wrap" aria-label="Previous project">
+      <a class="next-card" href="rfid-card-detection.html"><div><span>WHERE IT STARTED · BASIC BUILD</span><strong>RFID card detection with an Arduino UNO and MFRC522.</strong></div><b aria-hidden="true">←</b></a>
+    </section>
+  </main>
+  <footer class="wrap footer"><a class="wordmark" href="index.html">aakash<span>✳</span></a><span>© 2026 Aakash</span><a href="index.html#work">ALL WORK ↑</a></footer>
+</body>
+</html>

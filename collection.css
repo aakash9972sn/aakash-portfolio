@@ -89,6 +89,23 @@
 .workshop-art-caption strong { font: 500 31px/1.13 var(--display); letter-spacing: -1px; }
 .workshop-art-caption em { font-family: Georgia, serif; font-weight: 400; }
 .art-chip { border: 1px solid #c2e7cd40; border-radius: 20px; white-space: nowrap; padding: 7px 10px; font-size: 8px; letter-spacing: 1px; }
+.entry-level { color: #2f5a3b; background: #d7ead9; border-radius: 20px; padding: 3px 8px; letter-spacing: .6px; font-weight: 600; }
+.entry-art-rfid, .entry-art-attendance { height: 245px; color: #d9c79f; background-color: #2a2418; background-image: radial-gradient(#e8d6ab14 1px, transparent 1px); background-size: 18px 18px; }
+.entry-art-attendance { color: #b9d4f0; background-color: #17222f; }
+.rfid-art { position: absolute; width: 62%; right: 5%; top: 30px; opacity: .55; transition: opacity .3s; }
+.rfid-art .rfid-card { transition: transform .4s; }
+.entry-link:hover .rfid-art { opacity: .8; }
+.entry-link:hover .rfid-art .rfid-card { transform: translateX(-14px); }
+.attendance-art { position: absolute; right: 24px; top: 46px; width: 58%; display: grid; gap: 9px; opacity: .75; transition: opacity .3s; font-size: 8px; letter-spacing: .5px; }
+.entry-link:hover .attendance-art { opacity: 1; }
+.attendance-row { display: flex; align-items: center; gap: 6px; }
+.attendance-row b { font-weight: 600; border: 1px solid currentColor; border-radius: 10px; padding: 1px 5px; font-size: 7px; }
+.attendance-row i { flex: 0 0 var(--w); height: 6px; border-radius: 4px; background: currentColor; opacity: .5; }
+.attendance-total { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px dashed currentColor; padding-top: 7px; }
+.attendance-total strong { font: 600 15px var(--display); }
+.entry-art-rfid .workshop-art-caption strong, .entry-art-attendance .workshop-art-caption strong { font-size: 27px; }
+.entry-art-rfid .art-chip { border-color: #e8d6ab40; }
+.entry-art-attendance .art-chip { border-color: #b9d4f040; }
 .entry-art-default { display: grid; place-items: center; background: #dce5d4; color: #61805b; }
 .entry-art-default > span { font: italic 150px Georgia, serif; }
 .empty-results { text-align: center; padding: 48px 20px 60px; border: 1px dashed #bdc9b8; border-radius: 12px; }
