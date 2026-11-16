@@ -12,7 +12,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css?v=20261116-3">
   <link rel="stylesheet" href="collection.css?v=20261116-3">
-  <link rel="stylesheet" href="project-report.css?v=20261116-4">
+  <link rel="stylesheet" href="project-report.css?v=20261116-5">
 </head>
 <body class="report-page theme-attendance">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -22,7 +22,7 @@
     <a class="github-nav" href="https://github.com/aakash9972sn" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
   </header>
   <nav class="report-subnav" aria-label="On this page"><div class="wrap">
-    <a href="#overview">Overview</a><a href="#problem">Problem</a><a href="#architecture">Architecture</a><a href="#cards">Lost cards</a><a href="#data">Data</a><a href="#analytics">Time analytics</a><a href="#budget">Cost</a><a href="#validation">Testing</a><a href="#roadmap">Build stages</a>
+    <a href="#overview">Overview</a><a href="#problem">Problem</a><a href="#architecture">Architecture</a><a href="#cards">Lost cards</a><a href="#data">Data</a><a href="#analytics">Time analytics</a><a href="#code">Code</a><a href="#budget">Cost</a><a href="#validation">Testing</a><a href="#roadmap">Build stages</a>
   </div></nav>
   <main id="main">
     <section class="report-hero wrap" id="overview" aria-labelledby="page-title">
@@ -37,6 +37,7 @@
         <div><span>Storage</span><strong>microSD · CSV event log</strong></div>
         <div><span>Component cost</span><strong>≈ ₹2,300–4,800</strong></div>
       </div>
+      <a class="report-download" href="assets/reports/smart-id-attendance-report.pdf" target="_blank" rel="noopener">Read the full project report (PDF) <span aria-hidden="true">↗</span></a>
     </section>
 
     <section class="report-section" id="problem" aria-labelledby="problem-title"><div class="wrap section-grid">
@@ -141,8 +142,88 @@ E004,P001,C001,2026-11-16T17:00:00+05:30,OUT,ACCEPTED</code></pre>
       </div>
     </div></section>
 
-    <section class="report-section" id="budget" aria-labelledby="budget-title"><div class="wrap section-grid">
-      <div><p class="section-index">06 / ECONOMICS</p><h2 id="budget-title">Built for a student budget.</h2></div>
+    <section class="report-section" id="code" aria-labelledby="code-title"><div class="wrap section-grid">
+      <div><p class="section-index">06 / CODE</p><h2 id="code-title">Firmware &amp; analytics code.</h2></div>
+      <div class="section-body">
+        <h3>ESP32-S3 firmware: dual PN532 readers over UART</h3>
+        <p>Each reader gets its own hardware UART, so entry and exit scans never share a bus. The reader location sets the direction: a scan on the entry reader is logged as <code>IN</code>, and a scan on the exit reader as <code>OUT</code>.</p>
+        <pre><code>#include &lt;Arduino.h&gt;
+#include &lt;Adafruit_PN532.h&gt;
+
+// GPIO assignments
+#define ENTRY_RX   16
+#define ENTRY_TX   17
+#define EXIT_RX    18
+#define EXIT_TX    21
+#define ENTRY_RST   4
+#define EXIT_RST    5
+
+// Independent UART peripherals
+HardwareSerial entrySerial(1);
+HardwareSerial exitSerial(2);
+
+// Hardware UART PN532 interfaces
+Adafruit_PN532 entryReader(ENTRY_RST, &amp;entrySerial);
+Adafruit_PN532 exitReader(EXIT_RST, &amp;exitSerial);
+
+void startReader(Adafruit_PN532 &amp;reader, HardwareSerial &amp;port,
+                 int rx, int tx, const char *name) {
+  port.setPins(rx, tx);          // reader.begin() opens the port at 115200
+  reader.begin();
+  if (!reader.getFirmwareVersion()) {
+    Serial.printf("%s reader not found\n", name);
+    return;
+  }
+  reader.SAMConfig();
+  Serial.printf("%s reader ready\n", name);
+}
+
+void setup() {
+  Serial.begin(115200);
+  startReader(entryReader, entrySerial, ENTRY_RX, ENTRY_TX, "ENTRY");
+  startReader(exitReader,  exitSerial,  EXIT_RX,  EXIT_TX,  "EXIT");
+}</code></pre>
+        <h3>Event-processing flow</h3>
+        <pre><code>START → initialise ESP32 → initialise both PN532 readers → initialise RTC and microSD
+→ load registered credentials → wait for card
+→ card on ENTRY or EXIT reader → read UID → check status
+   revoked / unknown → reject scan
+   active → read RTC time → write IN or OUT event to EVENTS.CSV → feedback → wait for next card</code></pre>
+        <h3>Time analytics in Python</h3>
+        <p>The analytics only read the stored events, so they can be tested without the reader hardware. This example clips one overnight session to calendar months.</p>
+        <pre><code>from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
+IST = ZoneInfo("Asia/Kolkata")
+
+def timestamp(value):
+    return datetime.fromisoformat(value).replace(tzinfo=IST)
+
+def time_in_range(entry, exit, start, end):
+    if exit &lt;= entry:
+        raise ValueError("Invalid session")
+    overlap_start = max(entry, start)
+    overlap_end = min(exit, end)
+    return max(timedelta(0), overlap_end - overlap_start)
+
+# One session crossing November and December
+entry = timestamp("2026-11-30T22:30:00")
+exit = timestamp("2026-12-01T01:15:00")
+
+nov_start = timestamp("2026-11-01T00:00:00")
+dec_start = timestamp("2026-12-01T00:00:00")
+jan_start = timestamp("2027-01-01T00:00:00")
+
+november = time_in_range(entry, exit, nov_start, dec_start)
+december = time_in_range(entry, exit, dec_start, jan_start)
+print("November:", november)   # 1:30:00
+print("December:", december)   # 1:15:00
+print("Total:", november + december)   # 2:45:00</code></pre>
+      </div>
+    </div></section>
+
+    <section class="report-section paper" id="budget" aria-labelledby="budget-title"><div class="wrap section-grid">
+      <div><p class="section-index">07 / ECONOMICS</p><h2 id="budget-title">Built for a student budget.</h2></div>
       <div class="section-body">
         <div class="table-wrap"><table>
           <thead><tr><th>Component</th><th>Qty</th><th>Estimated cost</th></tr></thead>
@@ -161,8 +242,8 @@ E004,P001,C001,2026-11-16T17:00:00+05:30,OUT,ACCEPTED</code></pre>
       </div>
     </div></section>
 
-    <section class="report-section paper" id="validation" aria-labelledby="validation-title"><div class="wrap section-grid">
-      <div><p class="section-index">07 / TESTING</p><h2 id="validation-title">Test cases.</h2></div>
+    <section class="report-section" id="validation" aria-labelledby="validation-title"><div class="wrap section-grid">
+      <div><p class="section-index">08 / TESTING</p><h2 id="validation-title">Test cases.</h2></div>
       <div class="section-body">
         <div class="table-wrap"><table>
           <thead><tr><th>Test</th><th>Expected outcome</th></tr></thead>
@@ -181,8 +262,8 @@ E004,P001,C001,2026-11-16T17:00:00+05:30,OUT,ACCEPTED</code></pre>
       </div>
     </div></section>
 
-    <section class="report-section" id="roadmap" aria-labelledby="roadmap-title"><div class="wrap section-grid">
-      <div><p class="section-index">08 / BUILD STAGES</p><h2 id="roadmap-title">From breadboard to doorway.</h2></div>
+    <section class="report-section paper" id="roadmap" aria-labelledby="roadmap-title"><div class="wrap section-grid">
+      <div><p class="section-index">09 / BUILD STAGES</p><h2 id="roadmap-title">From breadboard to doorway.</h2></div>
       <div class="section-body">
         <ol class="flow">
           <li><strong>Card detection</strong>One PN532 reads a UID over serial</li>
