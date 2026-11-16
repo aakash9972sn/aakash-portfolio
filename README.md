@@ -1,30 +1,45 @@
-# Aakash — Personal portfolio
+# Aakash — portfolio
+A static portfolio for a DTU Electronics & Communication Engineering student (2024–2028).
+Live: https://aakash9972sn.github.io/aakash-portfolio/
 
-A responsive, static portfolio with an introduction, three real GitHub projects, an about section, education timeline, and a GitHub contact link. Built with HTML, CSS, and vanilla JavaScript. No build step, account, or backend is required.
+## Add future work
+Edit `portfolio-data.js`. Each object becomes a card automatically; category filters, search and counts update from the same data. Projects retain their listed order. Workshops sort newest first by `date`.
 
-## Preview
+For a workshop, add:
+```js
+{
+  id: 'unique-workshop-slug',
+  type: 'workshop',
+  title: 'Workshop title',
+  category: 'Topic area',
+  date: 'YYYY-MM-DD',
+  dateLabel: 'Dates as shown to visitors',
+  organization: 'Workshop organizer',
+  description: 'A short, accurate account of what I learned.',
+  tags: ['Tool', 'Topic'],
+  href: 'workshops/my-workshop/index.html',
+  action: 'Explore my learning'
+}
+```
+Create the linked detail page before adding the entry. Use a unique `id` and ISO start date. Omit `artwork` for an automatic initial illustration, or use `guess`, `quiz`, `shop`, `analog`, or `pcb`.
 
-Open `index.html` in a modern browser, or serve this directory with any static HTTP server. Google Fonts is optional; system fonts are used if unavailable.
+For a project use `type: 'project'`, a playable/live website in `href`, and an action such as `Play game` or `Open website`. Date and organizer are optional. Never use a repository URL as the game’s play link.
 
-## Personalize
+## Files
+- `index.html`: intro, education, collection structure and illustration templates.
+- `portfolio-data.js`: the only file needed to add or edit collection entries.
+- `script.js`: cards, search, filters and mobile navigation.
+- `style.css` and `collection.css`: base styling and collection layout.
+- `analog-circuit-analysis-design.html`, `pcb-designing-bootcamp.html`: detailed workshop pages.
+- `workshops/`: existing alternate routes retained.
+- `assets/`: portrait and workshop material.
 
-- Edit the intro and about text in `index.html`.
-- Education is based on details supplied by Aakash. The supplied portrait is included in assets/aakash.jpg. Class X (2021) and Class XII (2023) are verified from the supplied CBSE marksheets. Add experience and other social links when available.
-- Edit project descriptions and source links in `script.js`, and the corresponding cards in `index.html`.
-- Change the palette using CSS variables at the top of `style.css`.
-- The preview artwork is drawn with CSS and represents the projects; it is not a screenshot.
+No build step or backend is needed. Serve this folder with a static HTTP server, or open `index.html` directly. Collection data uses a regular script so it works without fetching a JSON file. Workshop formulas use pinned KaTeX 0.19.1 from jsDelivr; Google Fonts and KaTeX require internet access.
 
-## GitHub Pages
+## Publish with GitHub Pages
+Commit the changed files to this repository’s `main` branch. GitHub Pages deploys from `main` at the repository root. Wait for the Pages deployment to succeed.
 
-This repository is ready for GitHub Pages. In Settings → Pages, select **Deploy from a branch**, then **main** and **/ (root)**. After GitHub completes deployment, the expected address is https://aakash9972sn.github.io/aakash-portfolio/. This address is only live once Pages is enabled and deployment succeeds.
+## Content & accessibility
+The two workshop entries are dated 13–14 February 2026 (PCB) and 3–4 June 2026 (analog). Existing detailed workshop material is retained. Project artwork is a CSS illustration, not a screenshot. Live project websites are linked directly.
 
-## Content sources
-
-Project descriptions were checked against the public source code in `aakash9972sn/perfect_guess`, `aakash9972sn/newTest`, and `aakash9972sn/my-website`. Only public project information is included; no private repository or account contact information is published.
-
-## Accessibility
-
-Semantic sections, a skip link, visible focus styles, reduced-motion support, and native project dialogs with Escape-to-close and focus restoration. All project links point to GitHub; the site does not simulate message delivery or accept contact-form submissions.
-
-
-The supplied marksheet PDFs are not distributed. Roll numbers, registration numbers, birth date, and family information are excluded from the public site. Grades and percentages are not displayed.
+The interface supports keyboard navigation, visible focus, reduced motion, category buttons with pressed state, announced search results and an empty-result reset. A no-JavaScript list provides direct links. Supplied school marksheets are not distributed.

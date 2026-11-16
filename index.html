@@ -4,17 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#151b19">
-  <meta name="description" content="Aakash — B.Tech Electronics & Communication Engineering student at Delhi Technological University, 2024–2028. Explore my education and web projects.">
-  <title>Aakash — DTU ECE Student &amp; Web Projects</title>
+  <meta name="description" content="Aakash — B.Tech Electronics & Communication Engineering student at Delhi Technological University, 2024–2028. Explore my projects, workshops, and learning journey.">
+  <title>Aakash — DTU ECE Student · Projects &amp; Learning</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="collection.css">
+  <script src="portfolio-data.js" defer></script>
   <script src="script.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="header wrap">
     <a class="wordmark" href="#home" aria-label="Aakash, home">aakash<span>✳</span></a>
-    <nav aria-label="Main navigation"><a href="#work">Work</a><a href="#about">About</a><a href="#education">Education</a><a href="#contact">Contact <span aria-hidden="true">↗</span></a></nav>
+    <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="main-navigation">Menu <span aria-hidden="true">☰</span></button>
+    <nav id="main-navigation" aria-label="Main navigation"><a href="#work">Work &amp; learning</a><a href="#about">About</a><a href="#education">Education</a><a href="#contact">Contact ↗</a></nav>
     <a class="github-nav" href="https://github.com/aakash9972sn" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
   </header>
   <main id="main">
@@ -26,19 +29,52 @@
       </div>
       <div class="hero-bottom"><span>DTU · ECE · B.TECH 2024–2028</span><a href="#work">SCROLL TO DISCOVER <span aria-hidden="true">↓</span></a></div>
     </section>
-    <section class="work-section" id="work" aria-labelledby="work-title"><div class="wrap">
-      <div class="section-heading"><div><p class="eyebrow">01 / THE THINGS I BUILD</p><h2 id="work-title">Selected work<span>.</span></h2></div><p>A few ideas, brought to life.<br>Explore the projects and their source code.</p></div>
-      <div class="project-grid">
-        <article class="project featured"><button class="project-visual guess-visual" data-project="guess" aria-label="Explore Perfect Guess"><span class="preview-label">INTERACTIVE GAME</span><div class="guess-window"><div class="window-top"><span>● ● ●</span><span>perfect_guess</span><span>↗</span></div><div class="guess-content"><span class="tiny-label">A LITTLE LOGIC. A LITTLE LUCK.</span><strong>What's your<br>best guess?</strong><div class="number-row"><span>0</span><span>4</span><span>2</span></div><div class="guess-footer"><span>1 — 1000</span><span>Higher or lower? <b>↗</b></span></div></div></div><span class="visual-open" aria-hidden="true">↗</span></button><div class="project-meta"><div><span class="project-type">01 / GAME DEVELOPMENT</span><h3><button data-project="guess">Perfect Guess</button></h3><p>A number-guessing game with hints, attempt history, and a saved best score.</p></div><span class="project-language">JavaScript</span></div></article>
-        <article class="project"><button class="project-visual quiz-visual" data-project="quiz" aria-label="Explore Biology Test"><span class="preview-label">LEARNING, MADE INTERACTIVE</span><div class="quiz-window"><div class="quiz-top"><span class="quiz-mark">b.</span><span>BIOLOGY TEST</span><span>60:00</span></div><div class="quiz-body"><span class="tiny-label">TEST YOUR KNOWLEDGE</span><strong>Small questions.<br>Big discoveries.</strong><div class="quiz-answer"><span>A</span> Explore a topic <span>○</span></div><div class="quiz-answer selected"><span>B</span> Put knowledge into practice <span>✓</span></div><div class="quiz-answer"><span>C</span> Review and learn <span>○</span></div></div></div><span class="visual-open" aria-hidden="true">↗</span></button><div class="project-meta"><div><span class="project-type">02 / LEARNING TOOL</span><h3><button data-project="quiz">Biology Test</button></h3><p>A timed quiz with progress saving, question navigation, and answer review.</p></div><span class="project-language">JavaScript</span></div></article>
-        <article class="project wide"><button class="project-visual shop-visual" data-project="shop" aria-label="Explore Blunder Pro Max"><span class="preview-label">STOREFRONT EXPLORATION</span><div class="shop-window"><div class="shop-nav"><b>BLUNDER<span>✳</span></b><span>COLLECTION / 001</span><span>☰</span></div><div class="shop-body"><div><span class="tiny-label">A SHOPPING PAGE EXPERIMENT</span><strong>Everyday.<br>Anything but<br><em>ordinary.</em></strong></div><div class="shop-graphic" aria-hidden="true"><div class="bag"><span>B.</span></div><span class="shop-sticker">FRESH<br>FINDS ↗</span></div></div></div><span class="visual-open" aria-hidden="true">↗</span></button><div class="project-meta"><div><span class="project-type">03 / FRONTEND EXPLORATION</span><h3><button data-project="shop">Blunder Pro Max</button></h3><p>A shopping-page prototype exploring product layouts, responsive styling, and cart interactions.</p></div><span class="project-language">HTML / CSS / JS</span></div></article>
-      </div><div class="work-footer"><span>There's more behind the scenes.</span><a class="text-link" href="https://github.com/aakash9972sn?tab=repositories" target="_blank" rel="noopener noreferrer">Explore my GitHub <span aria-hidden="true">↗</span></a></div>
+        <section class="work-section" id="work" aria-labelledby="work-title"><div class="wrap">
+      <div class="section-heading collection-heading">
+        <div><p class="eyebrow">01 / A GROWING COLLECTION</p><h2 id="work-title">Work &amp; <em>learning.</em></h2></div>
+        <p>Things I build. Ideas I explore.<br>A little more with every experience.</p>
+      </div>
+      <div class="collection-toolbar">
+        <div class="collection-filters" role="group" aria-label="Filter work and learning">
+          <button type="button" data-filter="all" aria-pressed="true">All <span>5</span></button>
+          <button type="button" data-filter="project" aria-pressed="false">Projects <span>3</span></button>
+          <button type="button" data-filter="workshop" aria-pressed="false">Workshops <span>2</span></button>
+        </div>
+        <div class="collection-search">
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="1.5"/></svg>
+          <label class="sr-only" for="work-search">Search projects and workshops</label>
+          <input id="work-search" type="search" placeholder="Search topics, tools, or titles…" autocomplete="off">
+          <button id="clear-search" type="button" aria-label="Clear search" hidden>×</button>
+        </div>
+      </div>
+      <p id="results-status" class="results-status" role="status" aria-live="polite"></p>
+      <section class="work-collection" data-collection="project" aria-labelledby="projects-title">
+        <div class="collection-title"><h3 id="projects-title">Projects <span class="collection-count">03</span></h3><p>Made to be opened, played, and explored.</p></div>
+        <div class="collection-grid projects-grid"></div>
+      </section>
+      <section class="work-collection" id="workshops" data-collection="workshop" aria-labelledby="workshops-title">
+        <div class="collection-title"><h3 id="workshops-title">Workshops &amp; learning <span class="collection-count">02</span></h3><p>Notes from the lab and beyond. Latest first.</p></div>
+        <div class="collection-grid workshops-grid"></div>
+      </section>
+      <div id="empty-results" class="empty-results" hidden><span aria-hidden="true">⌕</span><h3>No matches yet.</h3><p>Try another topic or explore the full collection.</p><button id="reset-filters" class="button dark" type="button">Show everything <span aria-hidden="true">↗</span></button></div>
+      <noscript><p>Explore my projects and workshop notes:</p><ul>
+        <li><a href="https://aakash9972sn.github.io/perfect_guess/">Play Perfect Guess</a></li>
+        <li><a href="https://aakash9972sn.github.io/newTest/">Try Biology Test</a></li>
+        <li><a href="https://aakash9972sn.github.io/my-website/">Open Blunder Pro Max</a></li>
+        <li><a href="analog-circuit-analysis-design.html">Analog Circuit Analysis, Design &amp; Testing</a></li>
+        <li><a href="pcb-designing-bootcamp.html">PCB Designing Bootcamp</a></li>
+      </ul></noscript>
+      <div class="work-footer"><span>Always learning. Always making room for the next idea.</span><a class="text-link" href="#contact">Let's connect <span aria-hidden="true">↗</span></a></div>
     </div></section>
-    <section class="about wrap" id="about" aria-labelledby="about-title"><div class="about-label"><p class="eyebrow">02 / A LITTLE ABOUT ME</p><div class="about-stamp" aria-hidden="true">a<span>✳</span></div></div><div class="about-copy"><h2 id="about-title">Hi, I'm Aakash.<br><span>Engineering student.<br>Curious builder.</span></h2><p>I’m pursuing a B.Tech in Electronics &amp; Communication Engineering at Delhi Technological University, in the 2024–2028 batch. Alongside my studies, I build web projects using HTML, CSS, and JavaScript.</p><p>My schooling began in New Delhi, and this portfolio brings together my education and the projects I’ve built along the way.</p><div class="toolkit"><span>MY WEB TOOLKIT</span><ul aria-label="Technologies used in my projects"><li>HTML</li><li>CSS</li><li>JavaScript</li><li>GitHub</li></ul></div></div></section>
+    <section class="about wrap" id="about" aria-labelledby="about-title"><div class="about-label"><p class="eyebrow">02 / A LITTLE ABOUT ME</p><div class="about-stamp" aria-hidden="true">a<span>✳</span></div></div><div class="about-copy"><h2 id="about-title">Hi, I'm Aakash.<br><span>Engineering student.<br>Curious builder.</span></h2><p>I’m pursuing a B.Tech in Electronics &amp; Communication Engineering at Delhi Technological University, in the 2024–2028 batch. Alongside my studies, I build web projects using HTML, CSS, and JavaScript.</p><p>My schooling began in New Delhi, and this portfolio brings together my education and the projects I’ve built along the way.</p><div class="toolkit"><span>MY TECHNICAL TOOLKIT</span><ul aria-label="Technologies and EDA tools"><li>HTML</li><li>CSS</li><li>JavaScript</li><li>EDWinXP</li><li>PCB Design</li><li>Analog Circuits</li><li>DOA (Middlebrook)</li><li>GitHub</li></ul></div></div></section>
     <section class="education-section" id="education" aria-labelledby="education-title"><div class="wrap"><div class="section-heading"><div><p class="eyebrow">03 / MY JOURNEY SO FAR</p><h2 id="education-title">Learning, always<span>.</span></h2></div><p>From school in New Delhi<br>to engineering at DTU.</p></div><ol class="education-list"><li><span class="education-period">2024 — 2028</span><div><span class="education-level">B.TECH · PURSUING</span><h3>Delhi Technological University</h3><p>Electronics &amp; Communication Engineering</p></div><span class="education-badge">Current</span></li><li><span class="education-period">CBSE · 2021 &amp; 2023</span><div><span class="education-level">SECONDARY &amp; SENIOR SECONDARY</span><h3>Govt. Boys Sr. Sec. School No. 1</h3><p>Rajouri Garden Extension, New Delhi 110027</p><div class="school-milestones"><div><span>CLASS X · 2021</span><p>Secondary School Examination</p></div><div><span>CLASS XII · 2023</span><p>Senior School Certificate Examination</p><p class="school-subjects">Physics · Chemistry · Mathematics · Engineering Graphics</p></div></div></div></li><li><span class="education-period">PRIMARY SCHOOL</span><div><span class="education-level">THE BEGINNING</span><h3>MCD Primary School</h3><p>M Block, Raghubir Nagar, Tagore Garden, New Delhi 110027</p></div></li></ol></div></section>
     <section class="contact-section" id="contact" aria-labelledby="contact-title"><div class="wrap"><div class="contact-top"><p class="eyebrow">04 / KEEP IN TOUCH</p><span aria-hidden="true">✳</span></div><h2 id="contact-title">Good things start<br>with a <em>hello.</em></h2><div class="contact-bottom"><p>Explore what I'm building,<br>or find me over on GitHub.</p><a class="button dark" href="https://github.com/aakash9972sn" target="_blank" rel="noopener noreferrer">Find me on GitHub <span aria-hidden="true">↗</span></a></div></div></section>
   </main>
   <footer class="wrap footer"><a class="wordmark" href="#home">aakash<span>✳</span></a><span>© <span id="year">2026</span> Aakash</span><a href="#home">BACK TO TOP ↑</a></footer>
-  <dialog id="project-dialog" aria-labelledby="dialog-title"><div class="dialog-top"><span class="eyebrow">PROJECT NOTES</span><button class="close-dialog" aria-label="Close project details">×</button></div><p id="dialog-category" class="project-type"></p><h2 id="dialog-title"></h2><p id="dialog-description"></p><ul id="dialog-features"></ul><p class="dialog-note">The portfolio artwork is a visual interpretation of the project. Explore the repository for the original implementation.</p><a id="dialog-link" class="button dark" target="_blank" rel="noopener noreferrer">View source on GitHub <span aria-hidden="true">↗</span></a></dialog>
+<template id="artwork-guess"><span class="preview-label">INTERACTIVE GAME</span><div class="guess-window"><div class="window-top"><span>● ● ●</span><span>perfect_guess</span><span>↗</span></div><div class="guess-content"><span class="tiny-label">A LITTLE LOGIC. A LITTLE LUCK.</span><strong>What's your<br>best guess?</strong><div class="number-row"><span>0</span><span>4</span><span>2</span></div><div class="guess-footer"><span>1 — 1000</span><span>Higher or lower? <b>↗</b></span></div></div></div><span class="visual-open" aria-hidden="true">↗</span></template>
+<template id="artwork-quiz"><span class="preview-label">LEARNING, MADE INTERACTIVE</span><div class="quiz-window"><div class="quiz-top"><span class="quiz-mark">b.</span><span>BIOLOGY TEST</span><span>60:00</span></div><div class="quiz-body"><span class="tiny-label">TEST YOUR KNOWLEDGE</span><strong>Small questions.<br>Big discoveries.</strong><div class="quiz-answer"><span>A</span> Explore a topic <span>○</span></div><div class="quiz-answer selected"><span>B</span> Put knowledge into practice <span>✓</span></div><div class="quiz-answer"><span>C</span> Review and learn <span>○</span></div></div></div><span class="visual-open" aria-hidden="true">↗</span></template>
+<template id="artwork-shop"><span class="preview-label">STOREFRONT EXPLORATION</span><div class="shop-window"><div class="shop-nav"><b>BLUNDER<span>✳</span></b><span>COLLECTION / 001</span><span>☰</span></div><div class="shop-body"><div><span class="tiny-label">A SHOPPING PAGE EXPERIMENT</span><strong>Everyday.<br>Anything but<br><em>ordinary.</em></strong></div><div class="shop-graphic" aria-hidden="true"><div class="bag"><span>B.</span></div><span class="shop-sticker">FRESH<br>FINDS ↗</span></div></div></div><span class="visual-open" aria-hidden="true">↗</span></template>
+<template id="artwork-analog"><span class="art-kicker">FIELD NOTES / ANALOG</span><svg class="circuit-art" viewBox="0 0 500 200" fill="none"><path d="M0 100H85l8-14 14 28 14-28 14 28 14-28 8 14h65m0 0V50m0 100V100m-10-50h20m-20 100h20m-10-50h60m0-50v100l80-50-80-50zm80 50H500" stroke="currentColor" stroke-width="2"/><path d="M352 100v65H245V122" stroke="currentColor" stroke-width="1" opacity=".45"/><circle cx="352" cy="100" r="5" fill="currentColor"/><circle cx="85" cy="100" r="4" fill="currentColor"/></svg><div class="workshop-art-caption"><strong>From equations<br>to <em>understanding.</em></strong><span class="art-chip">DOA · EET</span></div></template>
+<template id="artwork-pcb"><span class="art-kicker">FIELD NOTES / HARDWARE</span><svg class="circuit-art" viewBox="0 0 500 200" fill="none"><rect x="190" y="40" width="100" height="100" rx="6" stroke="currentColor" stroke-width="2"/><rect x="207" y="57" width="66" height="66" rx="3" stroke="currentColor" opacity=".5"/><path d="M210 40V10H100M230 40V0M250 40V15H370M190 60H135L110 85H0M190 80H155L110 125H40M190 100H160v60H0M210 140v60M240 140v30h110v30M270 140v15h180M290 60h70l40-40h100M290 90h110l45 45h55M290 120h50l35 35h125" stroke="currentColor" stroke-width="2"/><g fill="currentColor"><circle cx="100" cy="10" r="4"/><circle cx="370" cy="15" r="4"/><circle cx="40" cy="125" r="4"/><circle cx="450" cy="155" r="4"/></g></svg><div class="workshop-art-caption"><strong>A circuit.<br>A board. <em>A beginning.</em></strong><span class="art-chip">EDWinXP</span></div></template>
 </body>
 </html>
