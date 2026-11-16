@@ -23,6 +23,8 @@ body.report-page { line-height: 1.7; }
 .spec-grid div { background: var(--card); padding: 18px 20px; }
 .spec-grid span { display: block; font-size: 9px; letter-spacing: 1.4px; color: var(--muted); text-transform: uppercase; }
 .spec-grid strong { font: 600 15px/1.4 var(--display); }
+.report-download { display: inline-flex; gap: 8px; align-items: center; margin-top: 26px; padding: 12px 20px; border: 1px solid var(--accent); border-radius: 30px; color: var(--accent); font-size: 13px; font-weight: 600; text-decoration: none; transition: background .2s, color .2s; }
+.report-download:hover, .report-download:focus-visible { background: var(--accent); color: var(--ink); }
 .status-note { margin-top: 26px; padding: 16px 20px; border-left: 3px solid var(--accent); background: var(--card); border-radius: 0 8px 8px 0; font-size: 13px; color: #c7cdc9; max-width: 820px; }
 .report-section { padding: 70px 0; border-bottom: 1px solid var(--line); }
 .report-section.paper { background: var(--paper); color: var(--ink); border: 0; color-scheme: light; --card: #fbfbf6; --rule: #d6dbd2; --muted: #5f6b62; }
