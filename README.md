@@ -1,4 +1,4 @@
-# Aakash — portfolio
+# AAKASH — portfolio
 A static portfolio for a DTU Electronics & Communication Engineering student (2024–2028).
 Live: https://aakash9972sn.github.io/aakash-portfolio/
 
