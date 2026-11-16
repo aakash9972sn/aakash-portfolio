@@ -1595,7 +1595,10 @@ math[display="inline"], math:not([display]) {
   font-size: 1.08em;
   color: inherit;
 }
-.entropy-comparison-split > *, .eet-breakdown-grid > * { min-width: 0; }
+.doa-compare-grid > *, .entropy-comparison-split > *, .eet-breakdown-grid > * { min-width: 0; }
+.bullet-points li { display: block; }
+.bullet-points li span.dot { margin-right: 8px; }
+.box-title-row { flex-wrap: wrap; gap: 10px; }
 .entropy-panel .book-equation { min-height: 145px; }
 @media (max-width: 640px) {
   .book-equation, .paper-theme .book-equation { padding: 20px 12px; gap: 10px; font-size: 18px; }
