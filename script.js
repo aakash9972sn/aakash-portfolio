@@ -69,7 +69,7 @@ function makeCard(entry) {
   action.className = 'entry-action';
   action.append(document.createTextNode(entry.action || (entry.type === 'workshop' ? 'Explore my learning' : 'View project')));
   const arrow = document.createElement('span');
-  arrow.textContent = '↗';
+  arrow.innerHTML = "<svg class=\"icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 19 19 5M5 5h14v14\"/></svg>";
   arrow.setAttribute('aria-hidden', 'true');
   action.append(arrow);
   body.append(description, tags, action);

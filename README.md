@@ -23,19 +23,33 @@ For a workshop, add:
 ```
 Create the linked detail page before adding the entry. Use a unique `id` and ISO start date. Omit `artwork` for an automatic initial illustration, or use `guess`, `quiz`, `shop`, `analog`, or `pcb`.
 
-For a project use `type: 'project'`, a playable/live website in `href`, and an action such as `Play game` or `Open website`. Date and organizer are optional. Never use a repository URL as the game’s play link. Hardware projects without a live site link to their own detail page instead. Add an optional `level` (for example `'Basic'` or `'Real-world use'`) to show a badge on the card; it is also searchable. Artwork options also include `rfid` and `attendance`.
+For a project use `type: 'project'`, a playable/live website in `href`, and an action such as `Play game` or `Open website`. Date and organizer are optional. Never use a repository URL as the game’s play link. Hardware projects link to their case-study page. Add an optional `level` (for example `'Foundation project'` or `'System design'`) to show a searchable badge. Artwork options also include `rfid` and `attendance`. The two engineering case studies lead the project collection; the three web projects follow.
 
 ## Files
 - `index.html`: intro, education, collection structure and illustration templates.
 - `portfolio-data.js`: the only file needed to add or edit collection entries.
 - `script.js`: cards, search, filters and mobile navigation.
 - `style.css` and `collection.css`: base styling and collection layout.
+- `site-polish.css`: shared typography, responsive layouts, navigation and visual refinements.
+- `site-interactions.js`: keyboard-accessible workshop document viewers using native modal dialogs.
 - `analog-circuit-analysis-design.html`, `pcb-designing-bootcamp.html`: detailed workshop pages.
-- `rfid-card-detection.html` (basic) and `smart-id-attendance.html` (real-world use): hardware project pages, styled by `project-report.css`.
+- `rfid-card-detection.html` and `smart-id-attendance.html`: engineering case studies, styled by `project-report.css` and `case-study.css`.
+- `case-study.js`: section navigation and the sample-data attendance demonstration.
+- `tests/attendance.test.cjs`: dependency-free tests for session calculation and reporting boundaries.
 - `workshops/`: existing alternate routes retained.
 - `assets/`: portrait and workshop material.
 
-No build step or backend is needed. Serve this folder with a static HTTP server, or open `index.html` directly. Collection data uses a regular script so it works without fetching a JSON file. Workshop equations are saved as native MathML with textbook-style fractions, scripts and equation numbers. They work without a CDN or JavaScript; the source TeX is retained in each MathML annotation. Google Fonts is optional.
+No build step, package installation or backend is needed. To preview locally, run `python3 -m http.server 8000` from the repository root. Collection data uses a regular script so it works without fetching a JSON file. Workshop equations are native MathML; the source TeX is retained in each annotation. Fonts are served locally, so the presentation does not depend on Google Fonts or a CDN.
+
+Run the attendance calculation tests with `node --test tests/attendance.test.cjs`. They cover multiple visits, month boundaries, timezone offsets, missing scans, repeated entries, rejected credentials, independent people and custom reporting windows. Browser verification should also cover search/filter/reset, the mobile menu, all four attendance examples, workshop calculators, note galleries and modal focus restoration.
+
+## Project documentation
+
+The RFID case study is based on the supplied **Professional RFID Report** (21 pages). The Smart ID case study is based on **RFID Project Report Writing**, version 2.0 (25 pages, dated 16 November 2026). Their existing cleaned PDFs remain at `assets/reports/rfid-card-detection-report.pdf` and `assets/reports/smart-id-attendance-report.pdf`.
+
+The pages distinguish circuit and software design from physical validation. No measured read range, latency, scan-success percentage or completed device deployment is claimed. The Smart ID examples use illustrative records and run entirely in the browser; they are not connected to NFC hardware, a real attendance database or a device dashboard. Only completed, unambiguous accepted sessions contribute to confirmed duration. The reports' budget figures are dated planning estimates.
+
+Local fonts use the SIL Open Font License. License files are in `assets/fonts/`. DM Sans and JetBrains Mono are sourced from Fontsource variable packages version 5.3.0; Manrope is included as a Latin variable font. Conceptual project diagrams are inline SVG illustrations, not hardware photographs.
 
 ## Publish with GitHub Pages
 Commit the changed files to this repository’s `main` branch. GitHub Pages deploys from `main` at the repository root. Wait for the Pages deployment to succeed.
@@ -43,4 +57,4 @@ Commit the changed files to this repository’s `main` branch. GitHub Pages depl
 ## Content & accessibility
 The two workshop entries are dated 13–14 February 2026 (PCB) and 3–4 June 2026 (analog). Existing detailed workshop material is retained. Project artwork is a CSS illustration, not a screenshot. Live project websites are linked directly.
 
-The interface supports keyboard navigation, visible focus, reduced motion, category buttons with pressed state, announced search results and an empty-result reset. A no-JavaScript list provides direct links. Supplied school marksheets are not distributed.
+The interface supports keyboard navigation, visible focus, reduced motion, category buttons with pressed state, announced search results and an empty-result reset. Workshop document viewers support Escape, keep focus within the dialog and restore focus to their trigger. Long equations and tables remain scrollable with the keyboard. A no-JavaScript list provides direct links, and the Smart ID page retains a static worked example. Supplied school marksheets are not distributed.

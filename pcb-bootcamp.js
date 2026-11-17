@@ -257,48 +257,13 @@ function initWorkflowInteractive() {
  * Lightbox Controller for Certificate and Poster
  */
 function initLightboxes() {
-  const lightbox = document.querySelector('#case-lightbox');
-  const lightboxImg = document.querySelector('#lightbox-img');
-  const lightboxCaption = document.querySelector('#lightbox-caption');
-  const closeBtn = document.querySelector('#lightbox-close');
-
-  if (!lightbox || !lightboxImg) return;
-
-  // Open triggers
+  const modal = document.getElementById('case-lightbox');
+  if (!modal) return;
+  const open = prepareDocumentViewer(modal, 'active');
   document.querySelectorAll('[data-lightbox-src]').forEach(trigger => {
-    trigger.addEventListener('click', (e) => {
-      e.preventDefault();
-      const src = trigger.getAttribute('data-lightbox-src');
-      const caption = trigger.getAttribute('data-lightbox-caption') || '';
-      lightboxImg.src = src;
-      lightboxCaption.textContent = caption;
-      lightbox.classList.add('active');
-      document.body.style.overflow = 'hidden';
-      closeBtn?.focus();
-    });
-  });
-
-  // Close triggers
-  function closeLightbox() {
-    lightbox.classList.remove('active');
-    document.body.style.overflow = '';
-  }
-
-  closeBtn?.addEventListener('click', closeLightbox);
-
-  lightbox.addEventListener('click', (e) => {
-    if (e.target === lightbox || e.target.classList.contains('lightbox-wrapper')) {
-      closeLightbox();
-    }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && lightbox.classList.contains('active')) {
-      closeLightbox();
-    }
+    bindDocumentTrigger(trigger, () => open(trigger, trigger.dataset.lightboxSrc, trigger.dataset.lightboxCaption || 'Workshop document'));
   });
 }
-
 /**
  * Scrollspy for Sticky Navigation
  */

@@ -3,118 +3,102 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#151b19">
-  <title>RFID Card Detection System · Arduino UNO + MFRC522 | AAKASH</title>
-  <meta name="description" content="A basic embedded systems project by AAKASH: detecting 13.56 MHz RFID cards with an Arduino UNO and MFRC522 reader over SPI, with LED and buzzer feedback.">
-  <meta property="og:title" content="RFID Card Detection System · Arduino UNO + MFRC522">
-  <meta property="og:description" content="Contactless card identification over SPI with UID checking, LEDs and a buzzer.">
+  <meta name="theme-color" content="#121c18">
+  <title>RFID Card Detection · Arduino UNO &amp; MFRC522 | AAKASH</title>
+  <meta name="description" content="An engineering case study of 13.56 MHz card identification: Arduino UNO, MFRC522, SPI wiring, UID processing, reference firmware and a hardware validation plan.">
+  <meta property="og:title" content="RFID Card Detection · Arduino UNO &amp; MFRC522">
+  <meta property="og:description" content="An engineering case study of 13.56 MHz card identification: Arduino UNO, MFRC522, SPI wiring, UID processing, reference firmware and a hardware validation plan.">
   <meta property="og:type" content="article">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20261116-7">
-  <link rel="stylesheet" href="collection.css?v=20261116-7">
-  <link rel="stylesheet" href="project-report.css?v=20261116-7">
+  <link rel="stylesheet" href="style.css?v=20261117-1">
+  <link rel="stylesheet" href="collection.css?v=20261117-1">
+  <link rel="stylesheet" href="project-report.css?v=20261117-1">
+  <link rel="stylesheet" href="site-polish.css?v=20261117-1">
+  <link rel="stylesheet" href="case-study.css?v=20261117-1">
+  <script src="case-study.js?v=20261117-1" defer></script>
 </head>
 <body class="report-page theme-rfid">
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="report-header wrap">
-    <a class="back-link" href="index.html#rfid-card-detection"><span aria-hidden="true">←</span> Back to portfolio</a>
-    <span class="report-tag">PROJECT · BASIC BUILD</span>
-    <a class="github-nav" href="https://github.com/aakash9972sn" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+    <a class="wordmark" href="index.html" aria-label="AAKASH, portfolio home">AAKASH<span class="brand-dot" aria-hidden="true"></span></a>
+    <span class="report-tag">ENGINEERING / PROJECT NOTES</span>
+    <a class="back-link" href="index.html#rfid-card-detection"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg> Back to portfolio</a>
   </header>
-  <nav class="report-subnav" aria-label="On this page"><div class="wrap">
-    <a href="#overview">Overview</a><a href="#principle">How RFID works</a><a href="#hardware">Hardware</a><a href="#wiring">Wiring</a><a href="#software">Software</a><a href="#testing">Testing</a><a href="#limits">Limitations</a>
-  </div></nav>
+  <nav class="report-subnav" aria-label="On this page"><div class="wrap"><a href="#overview">Overview</a><a href="#approach">The approach</a><a href="#hardware">Hardware</a><a href="#wiring">Connections</a><a href="#software">Firmware</a><a href="#testing">Validation</a><a href="#learning">Learning</a><a href="#resources">Report</a></div></nav>
   <main id="main">
-    <section class="report-hero wrap" id="overview" aria-labelledby="page-title">
-      <div class="report-meta"><span class="pill level">BASIC PROJECT</span><span class="pill">EMBEDDED SYSTEMS</span><span class="pill">13.56 MHz HF RFID</span></div>
-      <h1 id="page-title">RFID Card<br><em>Detection System.</em></h1>
-      <p class="report-lede">A contactless identification system in which an Arduino UNO talks to an MFRC522 reader over SPI, reads the Unique Identifier (UID) of a nearby card, checks it against a registered list, and responds with a green or red LED, a short beep and a line on the Serial Monitor.</p>
-      <div class="spec-grid">
-        <div><span>Controller</span><strong>Arduino UNO R3 (ATmega328P, 16 MHz)</strong></div>
-        <div><span>Reader</span><strong>MFRC522 · ISO/IEC 14443 A</strong></div>
-        <div><span>Interface</span><strong>SPI (D10–D13)</strong></div>
-        <div><span>Feedback</span><strong>Green / red LED, active buzzer, serial</strong></div>
-        <div><span>Language</span><strong>Arduino C++</strong></div>
-      </div>
-      <a class="report-download" href="assets/reports/rfid-card-detection-report.pdf" target="_blank" rel="noopener">Read the full project report (PDF) <span aria-hidden="true">↗</span></a>
-    </section>
-
-    <section class="report-section" id="principle" aria-labelledby="principle-title"><div class="wrap section-grid">
-      <div><p class="section-index">01 / THEORY</p><h2 id="principle-title">How passive RFID works.</h2></div>
-      <div class="section-body">
-        <p>The reader drives a 13.56 MHz alternating magnetic field through its antenna coil. When a passive card enters the field, a voltage is induced in the card's coil, which powers its chip. There's no battery in the card.</p>
-        <div class="formula">e = −N · dΦ<sub>B</sub>/dt &nbsp;&nbsp;→&nbsp;&nbsp; for Φ<sub>B</sub> = Φ<sub>m</sub> sin ωt, &nbsp; e = −NωΦ<sub>m</sub> cos ωt</div>
-        <p>The reader sends commands by modulating its carrier. The card replies through <strong>load modulation</strong>: it changes the loading on its antenna, and the reader detects that change. The free-space wavelength at 13.56 MHz is about 22 m, so at a few centimetres the link is pure near-field magnetic coupling, not radio broadcasting. The reader antenna is a resonant LC circuit tuned near f<sub>0</sub> = 1 / (2π√LC).</p>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Band</th><th>Typical frequency</th><th>Typical use</th></tr></thead>
-          <tbody><tr><td>Low frequency</td><td>125–134.2 kHz</td><td>Short range, animal tagging</td></tr>
-          <tr><td><strong>High frequency (this project)</strong></td><td>13.56 MHz</td><td>Contactless cards, libraries, NFC</td></tr>
-          <tr><td>Ultra-high frequency</td><td>≈ 860–960 MHz</td><td>Inventory and logistics</td></tr></tbody>
-        </table></div>
-      </div>
-    </div></section>
-
-    <section class="report-section paper" id="hardware" aria-labelledby="hardware-title"><div class="wrap section-grid">
-      <div><p class="section-index">02 / HARDWARE</p><h2 id="hardware-title">System architecture.</h2></div>
-      <div class="section-body">
-        <div class="diagram" role="img" aria-label="Block diagram: RFID card to MFRC522 reader over 13.56 MHz, reader to Arduino UNO over SPI, Arduino drives LEDs, buzzer and Serial Monitor">
-          <div class="diagram-row"><div class="node"><strong>RFID card / tag</strong>Passive · 13.56 MHz</div></div>
-          <span class="link">↓ NEAR-FIELD COUPLING</span>
-          <div class="diagram-row"><div class="node"><strong>MFRC522 reader</strong>RF sensing &amp; card selection</div></div>
-          <span class="link">↓ SPI</span>
-          <div class="diagram-row"><div class="node core"><strong>Arduino UNO</strong>UID detection &amp; logic</div></div>
-          <span class="link">↓ OUTPUTS</span>
-          <div class="diagram-row"><div class="node"><strong>LEDs</strong>Visual status</div><div class="node"><strong>Buzzer</strong>Audible beep</div><div class="node"><strong>Serial Monitor</strong>UID display</div></div>
-        </div>
-        <h3>Components</h3>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Component</th><th>Qty</th><th>Purpose</th></tr></thead>
-          <tbody>
-            <tr><td>Arduino UNO R3</td><td>1</td><td>Main microcontroller board</td></tr>
-            <tr><td>MFRC522 RFID reader module</td><td>1</td><td>13.56 MHz card detection</td></tr>
-            <tr><td>Compatible RFID cards / tags</td><td>2</td><td>Registered and unregistered test cards</td></tr>
-            <tr><td>Green and red LEDs</td><td>1 + 1</td><td>Registered / unregistered indication</td></tr>
-            <tr><td>Active buzzer module</td><td>1</td><td>Audible feedback</td></tr>
-            <tr><td>220–330 Ω resistors</td><td>2</td><td>LED current limiting</td></tr>
-            <tr><td>Logic-level converter</td><td>1</td><td>5 V → 3.3 V SPI signals</td></tr>
-            <tr><td>Breadboard, jumpers, USB cable</td><td>—</td><td>Assembly, power and programming</td></tr>
-          </tbody>
-        </table></div>
-      </div>
-    </div></section>
-
-    <section class="report-section" id="wiring" aria-labelledby="wiring-title"><div class="wrap section-grid">
-      <div><p class="section-index">03 / CIRCUIT</p><h2 id="wiring-title">Wiring &amp; interfacing.</h2></div>
-      <div class="section-body">
-        <div class="table-wrap"><table>
-          <thead><tr><th>MFRC522 pin</th><th>Arduino UNO</th><th>Function</th></tr></thead>
-          <tbody>
-            <tr><td>SDA / SS</td><td>D10</td><td>SPI slave select</td></tr>
-            <tr><td>SCK</td><td>D13</td><td>SPI clock</td></tr>
-            <tr><td>MOSI</td><td>D11</td><td>Master out, slave in</td></tr>
-            <tr><td>MISO</td><td>D12</td><td>Master in, slave out</td></tr>
-            <tr><td>RST</td><td>D9</td><td>Reader reset</td></tr>
-            <tr><td>3.3V / GND</td><td>3.3V / GND</td><td>Power and common ground</td></tr>
-            <tr><td>Green LED · Red LED · Buzzer</td><td>D6 · D7 · D8</td><td>Through 220–330 Ω (LEDs)</td></tr>
-          </tbody>
-        </table></div>
-        <p><strong class="accent-text">Electrical precaution:</strong> the UNO uses 5 V logic, but the MFRC522 is a 3.3 V device. The reader is powered from 3.3 V, and the SCK, MOSI, SS and RST lines pass through level conversion.</p>
-        <h3>LED resistor</h3>
-        <div class="formula">R = (V<sub>out</sub> − V<sub>f</sub>) / I<sub>f</sub> = (5 − 2) / 0.01 = 300 Ω &nbsp;→&nbsp; use 330 Ω</div>
-      </div>
-    </div></section>
-
-    <section class="report-section" id="software" aria-labelledby="software-title"><div class="wrap section-grid">
-      <div><p class="section-index">04 / FIRMWARE</p><h2 id="software-title">Detection loop.</h2></div>
-      <div class="section-body">
-        <ol class="flow">
-          <li><strong>Initialize</strong>Serial, SPI bus, reader and output pins</li>
-          <li><strong>Poll</strong>Wait for a new card in the field</li>
-          <li><strong>Read UID</strong>Anticollision, selection and UID transfer</li>
-          <li><strong>Compare</strong>Match full UID and its length</li>
-          <li><strong>Respond</strong>LED, beep and serial log, then halt the card</li>
-        </ol>
-        <pre><code>#include &lt;SPI.h&gt;
+<section class="report-hero wrap" id="overview" aria-labelledby="page-title">
+  <div class="report-meta"><span class="pill level">FOUNDATION PROJECT</span><span class="pill">EMBEDDED SYSTEMS</span><span class="pill">AAKASH · DTU ECE</span></div>
+  <div class="report-hero-grid"><div>
+    <h1 id="page-title">RFID card<br><em>detection system.</em></h1><p class="report-lede">From a tap of a card to a clear response. An Arduino UNO and MFRC522 reader connect radio-frequency identification, SPI communication and embedded C++ in a compact contactless identification design.</p>
+    <div class="hero-actions"><a class="report-download" href="assets/reports/rfid-card-detection-report.pdf" target="_blank" rel="noopener noreferrer">Read project report <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a><a class="quiet-link" href="#software">Explore the firmware</a></div>
+  </div><figure class="hero-visual" aria-labelledby="rfid-figure-caption">
+<div class="visual-topline"><span>01 / CONTACTLESS IDENTIFICATION</span><span class="signal">13.56 MHz</span></div>
+<svg viewBox="0 0 390 285" role="img" aria-label="Concept diagram of a passive RFID card communicating with an MFRC522 reader connected to an Arduino UNO">
+  <defs><linearGradient id="card-fill" x2="1" y2="1"><stop stop-color="#eedcbb"/><stop offset="1" stop-color="#baa27b"/></linearGradient></defs>
+  <g transform="translate(28 18) rotate(-7 115 60)"><rect width="218" height="126" rx="12" fill="url(#card-fill)"/><rect x="13" y="13" width="192" height="100" rx="8" fill="none" stroke="#645534" stroke-opacity=".45"/><rect x="24" y="27" width="32" height="26" rx="5" fill="#9c8358" stroke="#6c5a3b"/><path d="M40 27v26m-16-13h32" stroke="#d9c7a2"/><text x="24" y="83" fill="#342e24" font-size="15" font-weight="700" letter-spacing="2">CONTACTLESS ID</text><text x="24" y="102" fill="#4f4533" font-size="9" letter-spacing="1">PASSIVE CARD / NO BATTERY</text></g>
+  <path d="M279 57q35 29 0 58m12-68q46 40 0 78m-24-59q22 20 0 39" fill="none" stroke="#e3c98f" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+  <path d="M131 147v26h-29v26m141-21v21" fill="none" stroke="#b2aa86" stroke-dasharray="4 4"/>
+  <rect x="17" y="199" width="162" height="65" rx="8" fill="#22372d" stroke="#6b8671"/><rect x="32" y="214" width="32" height="34" rx="3" fill="none" stroke="#b8ba86"/><rect x="38" y="220" width="20" height="22" rx="2" fill="none" stroke="#b8ba86"/>
+  <text x="77" y="224" fill="#e3e9de" font-size="12" font-weight="700">MFRC522</text><text x="77" y="244" fill="#aebdac" font-size="9">RFID READER</text>
+  <path d="M179 226h37m-37 10h37" stroke="#e3c98f" stroke-width="1.5"/><text x="185" y="213" fill="#c3c7ae" font-size="9">SPI</text>
+  <rect x="216" y="199" width="157" height="65" rx="8" fill="#22333c" stroke="#627d8b"/><rect x="231" y="216" width="22" height="28" fill="#16232a" stroke="#96abb3"/>
+  <text x="265" y="224" fill="#e3e9de" font-size="12" font-weight="700">UNO R3</text><text x="265" y="244" fill="#aebdc6" font-size="9">UID PROCESSING</text>
+</svg><figcaption id="rfid-figure-caption">Conceptual system illustration. The card supplies an identifier; the controller decides how to respond.</figcaption></figure></div>
+  <dl class="spec-grid"><div><dt>Controller</dt><dd>Arduino UNO R3</dd></div><div><dt>Reader</dt><dd>MFRC522 · 13.56 MHz</dd></div><div><dt>Communication</dt><dd>SPI · 3.3 V reader logic</dd></div><div><dt>Outputs</dt><dd>Serial · LEDs · buzzer</dd></div></dl>
+  <aside class="project-status" aria-label="Project documentation status"><strong>Project status</strong><span>Circuit design, reference firmware and test procedure documented. Physical measurements are not supplied in the report.</span></aside>
+</section>
+<section class="report-section" id="approach" aria-labelledby="approach-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">01 / THE APPROACH</p><h2 id="approach-title">A small system.<br>A complete signal path.</h2></header>
+    <div class="section-body"><p class="lead-paragraph">The engineering task is to turn a contactless card presentation into an identifier that a microcontroller can interpret—and a response a person can understand.</p>
+    <p>This project focuses on the complete detection path: energize a compatible passive card, read its UID, compare it with a registered value and show the result. A Serial Monitor exposes the data for debugging; two LEDs and an active buzzer provide immediate feedback.</p><div class="card-grid three"><article><span class="card-number">01</span><h3>Detect a compatible card</h3><p>Use a 13.56 MHz, ISO/IEC 14443 Type A card or tag supported by the reader. A 125 kHz card belongs to a different RFID family.</p></article><article><span class="card-number">02</span><h3>Read the whole identifier</h3><p>Compare the UID length and every byte. Card identifiers may be 4, 7 or 10 bytes; the example must not assume that all cards have four.</p></article><article><span class="card-number">03</span><h3>Make the result visible</h3><p>A registered UID selects the green LED. An unregistered compatible card selects the red LED. A short beep acknowledges a successful read.</p></article></div><aside class="callout"><strong>Scope of this build</strong><p>This is a foundational identification design. It does not store attendance, measure time on site or provide cryptographically authenticated door access. Those are separate engineering requirements.</p></aside></div>
+  </div>
+</section>
+<section class="report-section paper" id="principle" aria-labelledby="principle-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">02 / RF PRINCIPLE</p><h2 id="principle-title">A card powered<br>by the reader.</h2></header>
+    <div class="section-body"><p>The reader creates an alternating magnetic field at <strong>13.56 MHz</strong>. A nearby passive card couples to that field through its antenna coil, obtaining the energy needed to power its chip. It does not need a battery for normal operation.</p>
+    <div class="formula"><span class="formula-label">Faraday’s law of induction</span>e = −N · dΦ<sub>B</sub>/dt</div>
+    <p>The card responds through <strong>load modulation</strong>: changes in the load on its antenna produce changes the reader can detect. At the short distances used here, the exchange takes place through near-field magnetic coupling.</p>
+    <p>The practical read range depends on both antennas, card orientation, nearby materials and supply quality. The report cites the MFRC522’s antenna-dependent range of up to approximately 50 mm; that is a datasheet condition, not a measured result for this setup.</p></div>
+  </div>
+</section>
+<section class="report-section" id="hardware" aria-labelledby="hardware-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">03 / SYSTEM DESIGN</p><h2 id="hardware-title">From the RF field<br>to the output pins.</h2></header>
+    <div class="section-body"><figure class="diagram" aria-label="System architecture"><div class="diagram-row"><div class="node"><strong>Passive card</strong>Contactless identifier</div><div class="node"><strong>MFRC522</strong>RF exchange and card selection</div></div><span class="link">RF IDENTIFICATION → SPI DATA TRANSFER</span><div class="diagram-row"><div class="node core"><strong>Arduino UNO / ATmega328P</strong>Read UID · compare bytes · control feedback</div></div><span class="link">DIGITAL OUTPUTS + USB SERIAL</span><div class="diagram-row"><div class="node"><strong>Green / red LEDs</strong>Registration status</div><div class="node"><strong>Active buzzer</strong>Read acknowledgement</div><div class="node"><strong>Serial Monitor</strong>UID and result</div></div><figcaption>Functional architecture. SPI control signals require appropriate voltage-level conversion.</figcaption></figure><div class="table-wrap" tabindex="0" role="region" aria-label="Hardware bill of materials"><table><caption>Hardware bill of materials</caption><thead><tr><th scope="col">Component</th><th scope="col">Quantity</th><th scope="col">Role in the design</th></tr></thead><tbody>
+<tr><td>Arduino UNO R3</td><td>1</td><td>ATmega328P controller; 16 MHz clock; USB programming and serial diagnostics.</td></tr>
+<tr><td>MFRC522 reader module</td><td>1</td><td>13.56 MHz contactless frontend and antenna; SPI host interface.</td></tr>
+<tr><td>Compatible cards or tags</td><td>2</td><td>A registered card and a second card for the unregistered case.</td></tr>
+<tr><td>Green / red LEDs + resistors</td><td>1 each + 2</td><td>Visible feedback; 220–330 Ω current-limiting resistors.</td></tr>
+<tr><td>Active buzzer module</td><td>1</td><td>Audible indication after a successful read.</td></tr>
+<tr><td>Suitable level conversion</td><td>As required</td><td>Translate UNO-to-reader control signals from 5 V to 3.3 V.</td></tr>
+<tr><td>Breadboard, jumpers, USB cable</td><td>Set</td><td>Prototype assembly, power and programming.</td></tr>
+</tbody></table></div><p>The UNO is sufficient for this task: it polls one reader, compares a short byte array and drives a small set of outputs. Adding a networked controller would not improve the core UID-detection demonstration.</p></div>
+  </div>
+</section>
+<section class="report-section paper" id="wiring" aria-labelledby="wiring-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">04 / INTERFACING</p><h2 id="wiring-title">Connect the signals.<br>Respect the voltages.</h2></header>
+    <div class="section-body"><div class="table-wrap" tabindex="0" role="region" aria-label="MFRC522 to Arduino UNO connections"><table><caption>MFRC522 to Arduino UNO connections</caption><thead><tr><th scope="col">Reader signal</th><th scope="col">UNO pin</th><th scope="col">Purpose</th></tr></thead><tbody>
+<tr><td>SDA / SS</td><td>D10</td><td>SPI chip select; the SDA label is used as SS in this configuration.</td></tr>
+<tr><td>SCK</td><td>D13</td><td>SPI clock from the controller.</td></tr>
+<tr><td>MOSI</td><td>D11</td><td>Commands and data sent to the reader.</td></tr>
+<tr><td>MISO</td><td>D12</td><td>Data returned by the reader.</td></tr>
+<tr><td>RST</td><td>D9</td><td>Reader reset.</td></tr>
+<tr><td>3.3V / GND</td><td>3.3V / GND</td><td>Reader supply and common reference.</td></tr>
+<tr><td>IRQ</td><td>Not connected</td><td>Polling is used by the reference sketch.</td></tr>
+</tbody></table></div><p>The UNO operates with 5 V logic; the MFRC522 reader is a 3.3 V device. Use suitable level conversion on <strong>SCK, MOSI, SS and RST</strong>, and verify the exact breakout’s electrical ratings before connecting it. All modules share a common ground.</p><div class="table-wrap" tabindex="0" role="region" aria-label="Feedback connections"><table><caption>Feedback connections</caption><thead><tr><th scope="col">Output</th><th scope="col">UNO pin</th><th scope="col">Connection</th></tr></thead><tbody>
+<tr><td>Green LED</td><td>D6</td><td>Pin → series resistor → LED anode; cathode → GND.</td></tr>
+<tr><td>Red LED</td><td>D7</td><td>Pin → series resistor → LED anode; cathode → GND.</td></tr>
+<tr><td>Active buzzer module</td><td>D8</td><td>Control input on D8; power according to the module rating.</td></tr>
+</tbody></table></div><div class="formula"><span class="formula-label">Example LED current-limiting calculation</span>R = (5 V − 2 V) / 0.01 A = 300 Ω → choose 330 Ω</div><p class="table-note">The calculation assumes a 2 V LED forward drop and a 10 mA target. A buzzer that exceeds the GPIO current capability needs a driver stage.</p></div>
+  </div>
+</section>
+<section class="report-section" id="software" aria-labelledby="software-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">05 / FIRMWARE</p><h2 id="software-title">Read. Compare.<br>Respond. Repeat.</h2></header>
+    <div class="section-body"><ol class="flow"><li><strong>Initialize</strong>Start USB serial at 9600 baud, initialize SPI and the reader, and configure the output pins.</li><li><strong>Wait for a card</strong>Use the library’s new-card check and card-selection call before accessing UID data.</li><li><strong>Print the identifier</strong>Display each UID byte in hexadecimal, including leading zeroes, for repeatable registration.</li><li><strong>Compare the UID</strong>Reject a length mismatch, then compare every byte against the configured credential.</li><li><strong>Signal the result</strong>Select the green or red LED and pulse the buzzer. The sample keeps feedback visible for about one second.</li><li><strong>End the exchange</strong>Halt the selected card and stop the crypto session before returning to polling.</li></ol><details class="code-details"><summary>View the Arduino C++ sketch <span>· documented reference implementation</span></summary><pre tabindex="0" aria-label="View the Arduino C++ sketch"><code>#include &lt;SPI.h&gt;
 #include &lt;MFRC522.h&gt;
 
 #define SS_PIN 10
@@ -156,63 +140,37 @@ void loop() {
   digitalWrite(GREEN_LED, LOW); digitalWrite(RED_LED, LOW);
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
-}</code></pre>
-        <p>The comparison checks the UID length as well as its bytes, because cards can carry 4-, 7- or 10-byte UIDs. To register a card, I scan it, copy its UID from the Serial Monitor into <code>registeredUID</code> and upload the sketch again.</p>
-      </div>
-    </div></section>
-
-    <section class="report-section paper" id="testing" aria-labelledby="testing-title"><div class="wrap section-grid">
-      <div><p class="section-index">05 / VALIDATION</p><h2 id="testing-title">Test cases.</h2></div>
-      <div class="section-body">
-        <div class="table-wrap"><table>
-          <thead><tr><th>Case</th><th>Input</th><th>Expected outcome</th></tr></thead>
-          <tbody>
-            <tr><td>TC-01</td><td>No card present</td><td>Remains in detection mode</td></tr>
-            <tr><td>TC-02</td><td>Registered card</td><td>UID shown, green LED and beep</td></tr>
-            <tr><td>TC-03</td><td>Unregistered 13.56 MHz card</td><td>UID shown, red LED and beep</td></tr>
-            <tr><td>TC-04</td><td>125 kHz card</td><td>No valid UID read</td></tr>
-            <tr><td>TC-05</td><td>Card out of range</td><td>No successful read</td></tr>
-            <tr><td>TC-06</td><td>Card removed and presented again</td><td>Detected again</td></tr>
-            <tr><td>TC-07</td><td>Different angles and distances (0–5 cm)</td><td>Detection varies with coupling</td></tr>
-          </tbody>
-        </table></div>
-        <div class="formula">Detection success rate = N<sub>s</sub> / N<sub>t</sub> × 100% &nbsp;&nbsp;·&nbsp;&nbsp; T<sub>response</sub> = T<sub>output</sub> − T<sub>start</sub></div>
-        <p>The MFRC522 datasheet gives a typical range of up to about 50 mm, depending on the antenna. Low-cost breakout boards may reach less.</p>
-      </div>
-    </div></section>
-
-    <section class="report-section" id="limits" aria-labelledby="limits-title"><div class="wrap section-grid">
-      <div><p class="section-index">06 / LIMITATIONS</p><h2 id="limits-title">Known limitations.</h2></div>
-      <div class="section-body">
-        <div class="card-grid">
-          <article><h3>UID ≠ security</h3><p>Some UIDs can be copied or changed. A UID match is identification, not authentication.</p></article>
-          <article><h3>Short range</h3><p>Designed for close-proximity reads. Orientation, metal and supply noise all affect detection.</p></article>
-          <article><h3>HF only</h3><p>Cannot read 125 kHz LF or UHF tags.</p></article>
-          <article><h3>No memory of time</h3><p>Without an RTC or storage there are no timestamps and no history of scans.</p></article>
-        </div>
-      </div>
-    </div></section>
-
-    <section class="report-section" id="learned" aria-labelledby="learned-title"><div class="wrap section-grid">
-      <div><p class="section-index">07 / LEARNING</p><h2 id="learned-title">ECE concepts in practice.</h2></div>
-      <div class="section-body">
-        <div class="table-wrap"><table>
-          <thead><tr><th>Concept</th><th>Where it shows up</th></tr></thead>
-          <tbody>
-            <tr><td>Electromagnetic induction</td><td>Powering a passive card from the reader field</td></tr>
-            <tr><td>Resonance</td><td>Reader antenna tuning near 13.56 MHz</td></tr>
-            <tr><td>Digital communication</td><td>SPI master/peripheral data transfer</td></tr>
-            <tr><td>Embedded C++</td><td>Polling, UID processing and output control</td></tr>
-            <tr><td>Interfacing</td><td>Logic levels, current limiting and common ground</td></tr>
-          </tbody>
-        </table></div>
-      </div>
-    </div></section>
-
-    <section class="report-next wrap" aria-label="Related project">
-      <a class="next-card" href="smart-id-attendance.html"><div><span>ANOTHER RFID PROJECT · REAL-WORLD USE</span><strong>Smart ID entry–exit &amp; time analytics with an ESP32-S3.</strong></div><b aria-hidden="true">→</b></a>
-    </section>
+}</code></pre></details><h3>Registration and repeat testing</h3><p>Install the MFRC522 library, select the UNO board and serial port, and upload the sketch. Read a card’s UID from the Serial Monitor, replace the placeholder <code>registeredUID</code> byte array, and upload again. Remove the card from the field before presenting it for another test.</p><aside class="callout"><strong>A deliberate tradeoff in the reference sketch</strong><p>The feedback delay makes the result easy to observe on a bench, but blocks polling while it runs. A later version could use a non-blocking state machine. The one-second indication interval must not be reported as the reader’s RF detection latency.</p></aside></div>
+  </div>
+</section>
+<section class="report-section paper" id="testing" aria-labelledby="testing-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">06 / VALIDATION</p><h2 id="testing-title">Expected behaviour.<br>Measurable evidence.</h2></header>
+    <div class="section-body"><p>The report provides a test procedure and expected outcomes. It does not supply completed bench measurements. The following cases define what to verify on the assembled circuit.</p><div class="table-wrap" tabindex="0" role="region" aria-label="Hardware validation plan — observations pending"><table><caption>Hardware validation plan — observations pending</caption><thead><tr><th scope="col">Test</th><th scope="col">Expected behaviour</th><th scope="col">Evidence to record</th></tr></thead><tbody>
+<tr><td>No card</td><td>Remain in detection mode.</td><td>Serial output and idle LED state.</td></tr>
+<tr><td>Registered card</td><td>Print UID; green LED and beep.</td><td>UID bytes, indication and repeat count.</td></tr>
+<tr><td>Unregistered compatible card</td><td>Print UID; red LED and beep.</td><td>Correct rejection without a false green result.</td></tr>
+<tr><td>Incompatible-frequency card</td><td>No valid UID returned.</td><td>Card type and lack of false detection.</td></tr>
+<tr><td>Remove and present again</td><td>Read a new presentation.</td><td>Successful repeated reads.</td></tr>
+<tr><td>Distance and orientation</td><td>Read quality changes with coupling.</td><td>Trials at 0–5 cm and controlled angles.</td></tr>
+<tr><td>Reader disconnected</td><td>Detection fails.</td><td>Power and SPI checks used to locate the fault.</td></tr>
+</tbody></table></div><div class="card-grid"><article><span class="card-number">01</span><h3>Read success rate</h3><p>Record successful detections divided by total attempts at each distance and orientation. Publish the trial count with the percentage.</p></article><article><span class="card-number">02</span><h3>Response time</h3><p>Measure presentation-to-indication latency separately from the deliberate LED/buzzer hold time. Record the test conditions with the result.</p></article></div><details class="code-details"><summary>Troubleshooting checklist</summary><ul class="check-list"><li><strong>Reader not found:</strong> check 3.3 V supply, common ground, chip select, reset and SPI wiring.</li><li><strong>No card response:</strong> confirm the tag family and move the card closer, with its antenna parallel to the reader.</li><li><strong>Unstable reads:</strong> shorten jumpers, check solder joints and stabilize the supply.</li><li><strong>Unexpected registration result:</strong> compare the full UID and its length, not only the first bytes.</li><li><strong>No feedback:</strong> check LED polarity, series resistors, buzzer type and output pin assignments.</li></ul></details></div>
+  </div>
+</section>
+<section class="report-section" id="learning" aria-labelledby="learning-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">07 / ENGINEERING TAKEAWAYS</p><h2 id="learning-title">What this project<br>connects.</h2></header>
+    <div class="section-body"><div class="card-grid"><article><span class="card-number">01</span><h3>RF meets firmware</h3><p>Electromagnetic induction and antenna coupling become concrete when a passive card produces a UID in the serial console.</p></article><article><span class="card-number">02</span><h3>Interfaces include electricity</h3><p>A matching pin name is not enough. Supply voltage, logic thresholds, current limits and a shared reference are part of the interface.</p></article><article><span class="card-number">03</span><h3>Identifiers have limits</h3><p>A UID match identifies a registered value. Some identifiers can be copied; UID-only checking is unsuitable for security-critical access control.</p></article><article><span class="card-number">04</span><h3>Detection is the first layer</h3><p>An RTC, persistent event storage and a person-to-card model are needed before this can become a meaningful attendance system.</p></article></div><p>The next project builds on that last distinction: a card scan is an event; reliable presence information requires timestamps, session reconstruction and an explicit policy for incomplete data.</p></div>
+  </div>
+</section>
+<section class="report-section paper" id="resources" aria-labelledby="resources-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">08 / DOCUMENTATION</p><h2 id="resources-title">The details,<br>in one place.</h2></header>
+    <div class="section-body"><div class="resource-card"><div><h3>The complete project report</h3><p>21 pages · PDF · Theory, components, firmware, testing and troubleshooting.</p></div><a class="report-download" href="assets/reports/rfid-card-detection-report.pdf" target="_blank" rel="noopener noreferrer">Open report <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></div><h3>Technical references</h3><p>Manufacturer documentation and library references cited in the report.</p><ul class="reference-list"><li><a href="https://www.nxp.com/docs/en/data-sheet/MFRC522.pdf" target="_blank" rel="noopener noreferrer"><span>NXP · MFRC522 datasheet</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></li><li><a href="https://store.arduino.cc/products/arduino-uno-rev3" target="_blank" rel="noopener noreferrer"><span>Arduino · UNO Rev3 specifications</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></li><li><a href="https://github.com/miguelbalboa/rfid" target="_blank" rel="noopener noreferrer"><span>MFRC522 Arduino library · documentation and examples</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></li></ul></div>
+  </div>
+</section>
+<section class="report-next wrap" aria-label="Related project"><a class="next-card" href="smart-id-attendance.html"><div><span>CONTINUE EXPLORING / SYSTEM DESIGN</span><strong>From a card scan to a meaningful attendance record.</strong></div><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></a></section>
   </main>
-  <footer class="wrap footer"><a class="wordmark" href="index.html">AAKASH<span>✳</span></a><span>© 2026 AAKASH</span><a href="index.html#work">ALL WORK ↑</a></footer>
+  <footer class="wrap footer"><a class="wordmark" href="index.html">AAKASH<span class="brand-dot" aria-hidden="true"></span></a><span>© 2026 AAKASH · Built with curiosity.</span><a href="index.html#work">ALL WORK <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></footer>
 </body>
 </html>

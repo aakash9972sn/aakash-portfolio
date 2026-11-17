@@ -1,4 +1,4 @@
-/* Shared layout for hardware project report pages. */
+/* Base components for the two engineering case studies. */
 :root { --accent: var(--mint); --card: #1b2420; --rule: #2c3732; }
 body.report-page { line-height: 1.7; }
 .report-page.theme-rfid { --accent: #e3c98f; }

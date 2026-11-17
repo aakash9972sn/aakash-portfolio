@@ -17,9 +17,11 @@
   <meta property="og:image" content="../../assets/pcb-certificate-aakash.png">
   
   <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../../style.css">
-  <link rel="stylesheet" href="../../pcb-bootcamp.css?v=20261116-7">
-  <script src="../../pcb-bootcamp.js" defer></script>
+  <link rel="stylesheet" href="../../style.css?v=20261117-1">
+  <link rel="stylesheet" href="../../pcb-bootcamp.css?v=20261117-1">
+  <script src="../../site-interactions.js?v=20261117-1" defer></script>
+  <script src="../../pcb-bootcamp.js?v=20261117-1" defer></script>
+  <link rel="stylesheet" href="../../site-polish.css?v=20261117-1">
 </head>
 <body class="case-study-page">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -27,11 +29,11 @@
   <!-- Header Navigation -->
   <header class="case-header wrap">
     <a class="back-btn" href="../../index.html#pcb-bootcamp" aria-label="Return to portfolio homepage">
-      <span aria-hidden="true">←</span> Return to Portfolio
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg> Return to Portfolio
     </a>
     <div class="header-tag">DTU · AICTE IDEA LAB</div>
     <a class="github-nav" href="https://github.com/aakash9972sn" target="_blank" rel="noopener noreferrer">
-      GitHub <span aria-hidden="true">↗</span>
+      GitHub <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg>
     </a>
   </header>
 
@@ -127,7 +129,7 @@
             </div>
             <figcaption class="poster-caption-row">
               <div>
-                <h4>Workshop Poster</h4>
+                <h2>Workshop Poster</h2>
                 <p>AICTE IDEA Lab, DTU · Feb 2026</p>
               </div>
               <button class="enlarge-btn" data-lightbox-src="../../assets/pcb-bootcamp-poster.jpg" data-lightbox-caption="Official Event Poster — PCB Designing Bootcamp: From Design to Reality, AICTE IDEA Lab DTU" aria-label="Enlarge workshop poster">
@@ -245,7 +247,7 @@
                 <p style="font-size: 12px; color: #55625b; margin: 2px 0 0;">Multiple copper layers separated by insulating dielectric prepreg, with dedicated power and ground planes.</p>
               </div>
             </div>
-            <p style="font-size: 11px; color: #78857d; font-style: italic; margin-top: 14px;">
+            <p class="panel-note" style="font-size:11px;">
               * Note: Multilayer board technology was covered as conceptual engineering context during the bootcamp; no complex multilayer board was personally fabricated.
             </p>
           </article>
@@ -505,7 +507,7 @@
         </div>
 
         <div class="workflow-interactive-wrap">
-          <div class="workflow-pill-track" id="workflow-nav-track" role="tablist" aria-label="11 PCB design workflow steps">
+          <div class="workflow-pill-track" id="workflow-nav-track" role="group" aria-label="11 PCB design workflow steps">
             <!-- Populated dynamically by pcb-bootcamp.js -->
           </div>
 
@@ -623,7 +625,7 @@
         <div class="concepts-eight-grid">
           <div class="concept-box-card">
             <span class="concept-idx">CONCEPT 01</span>
-            <h4>Schematic vs. PCB Layout</h4>
+            <h3>Schematic vs. PCB Layout</h3>
             <p>
               A schematic describes <em>what</em> is electrically connected using standardized logical symbols. A PCB layout describes <em>where</em> physical component footprints and conductive copper tracks are placed in three-dimensional space.
             </p>
@@ -631,7 +633,7 @@
 
           <div class="concept-box-card">
             <span class="concept-idx">CONCEPT 02</span>
-            <h4>Electrical Nets &amp; Netlists</h4>
+            <h3>Electrical Nets &amp; Netlists</h3>
             <p>
               A net represents a logical group of component pins intended to be connected at the same electrical potential. PCB trace routing physically implements these nets with copper tracks.
             </p>
@@ -639,7 +641,7 @@
 
           <div class="concept-box-card">
             <span class="concept-idx">CONCEPT 03</span>
-            <h4>Component Footprints</h4>
+            <h3>Component Footprints</h3>
             <p>
               Selecting an accurate footprint matching the physical lead pitch and package dimensions is vital. A mismatch between physical part dimensions and pad geometries prevents successful soldering and assembly.
             </p>
@@ -647,7 +649,7 @@
 
           <div class="concept-box-card">
             <span class="concept-idx">CONCEPT 04</span>
-            <h4>Trace Routing &amp; Widths</h4>
+            <h3>Trace Routing &amp; Widths</h3>
             <p>
               Trace routing directly governs connectivity, available board area, manufacturability, and signal integrity. Trace widths must be appropriately sized to handle target currents without excessive resistive heating.
             </p>
@@ -655,7 +657,7 @@
 
           <div class="concept-box-card">
             <span class="concept-idx">CONCEPT 05</span>
-            <h4>PCB Layers &amp; Stackup</h4>
+            <h3>PCB Layers &amp; Stackup</h3>
             <p>
               Copper foil layers provide electrical current paths, while solder mask protects copper from oxidation and solder bridging, and silkscreen ink identifies components and test points for assembly technicians.
             </p>
@@ -663,7 +665,7 @@
 
           <div class="concept-box-card">
             <span class="concept-idx">CONCEPT 06</span>
-            <h4>Design Rule Checking (DRC)</h4>
+            <h3>Design Rule Checking (DRC)</h3>
             <p>
               Automated DRC verifies that copper clearances, trace widths, annular rings, and drill margins satisfy the physical constraints of fabrication before boards are sent to manufacturing.
             </p>
@@ -671,7 +673,7 @@
 
           <div class="concept-box-card">
             <span class="concept-idx">CONCEPT 07</span>
-            <h4>Design for Manufacturing (DFM)</h4>
+            <h3>Design for Manufacturing (DFM)</h3>
             <p>
               A successful electronic board design must not only satisfy its electrical schematic requirements, but must also be practical and economical to fabricate, assemble, and inspect without defects.
             </p>
@@ -713,7 +715,7 @@
             <div class="author-signature-row">
               <img class="author-portrait-circle" src="../../assets/aakash.jpg" alt="AAKASH, Electronics &amp; Communication Engineering student at DTU" width="50" height="50">
               <div class="author-meta-text">
-                <h4>AAKASH</h4>
+                <p class="author-name">AAKASH</p>
                 <p>B.Tech Electronics &amp; Communication Engineering · DTU (2024–2028)</p>
               </div>
             </div>
@@ -755,7 +757,7 @@
         <div class="insights-row-grid">
           <div class="insight-single-card">
             <span class="idx">01 / LOGIC VS GEOMETRY</span>
-            <h4>Electrical correctness is only the beginning.</h4>
+            <h3>Electrical correctness is only the beginning.</h3>
             <p>
               An electrically correct schematic still needs a physically valid PCB layout. Spatial clearances, copper thickness, thermal dissipation, and parasitic inductances all govern whether a physical board functions reliably.
             </p>
@@ -763,7 +765,7 @@
 
           <div class="insight-single-card">
             <span class="idx">02 / FLOORPLANNING</span>
-            <h4>Component placement matters decisively.</h4>
+            <h3>Component placement matters decisively.</h3>
             <p>
               Placement dictates routing complexity, board size, thermal distribution, signal integrity, connector accessibility, and ease of automated assembly. Good placement makes routing straightforward; poor placement makes routing impossible.
             </p>
@@ -771,7 +773,7 @@
 
           <div class="insight-single-card">
             <span class="idx">03 / ERROR PREVENTION</span>
-            <h4>Verification is essential before fabrication.</h4>
+            <h3>Verification is essential before fabrication.</h3>
             <p>
               Design Rule Checking and netlist connectivity checks help detect spacing violations and open circuits while still in software, preventing costly scrap and rework during physical manufacturing runs.
             </p>
@@ -779,7 +781,7 @@
 
           <div class="insight-single-card">
             <span class="idx">04 / LIFECYCLE THINKING</span>
-            <h4>Hardware development is a connected process.</h4>
+            <h3>Hardware development is a connected process.</h3>
             <p>
               Schematic capture, PCB layout, fabrication constraints, component assembly, and quality assurance inspection must be considered concurrently rather than treated as isolated, disconnected steps.
             </p>
@@ -892,7 +894,7 @@
   <!-- Case Study Footer -->
   <footer class="wrap case-footer">
     <a class="footer-return-link" href="../../index.html#pcb-bootcamp">
-      <span aria-hidden="true">←</span> Return to Portfolio Home
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg> Return to Portfolio Home
     </a>
     <div style="font-size: 12px; color: var(--muted);">
       © 2026 AAKASH · Delhi Technological University
@@ -903,14 +905,14 @@
   </footer>
 
   <!-- Lightbox Modal -->
-  <div class="lightbox-backdrop" id="case-lightbox" role="dialog" aria-modal="true" aria-label="Expanded Image View">
+  <dialog class="lightbox-backdrop" id="case-lightbox" aria-modal="true" aria-label="Expanded Image View">
     <div class="lightbox-wrapper">
-      <button class="lightbox-dismiss-btn" id="lightbox-close" aria-label="Close enlarged preview">×</button>
+      <button class="lightbox-dismiss-btn" id="lightbox-close" autofocus aria-label="Close enlarged preview">×</button>
       <div class="lightbox-media">
-        <img id="lightbox-img" src="" alt="Enlarged view">
+        <img id="lightbox-img" alt="Enlarged view">
       </div>
       <p class="lightbox-title" id="lightbox-caption"></p>
     </div>
-  </div>
+  </dialog>
 </body>
 </html>

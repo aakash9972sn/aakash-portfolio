@@ -3,151 +3,142 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#151b19">
+  <meta name="theme-color" content="#121c18">
   <title>Smart ID Entry–Exit &amp; Time Analytics · ESP32-S3 | AAKASH</title>
-  <meta name="description" content="A real-world embedded IoT project by AAKASH: a low-cost ESP32-S3 smart ID card entry–exit system with PN532 NFC readers, DS3231 RTC, offline microSD logging, lost-card management and time analytics.">
+  <meta name="description" content="A proposed ESP32-S3 attendance architecture with dual PN532 readers, offline event storage, lost-card management and session-based time analytics. Includes an interactive sample-data demonstration.">
   <meta property="og:title" content="Smart ID Entry–Exit &amp; Time Analytics · ESP32-S3">
-  <meta property="og:description" content="Turning NFC card scans into accurate daily, monthly and custom-range presence reports, offline.">
+  <meta property="og:description" content="A proposed ESP32-S3 attendance architecture with dual PN532 readers, offline event storage, lost-card management and session-based time analytics. Includes an interactive sample-data demonstration.">
   <meta property="og:type" content="article">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20261116-7">
-  <link rel="stylesheet" href="collection.css?v=20261116-7">
-  <link rel="stylesheet" href="project-report.css?v=20261116-7">
+  <link rel="stylesheet" href="style.css?v=20261117-1">
+  <link rel="stylesheet" href="collection.css?v=20261117-1">
+  <link rel="stylesheet" href="project-report.css?v=20261117-1">
+  <link rel="stylesheet" href="site-polish.css?v=20261117-1">
+  <link rel="stylesheet" href="case-study.css?v=20261117-1">
+  <script src="case-study.js?v=20261117-1" defer></script>
 </head>
 <body class="report-page theme-attendance">
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="report-header wrap">
-    <a class="back-link" href="index.html#smart-id-attendance"><span aria-hidden="true">←</span> Back to portfolio</a>
-    <span class="report-tag">PROJECT · REAL-WORLD USE</span>
-    <a class="github-nav" href="https://github.com/aakash9972sn" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+    <a class="wordmark" href="index.html" aria-label="AAKASH, portfolio home">AAKASH<span class="brand-dot" aria-hidden="true"></span></a>
+    <span class="report-tag">ENGINEERING / PROJECT NOTES</span>
+    <a class="back-link" href="index.html#smart-id-attendance"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg> Back to portfolio</a>
   </header>
-  <nav class="report-subnav" aria-label="On this page"><div class="wrap">
-    <a href="#overview">Overview</a><a href="#problem">Problem</a><a href="#architecture">Architecture</a><a href="#cards">Lost cards</a><a href="#data">Data</a><a href="#analytics">Time analytics</a><a href="#code">Code</a><a href="#budget">Cost</a><a href="#validation">Testing</a><a href="#roadmap">Build stages</a>
-  </div></nav>
+  <nav class="report-subnav" aria-label="On this page"><div class="wrap"><a href="#overview">Overview</a><a href="#problem">The problem</a><a href="#architecture">Architecture</a><a href="#wiring">Connections</a><a href="#cards">Identity</a><a href="#data">Data</a><a href="#analytics">Try the logic</a><a href="#code">Software</a><a href="#budget">Budget</a><a href="#validation">Validation</a><a href="#resources">Report</a></div></nav>
   <main id="main">
-    <section class="report-hero wrap" id="overview" aria-labelledby="page-title">
-      <div class="report-meta"><span class="pill level">REAL-WORLD USE</span><span class="pill">EMBEDDED IoT</span><span class="pill">ESP32-S3 · NFC</span></div>
-      <h1 id="page-title">Smart ID entry–exit<br>&amp; <em>time analytics.</em></h1>
-      <p class="report-lede">A complete attendance system for a lab, classroom or library doorway. Two NFC readers record who came in and who left. A battery-backed clock timestamps every scan, and a microSD card keeps the history offline. Software then rebuilds each visit to report real presence time per day, per month or between any two dates.</p>
-      <div class="spec-grid">
-        <div><span>Controller</span><strong>ESP32-S3 N16R8 (dual-core LX7, 240 MHz)</strong></div>
-        <div><span>Readers</span><strong>2 × PN532 NFC over UART</strong></div>
-        <div><span>Credentials</span><strong>NTAG213 NFC cards</strong></div>
-        <div><span>Timekeeping</span><strong>DS3231 RTC · ±2 ppm</strong></div>
-        <div><span>Storage</span><strong>microSD · CSV event log</strong></div>
-        <div><span>Component cost</span><strong>≈ ₹2,300–4,800</strong></div>
-      </div>
-      <a class="report-download" href="assets/reports/smart-id-attendance-report.pdf" target="_blank" rel="noopener">Read the full project report (PDF) <span aria-hidden="true">↗</span></a>
-    </section>
-
-    <section class="report-section" id="problem" aria-labelledby="problem-title"><div class="wrap section-grid">
-      <div><p class="section-index">01 / THE PROBLEM</p><h2 id="problem-title">Detecting a card isn't measuring time.</h2></div>
-      <div class="section-body">
-        <p>Most RFID demos stop at printing a UID. Take someone who enters at 9:00, leaves at 12:00, returns at 13:00 and leaves at 17:00. Subtracting the first scan from the last gives 8 hours, but they were actually present for <strong>7</strong>. A practical system has to rebuild every visit separately. It also has to keep working without the internet, let a lost card be disabled without erasing its owner's history, and produce reports without manual calculation.</p>
-        <div class="card-grid">
-          <article><h3>Identify</h3><p>Contactless card detection at designated entry and exit points.</p></article>
-          <article><h3>Record</h3><p>A timestamp for every event, stored offline on removable media.</p></article>
-          <article><h3>Manage</h3><p>Register, revoke and replace cards while history stays tied to the person.</p></article>
-          <article><h3>Analyze</h3><p>Session-accurate daily, monthly and custom date-range reports.</p></article>
-        </div>
-      </div>
-    </div></section>
-
-    <section class="report-section paper" id="architecture" aria-labelledby="arch-title"><div class="wrap section-grid">
-      <div><p class="section-index">02 / ARCHITECTURE</p><h2 id="arch-title">System design.</h2></div>
-      <div class="section-body">
-        <div class="diagram" role="img" aria-label="Architecture: entry and exit PN532 readers over UART feed the ESP32-S3, which uses a DS3231 RTC and microSD storage, then analytics software and a web dashboard">
-          <div class="diagram-row"><div class="node"><strong>Entry reader</strong>PN532 · UART 1 → IN</div><div class="node"><strong>Exit reader</strong>PN532 · UART 2 → OUT</div></div>
-          <span class="link">↓</span>
-          <div class="diagram-row"><div class="node core"><strong>ESP32-S3</strong>Validation · event processing</div></div>
-          <span class="link">↕ I²C · SPI</span>
-          <div class="diagram-row"><div class="node"><strong>DS3231 RTC</strong>Date &amp; time</div><div class="node"><strong>microSD</strong>Offline event log</div></div>
-          <span class="link">↓ Wi-Fi</span>
-          <div class="diagram-row"><div class="node"><strong>Analytics + web dashboard</strong>Individual · monthly · custom dates</div></div>
-        </div>
-        <h3>Why these parts</h3>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Choice</th><th>Reason</th></tr></thead>
-          <tbody>
-            <tr><td>ESP32-S3</td><td>Wi-Fi, BLE, 3 UARTs, SPI and I²C. Enough compute for card handling, files and light reports without a Linux board.</td></tr>
-            <tr><td>Two PN532 readers</td><td>The reader that sees the card sets the direction (IN or OUT), so no button or guessing about alternating scans is needed.</td></tr>
-            <tr><td>NTAG213 cards</td><td>Cheap standard 13.56 MHz NFC tags with a 7-byte factory UID. Low cost and widely available.</td></tr>
-            <tr><td>DS3231</td><td>Temperature-compensated, battery-backed clock, so timestamps stay right during network outages.</td></tr>
-            <tr><td>microSD</td><td>Several GB is far more than needed. About 600,000 events a year at 150 bytes each is roughly 90 MB.</td></tr>
-          </tbody>
-        </table></div>
-        <p>On a tighter budget, one PN532 with ENTRY and EXIT buttons gives the same data model for less money, at the cost of choosing the direction by hand.</p>
-      </div>
-    </div></section>
-
-    <section class="report-section" id="cards" aria-labelledby="cards-title"><div class="wrap section-grid">
-      <div><p class="section-index">03 / IDENTITY</p><h2 id="cards-title">Lost-card management.</h2></div>
-      <div class="section-body">
-        <p>The key idea is to separate <strong>who a person is</strong> from <strong>which card they carry</strong>. Each person has a permanent Person ID, and cards are replaceable credentials linked to it. When a card is lost, it is marked revoked and a new one is issued to the same Person ID. Past attendance stays intact.</p>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Person ID</th><th>Credential</th><th>Status</th></tr></thead>
-          <tbody>
-            <tr><td>P001</td><td>Old card</td></tr>
-            <tr><td>P001</td><td>Replacement card</td></tr>
-          </tbody>
-        </table></div>
-        <p>Scans from revoked or unknown cards are rejected and never counted. This check is identifier-based: it stops a known lost UID, but it can't detect a cloned one. That's why the system is classed as <em>non-security-critical attendance logging</em>. The upgrade path is MIFARE DESFire EV3 cards with AES mutual authentication.</p>
-      </div>
-    </div></section>
-
-    <section class="report-section" id="data" aria-labelledby="data-title"><div class="wrap section-grid">
-      <div><p class="section-index">04 / DATA</p><h2 id="data-title">Store every event.</h2></div>
-      <div class="section-body">
-        <div class="table-wrap"><table>
-          <thead><tr><th>File</th><th>Contents</th></tr></thead>
-          <tbody>
-            <tr><td><code>PEOPLE.CSV</code></td><td>Person ID, name, department</td></tr>
-            <tr><td><code>CARDS.CSV</code></td><td>Card UID, Person ID, status</td></tr>
-            <tr><td><code>EVENTS.CSV</code></td><td>Timestamped scan history (the source of truth)</td></tr>
-            <tr><td><code>DEVICES.CSV</code></td><td>Reader identities and directions</td></tr>
-            <tr><td><code>CONFIG.JSON</code></td><td>Settings and reporting preferences</td></tr>
-          </tbody>
-        </table></div>
-        <pre><code>event_id,person_id,credential_id,timestamp,direction,status
+<section class="report-hero wrap" id="overview" aria-labelledby="page-title">
+  <div class="report-meta"><span class="pill level">APPLIED SYSTEM DESIGN</span><span class="pill">EMBEDDED SYSTEMS</span><span class="pill">AAKASH · DTU ECE</span></div>
+  <div class="report-hero-grid"><div>
+    <h1 id="page-title">Every scan.<br><em>A meaningful record.</em></h1><p class="report-lede">Smart ID entry–exit monitoring and time analytics for a laboratory, classroom or library. A proposed ESP32-S3 architecture combines two NFC readers, a battery-backed clock and offline storage to turn individual scans into useful presence records.</p>
+    <div class="hero-actions"><a class="report-download" href="assets/reports/smart-id-attendance-report.pdf" target="_blank" rel="noopener noreferrer">Read project report <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a><a class="quiet-link" href="#analytics">Try the time calculation</a></div>
+  </div><figure class="hero-visual" aria-labelledby="smart-figure-caption">
+<div class="visual-topline"><span>02 / FROM SCANS TO SESSIONS</span><span class="signal">SYSTEM DESIGN</span></div>
+<svg viewBox="0 0 390 235" role="img" aria-label="Separate entry and exit readers connect to an ESP32-S3 controller, with a real-time clock and offline storage">
+  <g fill="#192c36" stroke="#5c809b"><rect x="12" y="12" width="151" height="61" rx="7"/><rect x="227" y="12" width="151" height="61" rx="7"/></g>
+  <g fill="#b7d5ef" font-size="12" text-anchor="middle" font-weight="700"><text x="87" y="37">ENTRY / IN</text><text x="302" y="37">EXIT / OUT</text></g>
+  <g fill="#aabdc9" font-size="9" text-anchor="middle"><text x="87" y="55">PN532 · UART 1</text><text x="302" y="55">PN532 · UART 2</text></g>
+  <path d="M87 73v24h108m107-24v24H195v18" fill="none" stroke="#82b0d6" stroke-width="1.5"/>
+  <rect x="104" y="115" width="182" height="58" rx="7" fill="#223b44" stroke="#a7cdf4"/>
+  <text x="195" y="140" fill="#e2eff6" text-anchor="middle" font-size="16" font-weight="700">ESP32-S3</text><text x="195" y="157" fill="#aac8d3" text-anchor="middle" font-size="9">VALIDATE · TIMESTAMP · RECORD</text>
+  <path d="M150 173v21H73v14m167-35v21h77v14" fill="none" stroke="#82b0d6" stroke-width="1.5"/>
+  <text x="73" y="227" fill="#bfd2df" text-anchor="middle" font-size="11">DS3231 / CLOCK</text><text x="317" y="227" fill="#bfd2df" text-anchor="middle" font-size="11">microSD / LOG</text>
+</svg><div class="visual-result"><span>2 COMPLETED VISITS<br>09:00–12:00 + 13:00–17:00</span><strong>7h 00m</strong></div><figcaption id="smart-figure-caption">Proposed architecture and illustrative attendance data. The one-hour break is excluded from the total.</figcaption></figure></div>
+  <dl class="spec-grid"><div><dt>Controller</dt><dd>ESP32-S3 · N16R8</dd></div><div><dt>Reader architecture</dt><dd>2 × PN532 · UART</dd></div><div><dt>Time & storage</dt><dd>DS3231 · microSD</dd></div><div><dt>Planning budget</dt><dd>₹2,300–4,800</dd></div></dl>
+  <aside class="project-status" aria-label="Project documentation status"><strong>Project status</strong><span>Architecture and analytics documented. Dual-reader hardware, storage recovery and the device dashboard still require prototype testing.</span></aside>
+</section>
+<section class="report-section" id="problem" aria-labelledby="problem-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">01 / THE PROBLEM</p><h2 id="problem-title">A scan is an event.<br>A visit is an interval.</h2></header>
+    <div class="section-body"><p class="lead-paragraph">09:00 in. 12:00 out. 13:00 in. 17:00 out.<br>That is seven hours of recorded presence.</p>
+    <p>Subtracting the first entry from the last exit gives eight hours and includes a one-hour absence. An attendance design must reconstruct each valid visit, preserve the underlying events and handle the cases where a person forgets to scan.</p>
+    <p>The project extends basic RFID detection into a system design for daily, monthly and custom-range reporting. It also addresses two practical concerns: continuing to record during an internet outage and replacing a lost card without losing a person’s history.</p><div class="card-grid three"><article><span class="card-number">01</span><h3>Capture direction</h3><p>Separate entry and exit readers identify where a scan occurred. The system does not have to guess by alternating IN and OUT.</p></article><article><span class="card-number">02</span><h3>Keep the original events</h3><p>Local timestamped records support recalculation, anomaly review and future reporting without rewriting history.</p></article><article><span class="card-number">03</span><h3>Separate person from card</h3><p>A permanent internal Person ID survives credential replacement, so old and new cards contribute to the same history.</p></article></div></div>
+  </div>
+</section>
+<section class="report-section paper" id="architecture" aria-labelledby="architecture-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">02 / ARCHITECTURE</p><h2 id="architecture-title">Offline at the core.<br>Connected when useful.</h2></header>
+    <div class="section-body"><figure class="diagram" aria-label="Proposed hardware and reporting architecture"><div class="diagram-row"><div class="node"><strong>Entry / PN532</strong>UART 1 · direction IN</div><div class="node"><strong>Exit / PN532</strong>UART 2 · direction OUT</div></div><span class="link">TWO INDEPENDENT READER INTERFACES</span><div class="diagram-row"><div class="node core"><strong>ESP32-S3</strong>Credential lookup · event validation · feedback</div></div><span class="link">I²C TIMEKEEPING + SPI STORAGE</span><div class="diagram-row"><div class="node"><strong>DS3231 RTC</strong>Battery-backed date and time</div><div class="node"><strong>microSD</strong>Local event history</div></div><span class="link">OPTIONAL WI-FI TRANSFER</span><div class="diagram-row"><div class="node"><strong>Browser or existing computer</strong>Session processing · date filters · CSV reports</div></div><figcaption>Proposed system architecture. The browser example below explains the analytics; it is not connected to reader hardware.</figcaption></figure><div class="table-wrap" tabindex="0" role="region" aria-label="Component choices and their tradeoffs"><table><caption>Component choices and their tradeoffs</caption><thead><tr><th scope="col">Choice</th><th scope="col">Why it fits</th><th scope="col">What still needs attention</th></tr></thead><tbody>
+<tr><td>ESP32-S3 N16R8</td><td>Wi-Fi, multiple UARTs, I²C and SPI in one microcontroller; the selected module provides 16 MB flash and 8 MB PSRAM.</td><td>Confirm the exact board variant and exposed GPIOs.</td></tr>
+<tr><td>Two PN532 readers</td><td>Direction is tied to the reader location; each gets an independent hardware UART.</td><td>Test simultaneous polling, reader placement and field overlap.</td></tr>
+<tr><td>NTAG213 cards</td><td>Low-cost 13.56 MHz NFC Type 2 tags with a seven-byte identifier.</td><td>UID checking does not provide strong authentication.</td></tr>
+<tr><td>DS3231 RTC</td><td>Timestamps remain available without a network time service.</td><td>Set the correct time and detect lost backup power.</td></tr>
+<tr><td>microSD / CSV</td><td>Readable, exportable records without a continuously available server.</td><td>A flushed file is not a guarantee against every sudden power failure.</td></tr>
+</tbody></table></div><aside class="callout"><strong>Lower-cost alternative</strong><p>One PN532 reader with explicit ENTRY and EXIT buttons can use the same event model. It removes a reader from the bill of materials but makes direction selection a user responsibility.</p></aside></div>
+  </div>
+</section>
+<section class="report-section" id="wiring" aria-labelledby="wiring-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">03 / PROPOSED CONNECTIONS</p><h2 id="wiring-title">Independent readers.<br>A shared controller.</h2></header>
+    <div class="section-body"><div class="table-wrap" tabindex="0" role="region" aria-label="Proposed ESP32-S3 signal assignment"><table><caption>Proposed ESP32-S3 signal assignment</caption><thead><tr><th scope="col">Peripheral</th><th scope="col">Signals</th><th scope="col">ESP32-S3 GPIOs</th></tr></thead><tbody>
+<tr><td>Entry PN532 / UART 1</td><td>Reader TX → RX; reader RX ← TX</td><td>RX 16 · TX 17 · reset 4, if exposed</td></tr>
+<tr><td>Exit PN532 / UART 2</td><td>Reader TX → RX; reader RX ← TX</td><td>RX 18 · TX 21 · reset 5, if exposed</td></tr>
+<tr><td>DS3231 / I²C</td><td>SDA · SCL</td><td>8 · 9</td></tr>
+<tr><td>microSD / SPI</td><td>SCK · MOSI · MISO · CS</td><td>12 · 11 · 13 · 10</td></tr>
+</tbody></table></div><p>These are proposed assignments from the report, not a verified production wiring diagram. Select UART/HSU mode using the instructions for the specific PN532 breakout revision. Reader TX connects to the controller’s RX, and reader RX connects to TX.</p><aside class="callout"><strong>Electrical integration</strong><p>Use a common ground and verify each module’s supply and logic ratings. ESP32-S3 GPIOs are 3.3 V and must not receive 5 V. Check whether the RTC breakout includes a battery-charging circuit before choosing its backup cell.</p></aside><h3>Timekeeping without continuous Wi-Fi</h3><p>The DS3231 specification of ±2 ppm over 0–40°C corresponds to approximately <strong>0.173 seconds per day</strong>. This is a calculation from the component specification, not a measured accuracy claim for the assembled system. Firmware must still initialize the clock correctly and check its power-loss status.</p></div>
+  </div>
+</section>
+<section class="report-section paper" id="cards" aria-labelledby="cards-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">04 / IDENTITY MODEL</p><h2 id="cards-title">Replace the card.<br>Keep the history.</h2></header>
+    <div class="section-body"><p>A person is a long-lived entity; a card is a replaceable credential. The proposed database links one or more credentials to a permanent Person ID, so changing a card does not create a new attendance identity.</p><div class="table-wrap" tabindex="0" role="region" aria-label="Illustrative card replacement for the same person"><table><caption>Illustrative card replacement for the same person</caption><thead><tr><th scope="col">Person ID</th><th scope="col">Credential</th><th scope="col">Status</th><th scope="col">New scans</th></tr></thead><tbody>
+<tr><td>P001</td><td>C001 · original card</td><td><span class="badge">Revoked</span></td><td>Rejected after the device receives the update.</td></tr>
+<tr><td>P001</td><td>C002 · replacement card</td><td><span class="badge ok">Active</span></td><td>Accepted and linked to the same person.</td></tr>
+</tbody></table></div><ol class="flow"><li><strong>Revoke</strong>Mark the old credential as lost or revoked in the local credential registry.</li><li><strong>Reissue</strong>Register a replacement UID against the existing Person ID.</li><li><strong>Retain</strong>Keep historical events unchanged, including the original credential reference.</li></ol><p>In a future multi-terminal deployment, revocation updates must reach every device. A disconnected terminal may have stale credential information; that requires an explicit synchronization and offline policy.</p><aside class="callout"><strong>Identification, not proof of identity</strong><p>A UID may be reproduced, and a card can be carried by someone else. This design is for non-security-critical attendance monitoring. DESFire EV3 with correctly implemented AES authentication is a possible future upgrade, requiring provisioning, key management and additional verification.</p></aside></div>
+  </div>
+</section>
+<section class="report-section" id="data" aria-labelledby="data-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">05 / EVENT MODEL</p><h2 id="data-title">Keep the evidence.<br>Derive the reports.</h2></header>
+    <div class="section-body"><div class="table-wrap" tabindex="0" role="region" aria-label="Proposed local storage layout"><table><caption>Proposed local storage layout</caption><thead><tr><th scope="col">File</th><th scope="col">Purpose</th></tr></thead><tbody>
+<tr><td><code>PEOPLE.CSV</code></td><td>Permanent Person ID, display name and department.</td></tr>
+<tr><td><code>CARDS.CSV</code></td><td>Credential UID, Person ID and current credential status.</td></tr>
+<tr><td><code>EVENTS.CSV</code></td><td>Original timestamped scan history.</td></tr>
+<tr><td><code>DEVICES.CSV</code></td><td>Reader identity and direction.</td></tr>
+<tr><td><code>CONFIG.JSON</code></td><td>Configuration and reporting preferences.</td></tr>
+</tbody></table></div><details class="code-details"><summary>Inspect an illustrative event log <span>· CSV · sample data</span></summary><pre tabindex="0" aria-label="Inspect an illustrative event log"><code>event_id,person_id,credential_id,timestamp,direction,status
 E001,P001,C001,2026-11-16T09:00:00+05:30,IN,ACCEPTED
 E002,P001,C001,2026-11-16T12:00:00+05:30,OUT,ACCEPTED
 E003,P001,C001,2026-11-16T13:00:00+05:30,IN,ACCEPTED
-E004,P001,C001,2026-11-16T17:00:00+05:30,OUT,ACCEPTED</code></pre>
-        <p>I keep raw events instead of daily totals, so every report can be recalculated, audited and checked when a record is disputed. Timestamps carry an explicit time-zone offset. Each write is checked, flushed and closed before the device confirms a scan. If storage fails, the terminal shows an error instead of a false success.</p>
+E004,P001,C001,2026-11-16T17:00:00+05:30,OUT,ACCEPTED</code></pre></details><p>Each event carries its person, credential, timestamp, direction and status. An explicit time-zone offset avoids ambiguity, while event identifiers must remain unique across restarts. Reports can then be recalculated without modifying the original records.</p><div class="card-grid"><article><span class="card-number">01</span><h3>Confirm after saving</h3><p>Check file opening and write results, flush and close the record, then signal success. An unavailable SD card should produce a recording error.</p></article><article><span class="card-number">02</span><h3>Plan for interruption</h3><p>The final CSV record may still be interrupted by sudden power loss. Recovery tests, checksums and a durable journal belong in the next reliability stage.</p></article></div><p><strong>Storage estimate:</strong> 500 users × 4 events/day × 300 days gives 600,000 events/year. At an assumed 150 bytes per event, that is about 90 MB of raw records, before filesystem overhead and backups. Reporting should process data in chunks instead of loading an entire history into controller RAM.</p></div>
+  </div>
+</section>
+<section class="report-section paper" id="analytics" aria-labelledby="analytics-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">06 / TIME ANALYTICS</p><h2 id="analytics-title">Count the visits.<br>Handle the exceptions.</h2></header>
+    <div class="section-body"><p>For each person, process accepted events in chronological order. An IN opens a session; a valid later OUT closes it. Only completed, unambiguous sessions contribute to confirmed presence.</p>
+    <div class="example-shell" id="attendance-example">
+      <span class="figure-label">INTERACTIVE EXAMPLE / ILLUSTRATIVE DATA</span>
+      <div class="example-options" role="group" aria-label="Choose an attendance example" hidden>
+        <button type="button" data-example="day" aria-pressed="true">Multiple visits</button>
+        <button type="button" data-example="overnight" aria-pressed="false">Month boundary</button>
+        <button type="button" data-example="incomplete" aria-pressed="false">Missing exit</button>
+        <button type="button" data-example="replacement" aria-pressed="false">Replaced card</button>
       </div>
-    </div></section>
-
-    <section class="report-section paper" id="analytics" aria-labelledby="analytics-title"><div class="wrap section-grid">
-      <div><p class="section-index">05 / MATHEMATICS</p><h2 id="analytics-title">Time analytics engine.</h2></div>
-      <div class="section-body">
-        <h3>Presence is a sum of sessions</h3>
-        <div class="formula">T<sub>day</sub> = Σ<sub>i</sub> (t<sub>exit,i</sub> − t<sub>entry,i</sub>) &nbsp;&nbsp;·&nbsp;&nbsp; T<sub>p,m</sub> = Σ<sub>d∈m</sub> T<sub>p,d</sub></div>
-        <h3>Custom date range: clip each session</h3>
-        <div class="formula">T<sub>i</sub>(A, B) = max(0, min(t<sub>exit,i</sub>, B) − max(t<sub>entry,i</sub>, A))</div>
-        <p>Clipping lets an overnight visit split correctly across days or months. For example, a session from 22:30 on 30 November to 01:15 on 1 December counts 1 h 30 m in November and 1 h 15 m in December, not 2 h 45 m on the entry date.</p>
-        <h3>Session reconstruction</h3>
-        <p>A two-state machine (OUTSIDE or INSIDE) pairs events. Only a valid IN → OUT produces a completed session. Anything else is flagged for review. The system never invents a timestamp.</p>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Sequence</th><th>Interpretation</th></tr></thead>
-          <tbody>
-            <tr><td>IN → OUT</td><td>Complete valid session</td></tr>
-            <tr><td>IN → IN</td><td>Missed exit or duplicate entry (flagged)</td></tr>
-            <tr><td>OUT → OUT · OUT with no IN</td><td>Missed entry or orphan exit (flagged)</td></tr>
-            <tr><td>IN with no later OUT</td><td>Open session</td></tr>
-            <tr><td>Revoked card</td><td>Rejected, not counted</td></tr>
-          </tbody>
-        </table></div>
-        <h3>Reports</h3>
-        <p>Each person's report includes total hours, completed visits, days present, average daily presence, first entry and last exit, longest and shortest session, and inconsistent scans. Group reports show person-hours, average visit length and peak periods. Occupancy, O(t) = O(t₀) + N<sub>IN</sub> − N<sub>OUT</sub>, is labelled an estimate, because a card scan doesn't prove someone walked through the door. Clock error adds directly to duration error: |ε<sub>T</sub>| ≤ |ε<sub>in</sub>| + |ε<sub>out</sub>|. That's why the RTC matters.</p>
-      </div>
-    </div></section>
-
-    <section class="report-section" id="code" aria-labelledby="code-title"><div class="wrap section-grid">
-      <div><p class="section-index">06 / CODE</p><h2 id="code-title">Firmware &amp; analytics code.</h2></div>
-      <div class="section-body">
-        <h3>ESP32-S3 firmware: dual PN532 readers over UART</h3>
-        <p>Each reader gets its own hardware UART, so entry and exit scans never share a bus. The reader location sets the direction: a scan on the entry reader is logged as <code>IN</code>, and a scan on the exit reader as <code>OUT</code>.</p>
-        <pre><code>#include &lt;Arduino.h&gt;
+      <h3 id="demo-title">Two visits. One hour away.</h3>
+      <p id="demo-period" class="table-note" style="margin:0">Reporting period: 16 November 2026 · Asia/Kolkata</p>
+      <dl class="demo-metrics"><div><dt>Confirmed presence</dt><dd id="demo-duration">7h 00m</dd></div><div><dt>Completed visits</dt><dd id="demo-visits">2</dd></div><div><dt>Flags for review</dt><dd id="demo-flags">0</dd></div></dl><div class="table-wrap" tabindex="0" role="region" aria-label="Illustrative scan events"><table><caption>Illustrative scan events</caption><thead><tr><th scope="col">Time · Asia/Kolkata</th><th scope="col">Direction</th><th scope="col">Credential</th><th scope="col">Status</th></tr></thead><tbody id="demo-events">
+<tr><td>16 Nov · 09:00</td><td>IN</td><td>C001</td><td>Accepted</td></tr>
+<tr><td>16 Nov · 12:00</td><td>OUT</td><td>C001</td><td>Accepted</td></tr>
+<tr><td>16 Nov · 13:00</td><td>IN</td><td>C001</td><td>Accepted</td></tr>
+<tr><td>16 Nov · 17:00</td><td>OUT</td><td>C001</td><td>Accepted</td></tr>
+</tbody></table></div><p class="demo-explanation" id="demo-explanation">09:00–12:00 contributes 3 hours; 13:00–17:00 contributes 4. The break is excluded.</p><p class="sr-only" id="demo-announcement" role="status" aria-live="polite" aria-atomic="true"></p>
+      <noscript><p class="table-note" style="margin:16px 0 0">This example shows two completed visits. Enable JavaScript to explore the other scenarios.</p></noscript>
+    </div>
+    <h3>Clip a session to the reporting window</h3>
+    <div class="formula"><span class="formula-label">Overlap with a half-open interval [A, B)</span>T = max(0, min(t<sub>exit</sub>, B) − max(t<sub>entry</sub>, A))</div>
+    <p>A visit from 22:30 on 30 November to 01:15 on 1 December lasts 2 h 45 m. Clipping to each month assigns 1 h 30 m to November and 1 h 15 m to December. Daily and monthly totals use the same operation.</p><div class="table-wrap" tabindex="0" role="region" aria-label="Session rules and exceptions"><table><caption>Session rules and exceptions</caption><thead><tr><th scope="col">Sequence</th><th scope="col">Interpretation</th><th scope="col">Reporting treatment</th></tr></thead><tbody>
+<tr><td>IN → OUT</td><td>A completed visit.</td><td>Count the overlap with the selected period.</td></tr>
+<tr><td>IN → IN</td><td>Possible duplicate or missing exit.</td><td>Flag the ambiguity; do not fabricate an exit time.</td></tr>
+<tr><td>OUT without an open IN</td><td>Orphan exit.</td><td>Flag it; do not invent a matching entry.</td></tr>
+<tr><td>IN with no later OUT</td><td>Open session.</td><td>Keep visible for review; exclude from confirmed duration.</td></tr>
+<tr><td>Revoked or unknown credential</td><td>Rejected scan.</td><td>Do not count it as attendance.</td></tr>
+</tbody></table></div><p>Planned reports include completed visits, time present, days present and exception counts. “Average daily presence” must specify its denominator. Attendance percentage also needs a schedule and an institutional policy; card scans alone do not define it. Occupancy inferred from scans remains an estimate because a scan does not prove a person crossed the doorway.</p></div>
+  </div>
+</section>
+<section class="report-section" id="code" aria-labelledby="code-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">07 / SOFTWARE DESIGN</p><h2 id="code-title">Separate acquisition<br>from calculation.</h2></header>
+    <div class="section-body"><p>The firmware is responsible for reading devices and preserving events. Analytics operate on those stored events, so their calculations can be tested independently on a computer or in a browser.</p><ol class="flow"><li><strong>Start and check</strong>Initialize both readers, the clock and storage. Validate the time source and load the credential registry.</li><li><strong>Classify the scan</strong>Read the UID, resolve the Person ID and obtain direction from the reader that detected it.</li><li><strong>Persist and acknowledge</strong>Timestamp the event, write and verify it, then provide success feedback. Surface failures instead of silently dropping events.</li></ol><h3>Reference UART initialization</h3><p>The report uses the Adafruit PN532 library with two ESP32 hardware serial ports. The following excerpt shows interface initialization; it is not complete attendance firmware and has not been validated on the physical dual-reader assembly.</p><details class="code-details"><summary>View the ESP32-S3 initialization excerpt <span>· integration reference</span></summary><pre tabindex="0" aria-label="View the ESP32-S3 initialization excerpt"><code>#include &lt;Arduino.h&gt;
 #include &lt;Adafruit_PN532.h&gt;
 
 // GPIO assignments
@@ -182,107 +173,46 @@ void setup() {
   Serial.begin(115200);
   startReader(entryReader, entrySerial, ENTRY_RX, ENTRY_TX, "ENTRY");
   startReader(exitReader,  exitSerial,  EXIT_RX,  EXIT_TX,  "EXIT");
-}</code></pre>
-        <h3>Event-processing flow</h3>
-        <pre><code>START → initialise ESP32 → initialise both PN532 readers → initialise RTC and microSD
-→ load registered credentials → wait for card
-→ card on ENTRY or EXIT reader → read UID → check status
-   revoked / unknown → reject scan
-   active → read RTC time → write IN or OUT event to EVENTS.CSV → feedback → wait for next card</code></pre>
-        <h3>Time analytics in Python</h3>
-        <p>The analytics only read the stored events, so they can be tested without the reader hardware. This example clips one overnight session to calendar months.</p>
-        <pre><code>from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
-
-IST = ZoneInfo("Asia/Kolkata")
-
-def timestamp(value):
-    return datetime.fromisoformat(value).replace(tzinfo=IST)
-
-def time_in_range(entry, exit, start, end):
-    if exit &lt;= entry:
-        raise ValueError("Invalid session")
-    overlap_start = max(entry, start)
-    overlap_end = min(exit, end)
-    return max(timedelta(0), overlap_end - overlap_start)
-
-# One session crossing November and December
-entry = timestamp("2026-11-30T22:30:00")
-exit = timestamp("2026-12-01T01:15:00")
-
-nov_start = timestamp("2026-11-01T00:00:00")
-dec_start = timestamp("2026-12-01T00:00:00")
-jan_start = timestamp("2027-01-01T00:00:00")
-
-november = time_in_range(entry, exit, nov_start, dec_start)
-december = time_in_range(entry, exit, dec_start, jan_start)
-print("November:", november)   # 1:30:00
-print("December:", december)   # 1:15:00
-print("Total:", november + december)   # 2:45:00</code></pre>
-      </div>
-    </div></section>
-
-    <section class="report-section paper" id="budget" aria-labelledby="budget-title"><div class="wrap section-grid">
-      <div><p class="section-index">07 / ECONOMICS</p><h2 id="budget-title">Built for a student budget.</h2></div>
-      <div class="section-body">
-        <div class="table-wrap"><table>
-          <thead><tr><th>Component</th><th>Qty</th><th>Estimated cost</th></tr></thead>
-          <tbody>
-            <tr><td>ESP32-S3 N16R8</td><td>1</td><td>₹600–850</td></tr>
-            <tr><td>PN532 NFC readers</td><td>2</td><td>₹540–1,200</td></tr>
-            <tr><td>DS3231 RTC</td><td>1</td><td>₹165–350</td></tr>
-            <tr><td>microSD adapter + card</td><td>1 + 1</td><td>₹250–550</td></tr>
-            <tr><td>NFC test cards</td><td>Small qty</td><td>₹250–600</td></tr>
-            <tr><td>Power supply</td><td>1</td><td>₹150–300</td></tr>
-            <tr><td>Wiring, PCB and enclosure</td><td>Set</td><td>₹300–900</td></tr>
-            <tr><td><strong>Total</strong></td><td></td><td><strong>≈ ₹2,300–4,800</strong></td></tr>
-          </tbody>
-        </table></div>
-        <p>Prices are approximate retail figures from November 2026. Card replacement stays cheap too: C = N·p·C<sub>card</sub>, so 500 users × 3% annual loss × ₹30 ≈ <strong>₹450 a year</strong>.</p>
-      </div>
-    </div></section>
-
-    <section class="report-section" id="validation" aria-labelledby="validation-title"><div class="wrap section-grid">
-      <div><p class="section-index">08 / TESTING</p><h2 id="validation-title">Test cases.</h2></div>
-      <div class="section-body">
-        <div class="table-wrap"><table>
-          <thead><tr><th>Test</th><th>Expected outcome</th></tr></thead>
-          <tbody>
-            <tr><td>Multiple visits per day</td><td>Correct completed-session total</td></tr>
-            <tr><td>Overnight visit</td><td>Duration split by date</td></tr>
-            <tr><td>Month boundary clipping</td><td>Time assigned to the right month</td></tr>
-            <tr><td>Entry / exit reader communication</td><td>Both readers respond over UART</td></tr>
-            <tr><td>RTC time + microSD writes</td><td>Valid timestamp saved per scan</td></tr>
-            <tr><td>Lost-card revocation</td><td>Revoked UID rejected</td></tr>
-            <tr><td>Power restart / storage failure</td><td>Records retained; failure indicated</td></tr>
-            <tr><td>Browser reporting</td><td>Date filters return results</td></tr>
-          </tbody>
-        </table></div>
-        <p>Performance metrics: scan success rate R = N<sub>s</sub>/N<sub>t</sub> × 100%, detection-to-save latency (average and 95th percentile), range across distances and angles, and offline and power-failure recovery.</p>
-      </div>
-    </div></section>
-
-    <section class="report-section paper" id="roadmap" aria-labelledby="roadmap-title"><div class="wrap section-grid">
-      <div><p class="section-index">09 / BUILD STAGES</p><h2 id="roadmap-title">From breadboard to doorway.</h2></div>
-      <div class="section-body">
-        <ol class="flow">
-          <li><strong>Card detection</strong>One PN532 reads a UID over serial</li>
-          <li><strong>Direction</strong>Second reader produces separate IN / OUT</li>
-          <li><strong>Timekeeping</strong>DS3231 set and backup verified</li>
-          <li><strong>Logging</strong>Persistent CSV event history</li>
-          <li><strong>Credentials</strong>Register, revoke, replace</li>
-          <li><strong>Analytics</strong>Sessions, clipping, monthly summaries</li>
-          <li><strong>Dashboard</strong>Search, date range, CSV export</li>
-          <li><strong>Validation</strong>Measure, stress-test, document</li>
-        </ol>
-        <p>Future work: DESFire EV3 authentication, fault-tolerant journaling, central database sync across buildings, OTA updates, an on-device display and passage sensors to verify that someone actually walked through. Attendance data is personal, so the reports need access control, and raw data should never be exposed over open Wi-Fi.</p>
-      </div>
-    </div></section>
-
-    <section class="report-next wrap" aria-label="Related project">
-      <a class="next-card" href="rfid-card-detection.html"><div><span>ANOTHER RFID PROJECT · BASIC</span><strong>RFID card detection with an Arduino UNO and MFRC522.</strong></div><b aria-hidden="true">→</b></a>
-    </section>
+}</code></pre></details><h3>What the browser demonstration verifies</h3><p>The example on this page calculates completed-session durations from synthetic timestamps, clips them to a reporting window and excludes rejected credentials. It demonstrates the data-processing rules. It does not demonstrate RF performance, SD durability or a deployed device dashboard.</p><aside class="callout"><strong>Software integration still to complete</strong><p>Reader scheduling, repeated-scan suppression, RTC error handling, persistent credential updates, restart-safe event IDs and the hardware-connected reporting interface require implementation and integration tests.</p></aside></div>
+  </div>
+</section>
+<section class="report-section paper" id="budget" aria-labelledby="budget-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">08 / ECONOMICS</p><h2 id="budget-title">A practical<br>prototype budget.</h2></header>
+    <div class="section-body"><p>The report estimates a low-cost two-reader prototype using a microcontroller and existing phone or laptop for reporting. The values below are planning figures from November 2026, not current supplier quotations.</p><div class="table-wrap" tabindex="0" role="region" aria-label="Estimated component budget from the report"><table><caption>Estimated component budget from the report</caption><thead><tr><th scope="col">Component</th><th scope="col">Quantity</th><th scope="col">Estimated total</th></tr></thead><tbody>
+<tr><td>ESP32-S3 N16R8</td><td>1</td><td>₹600–850</td></tr>
+<tr><td>PN532 NFC readers</td><td>2</td><td>₹540–1,200</td></tr>
+<tr><td>DS3231 RTC</td><td>1</td><td>₹165–350</td></tr>
+<tr><td>microSD adapter + card</td><td>1 + 1</td><td>₹250–550</td></tr>
+<tr><td>NFC test cards</td><td>Small test batch</td><td>₹250–600</td></tr>
+<tr><td>Regulated power supply</td><td>1</td><td>₹150–300</td></tr>
+<tr><td>Wiring, prototype PCB and enclosure</td><td>Set</td><td>₹300–900</td></tr>
+<tr><td><strong>Component subtotal</strong></td><td></td><td><strong>₹2,255–4,750</strong></td></tr>
+</tbody></table></div><p>The rounded planning range is <strong>₹2,300–4,800</strong>. Optional display, UPS, shipping variation and software-development labour are excluded. Final procurement must confirm the card chip, module revision, supply requirements and backup-cell arrangement.</p><div class="formula"><span class="formula-label">Illustrative annual card-replacement cost</span>500 users × 3% annual loss × ₹30 per card = ₹450/year</div><p class="table-note">The replacement estimate is a cost-model example, not an observed loss rate or purchasing commitment.</p></div>
+  </div>
+</section>
+<section class="report-section" id="validation" aria-labelledby="validation-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">09 / VALIDATION & NEXT STEPS</p><h2 id="validation-title">A clear boundary<br>between design and proof.</h2></header>
+    <div class="section-body"><p>The source report distinguishes documented hardware capabilities, example calculations and pending physical tests. That distinction remains visible here: a sound architecture is not yet evidence of a reliable installed system.</p><div class="table-wrap" tabindex="0" role="region" aria-label="Validation status and acceptance evidence"><table><caption>Validation status and acceptance evidence</caption><thead><tr><th scope="col">Area</th><th scope="col">Current evidence</th><th scope="col">Next validation step</th></tr></thead><tbody>
+<tr><td>Multiple visits and range clipping</td><td>Worked examples in the report; interactive sample-data model on this page.</td><td>Compare outputs with known session totals and reporting boundaries.</td></tr>
+<tr><td>Dual-reader operation</td><td>Proposed UART wiring and initialization pattern.</td><td>Verify both readers, concurrent scan handling and placement.</td></tr>
+<tr><td>Clock and storage</td><td>Documented DS3231 and microSD interfaces.</td><td>Check RTC initialization, clock backup and every event write.</td></tr>
+<tr><td>Credential lifecycle</td><td>Person/credential schema and revocation flow.</td><td>Test registration, replacement, restart and offline updates.</td></tr>
+<tr><td>Missing / repeated scans</td><td>Explicit state and exception policy.</td><td>Exercise ambiguous sequences and duplicate suppression.</td></tr>
+<tr><td>Recovery</td><td>Failure cases identified.</td><td>Interrupt power during writes; inspect partial records and retained history.</td></tr>
+<tr><td>Device dashboard</td><td>Reporting architecture proposed.</td><td>Connect actual event data, date filters, export and access controls.</td></tr>
+</tbody></table></div><h3>Prototype sequence</h3><ol class="flow"><li><strong>One reader first</strong>Verify UID reads and exact module settings before adding a second reader.</li><li><strong>Add direction and time</strong>Test independent entry/exit paths, then initialize and verify the RTC.</li><li><strong>Prove storage</strong>Record events and test restarts, missing media and interrupted writes.</li><li><strong>Add credential management</strong>Register, revoke and replace cards without changing person history.</li><li><strong>Connect reporting</strong>Generate daily and monthly results from actual retained events.</li><li><strong>Measure reliability</strong>Record scan success, mean and 95th-percentile latency, orientation sensitivity and recovery behaviour.</li></ol><p>Later work includes authenticated smart cards, a durable event journal, multi-terminal synchronization and passage sensors. Attendance records also need controlled access and a retention policy before any real deployment.</p></div>
+  </div>
+</section>
+<section class="report-section paper" id="resources" aria-labelledby="resources-title">
+  <div class="wrap section-grid">
+    <header><p class="section-index">10 / DOCUMENTATION</p><h2 id="resources-title">The architecture,<br>fully documented.</h2></header>
+    <div class="section-body"><div class="resource-card"><div><h3>The complete project report</h3><p>25 pages · PDF · Version 2.0 · 16 November 2026 · Architecture, algorithms and validation plan.</p></div><a class="report-download" href="assets/reports/smart-id-attendance-report.pdf" target="_blank" rel="noopener noreferrer">Open report <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></div><h3>Technical references</h3><p>Manufacturer documentation and library references cited in the report.</p><ul class="reference-list"><li><a href="https://documentation.espressif.com/esp32-s3_datasheet_en.pdf" target="_blank" rel="noopener noreferrer"><span>Espressif · ESP32-S3 datasheet</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></li><li><a href="https://www.nxp.com/products/NTAG213_215_216" target="_blank" rel="noopener noreferrer"><span>NXP · NTAG213 / 215 / 216</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></li><li><a href="https://github.com/adafruit/Adafruit-PN532" target="_blank" rel="noopener noreferrer"><span>Adafruit · PN532 library and interfaces</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></li><li><a href="https://www.analog.com/en/products/ds3231.html" target="_blank" rel="noopener noreferrer"><span>Analog Devices · DS3231 RTC</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></li><li><a href="https://github.com/espressif/arduino-esp32/tree/master/libraries/SD" target="_blank" rel="noopener noreferrer"><span>Espressif · Arduino-ESP32 SD library</span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></li></ul></div>
+  </div>
+</section>
+<section class="report-next wrap" aria-label="Related project"><a class="next-card" href="rfid-card-detection.html"><div><span>EXPLORE THE FOUNDATION / RFID DETECTION</span><strong>Start with the signal: Arduino UNO and MFRC522.</strong></div><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-7-7 7 7-7 7"/></svg></a></section>
   </main>
-  <footer class="wrap footer"><a class="wordmark" href="index.html">AAKASH<span>✳</span></a><span>© 2026 AAKASH</span><a href="index.html#work">ALL WORK ↑</a></footer>
+  <footer class="wrap footer"><a class="wordmark" href="index.html">AAKASH<span class="brand-dot" aria-hidden="true"></span></a><span>© 2026 AAKASH · Built with curiosity.</span><a href="index.html#work">ALL WORK <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></footer>
 </body>
 </html>

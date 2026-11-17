@@ -173,13 +173,15 @@ function initBodeExplorer() {
 
   buttons.forEach(btn => {
     btn.addEventListener('click', () => {
-      buttons.forEach(b => b.classList.remove('active'));
+      buttons.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
       btn.classList.add('active');
       const val = parseFloat(btn.getAttribute('data-cap'));
       setCapacitor(val);
     });
   });
 
+  buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.cap === '47')));
   // Default: 47uF
   setCapacitor(47);
 }
@@ -266,6 +268,8 @@ function initNotesGallery() {
   NOTES_DATA.forEach((item, index) => {
     const btn = document.createElement('button');
     btn.className = `thumb-item ${index === 0 ? 'active' : ''}`;
+    btn.type = 'button';
+    btn.setAttribute('aria-pressed', String(index === 0));
     btn.innerHTML = `
       <span class="thumb-pg-num">${item.pg}</span>
       <div class="thumb-info">
@@ -277,7 +281,8 @@ function initNotesGallery() {
     const fullSrc = `${assetPrefix}${item.src}`;
 
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.thumb-item').forEach(b => b.classList.remove('active'));
+      thumbList.querySelectorAll('.thumb-item').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
       btn.classList.add('active');
 
       stageImg.src = fullSrc;
@@ -295,63 +300,16 @@ function initNotesGallery() {
    ========================================================================== */
 function initLightbox() {
   const modal = document.getElementById('lightbox-modal');
-  const modalImg = document.getElementById('lightbox-img');
-  const modalCaption = document.getElementById('lightbox-caption');
-  const closeBtn = document.getElementById('lightbox-close');
-
-  if (!modal || !modalImg) return;
-
-  function openLightbox(src, caption) {
-    modalImg.src = src;
-    if (modalCaption) modalCaption.textContent = caption;
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeLightbox() {
-    modal.classList.remove('open');
-    document.body.style.overflow = '';
-  }
-
-  // Attach to poster trigger
-  const posterTrigger = document.getElementById('hero-poster-trigger');
-  if (posterTrigger) {
-    posterTrigger.addEventListener('click', () => {
-      openLightbox(`${assetPrefix}assets/analog-workshop-brochure.png`, 'Official DTU ECE Workshop Brochure (Page 1 & 2)');
-    });
-  }
-
-  const brochureBtn = document.getElementById('view-brochure-modal-btn');
-  if (brochureBtn) {
-    brochureBtn.addEventListener('click', () => {
-      openLightbox(`${assetPrefix}assets/analog-workshop-brochure.png`, 'Official DTU ECE Workshop Brochure');
-    });
-  }
-
-  // Attach to notes stage frame
-  const notesStage = document.getElementById('notes-stage-frame');
-  if (notesStage) {
-    notesStage.addEventListener('click', () => {
-      const curImg = document.getElementById('notes-stage-img');
-      const curTitle = document.getElementById('notes-stage-title');
-      if (curImg) {
-        openLightbox(curImg.src, curTitle ? curTitle.textContent : 'Handwritten Technical Lecture Notes');
-      }
-    });
-  }
-
-  if (closeBtn) closeBtn.addEventListener('click', closeLightbox);
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeLightbox();
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.classList.contains('open')) {
-      closeLightbox();
-    }
+  if (!modal) return;
+  const open = prepareDocumentViewer(modal, 'open');
+  const poster = document.getElementById('hero-poster-trigger');
+  bindDocumentTrigger(poster, () => open(poster, `${assetPrefix}assets/analog-workshop-brochure.png`, 'Official DTU ECE Workshop Brochure'));
+  const notes = document.getElementById('notes-stage-frame');
+  bindDocumentTrigger(notes, () => {
+    const image = document.getElementById('notes-stage-img');
+    open(notes, image.src, document.getElementById('notes-stage-title').textContent);
   });
 }
-
 /* ==========================================================================
    5. Scroll-Spy for Sub-Navigation
    ========================================================================== */
