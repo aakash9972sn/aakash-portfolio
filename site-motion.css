@@ -621,3 +621,369 @@ html.fx-cursor-on :is(input, textarea, select) { cursor: auto !important; }
 }
 .subnav-links a { transition: color .2s ease, background .2s ease, box-shadow .3s ease; }
 .subnav-links a:is(.active, [aria-current]) { box-shadow: inset 0 0 0 1px #ffffff2e; }
+
+/* ---------------------------------------------------------------------------
+   Projects refinement — a second pass over the project work itself: the cards
+   in the portfolio collection and the interior of the two project reports.
+   Hairlines carry the accent, the illustration panels breathe, metrics and
+   labels get their own light, and the reading furniture (tables, flows,
+   callouts, disclosures) answers the pointer. Layout and copy are untouched.
+--------------------------------------------------------------------------- */
+
+/* 17. Project cards — the artwork opens with an accent hairline, the
+   illustration drifts a little deeper, and the copy column picks up the small
+   details: a live category marker, tag chips that lift, an action that lights. */
+.entry-art::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, currentColor 20%, currentColor 80%, transparent);
+  opacity: .45;
+  transform: scaleX(.28);
+  transform-origin: left;
+  transition: transform .7s var(--motion-ease), opacity .45s ease;
+}
+.entry-link:is(:hover, :focus-visible) .entry-art::before { opacity: .95; transform: scaleX(1); }
+
+.entry-art .circuit-art,
+.entry-art .rfid-art,
+.entry-art .attendance-art {
+  transition: opacity .35s ease, transform .5s var(--motion-ease), scale .5s var(--motion-ease);
+}
+.entry-link:is(:hover, :focus-visible) .entry-art :is(.circuit-art, .rfid-art, .attendance-art) { scale: 1.035; }
+
+.entry-meta > :first-child::before {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 7px;
+  border-radius: 50%;
+  vertical-align: middle;
+  background: var(--mint, #c2e7cd);
+  box-shadow: 0 0 9px #c2e7cd99;
+}
+.entry-body h4 { transition: color .3s ease; }
+.entry-link:is(:hover, :focus-visible) .entry-body h4 { color: #e9f3ff; }
+.entry-tags li { transition: translate .28s var(--motion-ease), box-shadow .28s ease; }
+.entry-tags li:hover { translate: 0 -2px; box-shadow: inset 0 0 0 1px #c2e7cd59, 0 6px 14px -8px #00000073; }
+.entry-action > span { transition: background .3s ease, box-shadow .35s ease, color .3s ease; }
+.entry-link:is(:hover, :focus-visible) .entry-action > span {
+  box-shadow: 0 0 0 4px #c2e7cd1f, 0 10px 20px -8px #00000073;
+}
+
+/* 18. Project report hero — a themed bloom behind the copy, a live status
+   marker, a signal lamp in the visual topline and a gradient rim on the
+   illustration frame. */
+.report-page .report-hero::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -12% -8% -22% 24%;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 62% 24%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 64%);
+}
+.report-page .project-status strong::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 8px;
+  border-radius: 50%;
+  vertical-align: middle;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+}
+.report-page .visual-topline .signal::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 8px;
+  border-radius: 50%;
+  vertical-align: middle;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+}
+.report-page .hero-visual::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(from 220deg,
+    color-mix(in srgb, var(--accent) 60%, transparent), transparent 34%, transparent 68%, #ffffff38);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .report-page .project-status strong::before { animation: fx-status 2.8s ease-in-out infinite; }
+  @keyframes fx-status { 50% { opacity: .3; } }
+}
+
+/* 19. Numbers get their own light: the headline metric is set in a metal
+   gradient, the demo metrics use tabular figures, and every specification
+   cell draws an accent rule when it is read. */
+.report-page .visual-result strong {
+  background: linear-gradient(100deg, var(--accent) 12%, #ffffff 50%, var(--accent) 88%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--accent) 42%, transparent));
+}
+.report-page .demo-metrics dd {
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 28px color-mix(in srgb, var(--accent) 32%, transparent);
+}
+.report-page .spec-grid { position: relative; }
+.report-page .spec-grid::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -1px;
+  width: min(240px, 42%);
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+.report-page .spec-grid div { position: relative; }
+.report-page .spec-grid div::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .5s var(--motion-ease);
+}
+.report-page .spec-grid div:hover::after { transform: scaleX(1); }
+
+/* 20. Reading furniture — the section header carries a rail, table captions a
+   diamond, flow steps, callouts, disclosures and reference rows all answer the
+   pointer with the theme accent rather than a generic one. */
+.report-page .section-grid > header { position: relative; }
+.report-page .section-grid > header::before {
+  content: '';
+  position: absolute;
+  left: -30px;
+  top: 2px;
+  bottom: 6px;
+  width: 1px;
+  background: linear-gradient(180deg, var(--accent), transparent 76%);
+  opacity: .4;
+}
+@media (max-width: 880px) {
+  .report-page .section-grid > header::before { display: none; }
+}
+.report-page caption::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 10px;
+  vertical-align: middle;
+  background: var(--accent);
+  border-radius: 1px;
+  transform: rotate(45deg);
+}
+.report-page .flow li { transition: border-top-color .35s ease, translate .35s var(--motion-ease); }
+.report-page .flow li:hover { border-top-color: var(--accent); translate: 0 -2px; }
+.report-page .flow li strong { transition: color .3s ease; }
+.report-page .flow li:hover strong { color: #ffffff; }
+.report-page .callout { transition: box-shadow .4s ease, translate .4s var(--motion-ease); }
+.report-page .callout:hover {
+  translate: 0 -2px;
+  box-shadow: 0 14px 34px #00000047, -2px 0 24px -8px var(--accent);
+}
+.report-page .code-details summary {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  transition: background .3s ease, color .25s ease;
+}
+.report-page .code-details summary::-webkit-details-marker { display: none; }
+.report-page .code-details summary::after {
+  content: '';
+  margin-left: auto;
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform .35s var(--motion-ease);
+}
+.report-page .code-details[open] summary::after { transform: rotate(-135deg) translate(-2px, -2px); }
+.report-page .code-details summary:hover { background: #1e2c26; }
+.report-page .reference-list a .icon { transition: transform .35s var(--motion-ease), color .3s ease; }
+.report-page .reference-list a:is(:hover, :focus-visible) .icon { transform: translate(3px, -3px); color: var(--accent); }
+.report-page .next-card > .icon { transition: transform .45s var(--motion-ease), filter .4s ease; }
+.report-page .next-card:is(:hover, :focus-visible) > .icon { transform: translateX(7px); filter: drop-shadow(0 0 12px var(--accent)); }
+
+/* 21. Small parts: the level pill keeps a halo, the chosen example button is
+   lit rather than merely filled, and status badges ring on hover. */
+.report-page .pill.level {
+  box-shadow: 0 0 20px -6px var(--accent),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.report-page .example-options button[aria-pressed="true"] {
+  box-shadow: 0 8px 20px -8px var(--accent), inset 0 0 0 1px #ffffff3d;
+}
+.report-page .badge { transition: box-shadow .3s ease; }
+.report-page .badge:hover { box-shadow: 0 0 0 3px #86734f26; }
+.report-page .badge.ok:hover { box-shadow: 0 0 0 3px #4b755926; }
+
+/* 22. The two workshops get the same hand: the hero strip keeps a rail, the
+   live lamps glow, the showcase frames take an accent rim and every quiet list
+   answers the pointer with the colour that belongs to that page. */
+.case-study-page { --project-accent: var(--cyan, var(--mint)); --project-accent-deep: var(--cyan-dark, #3b7454); }
+
+.case-study-page .eyebrow-pill i {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
+}
+.case-study-page .spec-strip-grid { position: relative; }
+.case-study-page .spec-strip-grid::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  border-radius: 12px 12px 0 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--project-accent), transparent 78%);
+  opacity: .75;
+}
+.case-study-page .spec-cell { transition: translate .3s var(--motion-ease); }
+.case-study-page .spec-cell:hover { translate: 4px 0; }
+.case-study-page .spec-cell .val { text-shadow: 0 0 22px color-mix(in srgb, var(--project-accent) 32%, transparent); }
+
+.case-study-page :is(.poster-media-wrap, .poster-frame)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(115deg, transparent 42%, #ffffff2e 50%, transparent 58%);
+  transition: opacity .45s ease;
+}
+.case-study-page :is(.poster-media-wrap, .poster-frame):hover::after { opacity: 1; }
+
+.case-study-page :is(.cert-visual-frame, .notes-stage-frame, .bode-chart-canvas-wrap)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(from 200deg,
+    color-mix(in srgb, var(--project-accent) 65%, transparent), transparent 32%, transparent 66%, #ffffff33);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.case-study-page :is(.stage-check-items, .feature-bullets) li { transition: color .3s ease, padding-left .35s var(--motion-ease); }
+.case-study-page :is(.stage-check-items, .feature-bullets) li:hover { color: #ffffff; padding-left: 4px; }
+.case-study-page :is(.stage-check-items, .feature-bullets) li::before {
+  text-shadow: 0 0 12px color-mix(in srgb, var(--project-accent) 60%, transparent);
+}
+.case-study-page .checklist-items li { transition: color .3s ease; }
+.case-study-page .checklist-items li:hover { color: #ffffff; }
+.case-study-page .checklist-items li::before { box-shadow: 0 0 16px -4px var(--project-accent); }
+.case-study-page .objective-list-box ol li::marker { color: var(--project-accent); }
+.case-study-page .pillar-outcome-footer { transition: box-shadow .4s ease; }
+.case-study-page .pillar-spec-card:hover .pillar-outcome-footer { box-shadow: -4px 0 24px -8px var(--project-accent); }
+
+.case-study-page :is(.bjt-interactive-card, .low-entropy-box, .notes-gallery-wrap) { position: relative; }
+.case-study-page :is(.bjt-interactive-card, .low-entropy-box, .notes-gallery-wrap)::before {
+  content: '';
+  position: absolute;
+  left: 28px;
+  top: -1px;
+  width: 180px;
+  height: 2px;
+  border-radius: 2px;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--project-accent), transparent);
+  opacity: .6;
+}
+.case-study-page .res-box { transition: border-color .3s ease, translate .3s var(--motion-ease); }
+.case-study-page .res-box:hover { border-color: var(--project-accent); translate: 0 -2px; }
+.case-study-page .res-box .value {
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--project-accent) 38%, transparent);
+}
+.case-study-page .equation-number { font-variant-numeric: tabular-nums; }
+.case-study-page .thumb-item.active { box-shadow: inset 3px 0 0 var(--project-accent); }
+
+.case-study-page .person-card { transition: box-shadow .4s ease, translate .4s var(--motion-ease); }
+.case-study-page .person-card:hover {
+  translate: 0 -2px;
+  box-shadow: 0 12px 30px #00000059, -3px 0 22px -8px var(--project-accent);
+}
+.case-study-page .architectural-diagram-box { position: relative; }
+.case-study-page .architectural-diagram-box::before {
+  content: '';
+  position: absolute;
+  left: 32px;
+  top: -1px;
+  width: 160px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--project-accent-deep), transparent);
+}
+.case-study-page .official-links-ribbon { position: relative; }
+.case-study-page .official-links-ribbon::before {
+  content: '';
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--project-accent), transparent 70%);
+  opacity: .45;
+}
+.case-study-page .quote-symbol {
+  background: linear-gradient(155deg, var(--project-accent), #ffffff73);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 24px color-mix(in srgb, var(--project-accent) 45%, transparent));
+}
+.case-study-page .footer-nav-links a { position: relative; }
+.case-study-page .footer-nav-links a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
+  background: var(--project-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .35s var(--motion-ease);
+}
+.case-study-page .footer-nav-links a:is(:hover, :focus-visible)::after { transform: scaleX(1); }
+@media (prefers-reduced-motion: no-preference) {
+  .case-study-page .eyebrow-pill i { animation: fx-status 3.2s ease-in-out infinite; }
+}
+
+/* 23. Two closing strokes inside the reports: the diagram nodes lift off the
+   page and the formulas keep a rail of their own. */
+.report-page .diagram .node { transition: border-color .35s ease, box-shadow .35s ease, translate .35s var(--motion-ease); }
+.report-page .diagram .node:hover { translate: 0 -3px; border-color: var(--accent); box-shadow: 0 12px 26px #00000047; }
+.report-page .diagram .node.core:hover { box-shadow: 0 12px 26px #00000047, inset 0 0 0 1px var(--accent); }
+.report-page .check-list li::marker { color: var(--accent); }
+.report-page .formula { border-left: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); }
