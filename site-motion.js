@@ -111,7 +111,7 @@
     }
     activeSurface = null;
   }
-  document.querySelectorAll('.portrait-card, .hero-visual').forEach(element => element.classList.add('motion-depth'));
+  document.querySelectorAll('.portrait-card, .hero-visual, .poster-exhibition-card').forEach(element => element.classList.add('motion-depth'));
   document.addEventListener('pointermove', event => {
     if (reducedMotion.matches || !finePointer.matches || event.pointerType !== 'mouse') return;
     const surface = event.target.closest('.collection-card, .motion-depth');
@@ -261,7 +261,9 @@
   /* Depth: the hero portrait and the about stamp drift against the scroll. */
   const parallaxTargets = [
     { element: document.querySelector('.site-home .hero .portrait-card'), range: 16 },
-    { element: document.querySelector('.site-home .about-stamp'), range: 12 }
+    { element: document.querySelector('.site-home .about-stamp'), range: 12 },
+    { element: document.querySelector('.report-page .hero-visual'), range: 14 },
+    { element: document.querySelector('.case-study-page .poster-exhibition-card'), range: 14 }
   ].filter(target => target.element);
   let parallaxFrame = 0;
   function paintParallax() {
@@ -373,7 +375,7 @@
   const finePointer = matchMedia('(hover: hover) and (pointer: fine) and (min-width: 900px)');
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const home = document.body.classList.contains('site-home');
-  const hero = document.querySelector('.site-home .hero');
+  const hero = document.querySelector('.site-home .hero, .report-page .report-hero, .case-study-page .hero-section');
 
   /* ------------------------------------------------------------ the curtain */
   let intro = null;
@@ -551,7 +553,7 @@
     fieldFrame = requestAnimationFrame(stepField);
   }
   function buildField() {
-    if (canvas || !hero || !home) return;
+    if (canvas || !hero) return;
     const element = document.createElement('canvas');
     element.className = 'fx-canvas';
     element.setAttribute('aria-hidden', 'true');
@@ -590,9 +592,14 @@
 
   /* ----------------------------------------------------------- card framing */
   let framedCard = null;
+  const cardSelector = [
+    '.collection-card', '.card-grid > article', '.next-card',
+    '.module-clean-card', '.pillar-spec-card', '.concept-box-card',
+    '.lineage-card', '.takeaway-brick', '.download-card', '.quote-editorial-box'
+  ].join(',');
   function primeCards() {
     if (reducedMotion.matches) return;
-    document.querySelectorAll('.site-home .collection-card').forEach(card => card.classList.add('fx-tilt'));
+    document.querySelectorAll(cardSelector).forEach(card => card.classList.add('fx-tilt'));
   }
   function clearFraming() {
     if (!framedCard) return;
@@ -646,7 +653,7 @@
       aimX = event.clientX - rect.left;
       aimY = event.clientY - rect.top;
     }
-    const card = event.target.closest?.('.site-home .collection-card') || null;
+    const card = event.target.closest?.('.fx-tilt') || null;
     if (card !== framedCard) {
       clearFraming();
       framedCard = card;

@@ -112,7 +112,7 @@
 }
 
 @media (hover: hover) and (pointer: fine) and (min-width: 900px) and (prefers-reduced-motion: no-preference) {
-  .site-home .portrait-card.motion-depth, .hero-visual.motion-depth {
+  .site-home .portrait-card.motion-depth, .hero-visual.motion-depth, .poster-exhibition-card.motion-depth {
     transform: translate3d(0, var(--fx-parallax, 0px), 0) perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
     transition: transform .45s var(--motion-ease), box-shadow .45s ease;
   }
@@ -229,7 +229,7 @@
 
 /* 1. Depth texture: a soft vignette plus fine grain, so the flat panels read
    as physical surfaces instead of solid fills. */
-.site-home::before {
+:is(.site-home, .report-page, .case-study-page)::before {
   content: '';
   position: fixed;
   inset: 0;
@@ -237,7 +237,7 @@
   pointer-events: none;
   background: radial-gradient(140% 120% at 50% 30%, transparent 62%, #00000059 100%);
 }
-.site-home::after {
+:is(.site-home, .report-page, .case-study-page)::after {
   content: '';
   position: fixed;
   inset: 0;
@@ -248,13 +248,19 @@
   background-size: 160px 160px;
 }
 
-/* 2. A slowly panning grid behind the dark sections. */
+/* 2. A slowly panning grid behind the dark sections on every page family. */
 .site-home .work-section,
-.site-home .education-section { position: relative; isolation: isolate; }
+.site-home .education-section,
+.report-page .report-section:not(.paper),
+.case-study-page .editorial-section.dark-theme { position: relative; isolation: isolate; }
 .site-home .work-section > .wrap,
-.site-home .education-section > .wrap { position: relative; z-index: 1; }
+.site-home .education-section > .wrap,
+.report-page .report-section:not(.paper) > .wrap,
+.case-study-page .editorial-section.dark-theme > .wrap { position: relative; z-index: 1; }
 .site-home .work-section::before,
-.site-home .education-section::before {
+.site-home .education-section::before,
+.report-page .report-section:not(.paper)::before,
+.case-study-page .editorial-section.dark-theme::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -269,12 +275,15 @@
 }
 @media (prefers-reduced-motion: no-preference) {
   .site-home .work-section::before,
-  .site-home .education-section::before { animation: fx-grid-pan 34s linear infinite; }
+  .site-home .education-section::before,
+  .report-page .report-section:not(.paper)::before,
+  .case-study-page .editorial-section.dark-theme::before { animation: fx-grid-pan 34s linear infinite; }
   @keyframes fx-grid-pan { to { background-position: 68px 68px, 68px 68px; } }
 }
 
 /* 3. The particle field that the script paints inside the hero. */
-.site-home .hero .fx-canvas {
+:is(.site-home .hero, .report-page .report-hero, .case-study-page .hero-section) { position: relative; isolation: isolate; }
+:is(.site-home .hero, .report-page .report-hero, .case-study-page .hero-section) .fx-canvas {
   position: absolute;
   inset: 0;
   z-index: -1;
@@ -283,53 +292,66 @@
   pointer-events: none;
 }
 
-/* 4. A breathing halo so the portrait sits in its own light. The card clips its
-   own children, so the glow is cast with a box-shadow instead. */
-.site-home .hero .portrait-card { position: relative; }
+/* 4. A breathing halo so the hero artwork sits in its own light. The portrait
+   card clips its own children, so the glow is cast with a box-shadow instead. */
+.site-home .hero .portrait-card,
+.report-page .hero-visual,
+.case-study-page .poster-exhibition-card { position: relative; }
 @media (prefers-reduced-motion: no-preference) {
-  .site-home .hero .portrait-card { animation: fx-halo 11s ease-in-out infinite; }
+  :is(.site-home .hero .portrait-card, .report-page .hero-visual, .case-study-page .poster-exhibition-card) { animation: fx-halo 11s ease-in-out infinite; }
   @keyframes fx-halo {
     0%, 100% { box-shadow: 0 26px 60px #00000059, 0 0 0 #63e6be00; }
     50% { box-shadow: 0 26px 60px #00000059, 0 0 42px 3px #63e6be8c, 0 0 96px 16px #8ee7ff2e; }
   }
 }
 
-/* 5. The headline carries a slow, living gradient. */
+/* 5. Headlines carry a slow, living gradient. */
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
-  .site-home #hero-title em {
+  .site-home #hero-title em,
+  .report-page .report-hero h1 em,
+  .case-study-page .hero-section h1 em {
     background-image: linear-gradient(100deg, #c6dfbd 0%, #8ee7ff 25%, #bda9ff 48%, #63e6be 72%, #c6dfbd 100%);
     background-size: 320% 100%;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     -webkit-text-fill-color: transparent;
+    text-shadow: none;
   }
   .site-home .collection-heading h2 em,
-  .site-home .section-heading h2 span {
+  .site-home .section-heading h2 span,
+  .case-study-page .section-heading-text span,
+  .case-study-page .section-lead-header h2 em:not(:has(math)) {
     background-image: linear-gradient(100deg, #a8c8e1 0%, #63e6be 30%, #bda9ff 55%, #a8c8e1 100%);
     background-size: 260% 100%;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     -webkit-text-fill-color: transparent;
+    text-shadow: none;
   }
   @media (prefers-reduced-motion: no-preference) {
     .site-home #hero-title em,
+    .report-page .report-hero h1 em,
+    .case-study-page .hero-section h1 em,
     .site-home .collection-heading h2 em,
-    .site-home .section-heading h2 span { animation: fx-headline 12s linear infinite; }
+    .site-home .section-heading h2 span,
+    .case-study-page .section-heading-text span,
+    .case-study-page .section-lead-header h2 em:not(:has(math)) { animation: fx-headline 12s linear infinite; }
     @keyframes fx-headline { to { background-position: 300% 50%; } }
   }
 }
 
-/* 6. Collection cards get a neon frame, a travelling glare and a 3D tilt. */
-.site-home .collection-card { position: relative; isolation: isolate; }
-.site-home .collection-card::before {
+/* 6. Cards the script marks with .fx-tilt get a neon frame, a travelling glare
+   and a 3D tilt. The marker keeps every page family on one set of rules. */
+.fx-tilt { position: relative; isolation: isolate; }
+.fx-tilt::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 4;
   padding: 1px;
-  border-radius: 12px;
+  border-radius: inherit;
   pointer-events: none;
   opacity: 0;
   background: conic-gradient(from var(--fx-border-a, 0deg), #63e6be, #3b82f6, #c2e7cd, #8ee7ff, #63e6be);
@@ -339,25 +361,25 @@
   mask-composite: exclude;
   transition: opacity .45s ease;
 }
-.site-home .collection-card::after {
+.fx-tilt::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 3;
-  border-radius: 12px;
+  border-radius: inherit;
   pointer-events: none;
   opacity: 0;
   background: radial-gradient(300px circle at var(--fx-glare-x, 50%) var(--fx-glare-y, 50%), #ffffff30, transparent 62%);
   transition: opacity .4s ease;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .site-home .collection-card:is(:hover, :focus-within)::before { opacity: 1; animation: fx-border-spin 5s linear infinite; }
+  :is(.site-home, .report-page, .case-study-page) .fx-tilt:is(:hover, :focus-within)::before { opacity: 1; animation: fx-border-spin 5s linear infinite; }
   @keyframes fx-border-spin { to { --fx-border-a: 360deg; } }
-  .site-home .collection-card:is(:hover, :focus-within)::after { opacity: 1; }
+  :is(.site-home, .report-page, .case-study-page) .fx-tilt:is(:hover, :focus-within)::after { opacity: 1; }
 }
 @media (hover: hover) and (pointer: fine) and (min-width: 900px) and (prefers-reduced-motion: no-preference) {
-  .site-home .collection-card.fx-tilt { transition: transform .5s var(--motion-ease), box-shadow .45s ease, border-color .45s ease; }
-  .site-home .collection-card.fx-tilt:is(:hover, :focus-within) {
+  .fx-tilt { transition: transform .5s var(--motion-ease), box-shadow .45s ease, border-color .45s ease; }
+  :is(.site-home, .report-page, .case-study-page) .fx-tilt:is(:hover, :focus-within) {
     transform: perspective(900px) rotateX(var(--fx-tilt-x, 0deg)) rotateY(var(--fx-tilt-y, 0deg)) translateY(-6px);
     border-color: #63e6be6b;
     box-shadow: 0 26px 60px #00000073, 0 0 26px #63e6be26;
