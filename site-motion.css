@@ -217,3 +217,243 @@
   }
   .site-home .about-stamp { transform: translate3d(0, var(--fx-parallax, 0px), 0) rotate(-8deg); }
 }
+
+/* ---------------------------------------------------------------------------
+   Power layer — the loud, high-impact work: textured depth over every surface,
+   an animated section grid, a rotating halo behind the portrait, a gradient
+   headline, neon card framing with glare and tilt, a running toolkit marquee,
+   an intro curtain and a custom pointer. Purely decorative: the JavaScript
+   builds each piece and tears it down again when motion is not welcome.
+--------------------------------------------------------------------------- */
+@property --fx-border-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+
+/* 1. Depth texture: a soft vignette plus fine grain, so the flat panels read
+   as physical surfaces instead of solid fills. */
+.site-home::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: radial-gradient(140% 120% at 50% 30%, transparent 62%, #00000059 100%);
+}
+.site-home::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+/* 2. A slowly panning grid behind the dark sections. */
+.site-home .work-section,
+.site-home .education-section { position: relative; isolation: isolate; }
+.site-home .work-section > .wrap,
+.site-home .education-section > .wrap { position: relative; z-index: 1; }
+.site-home .work-section::before,
+.site-home .education-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(#7fb2ff12 1px, transparent 1px),
+    linear-gradient(90deg, #7fb2ff12 1px, transparent 1px);
+  background-size: 68px 68px;
+  -webkit-mask-image: radial-gradient(95% 75% at 50% 0%, #000, transparent 80%);
+  mask-image: radial-gradient(95% 75% at 50% 0%, #000, transparent 80%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .site-home .work-section::before,
+  .site-home .education-section::before { animation: fx-grid-pan 34s linear infinite; }
+  @keyframes fx-grid-pan { to { background-position: 68px 68px, 68px 68px; } }
+}
+
+/* 3. The particle field that the script paints inside the hero. */
+.site-home .hero .fx-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* 4. A breathing halo so the portrait sits in its own light. The card clips its
+   own children, so the glow is cast with a box-shadow instead. */
+.site-home .hero .portrait-card { position: relative; }
+@media (prefers-reduced-motion: no-preference) {
+  .site-home .hero .portrait-card { animation: fx-halo 11s ease-in-out infinite; }
+  @keyframes fx-halo {
+    0%, 100% { box-shadow: 0 26px 60px #00000059, 0 0 0 #63e6be00; }
+    50% { box-shadow: 0 26px 60px #00000059, 0 0 42px 3px #63e6be8c, 0 0 96px 16px #8ee7ff2e; }
+  }
+}
+
+/* 5. The headline carries a slow, living gradient. */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .site-home #hero-title em {
+    background-image: linear-gradient(100deg, #c6dfbd 0%, #8ee7ff 25%, #bda9ff 48%, #63e6be 72%, #c6dfbd 100%);
+    background-size: 320% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  .site-home .collection-heading h2 em,
+  .site-home .section-heading h2 span {
+    background-image: linear-gradient(100deg, #a8c8e1 0%, #63e6be 30%, #bda9ff 55%, #a8c8e1 100%);
+    background-size: 260% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .site-home #hero-title em,
+    .site-home .collection-heading h2 em,
+    .site-home .section-heading h2 span { animation: fx-headline 12s linear infinite; }
+    @keyframes fx-headline { to { background-position: 300% 50%; } }
+  }
+}
+
+/* 6. Collection cards get a neon frame, a travelling glare and a 3D tilt. */
+.site-home .collection-card { position: relative; isolation: isolate; }
+.site-home .collection-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  padding: 1px;
+  border-radius: 12px;
+  pointer-events: none;
+  opacity: 0;
+  background: conic-gradient(from var(--fx-border-a, 0deg), #63e6be, #3b82f6, #c2e7cd, #8ee7ff, #63e6be);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  transition: opacity .45s ease;
+}
+.site-home .collection-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: 12px;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(300px circle at var(--fx-glare-x, 50%) var(--fx-glare-y, 50%), #ffffff30, transparent 62%);
+  transition: opacity .4s ease;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .site-home .collection-card:is(:hover, :focus-within)::before { opacity: 1; animation: fx-border-spin 5s linear infinite; }
+  @keyframes fx-border-spin { to { --fx-border-a: 360deg; } }
+  .site-home .collection-card:is(:hover, :focus-within)::after { opacity: 1; }
+}
+@media (hover: hover) and (pointer: fine) and (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .site-home .collection-card.fx-tilt { transition: transform .5s var(--motion-ease), box-shadow .45s ease, border-color .45s ease; }
+  .site-home .collection-card.fx-tilt:is(:hover, :focus-within) {
+    transform: perspective(900px) rotateX(var(--fx-tilt-x, 0deg)) rotateY(var(--fx-tilt-y, 0deg)) translateY(-6px);
+    border-color: #63e6be6b;
+    box-shadow: 0 26px 60px #00000073, 0 0 26px #63e6be26;
+  }
+}
+
+/* 7. The toolkit runs as a marquee between the hero and the work archive. */
+.fx-marquee {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 0;
+  border-top: 1px solid #29394b;
+  border-bottom: 1px solid #29394b;
+  background: linear-gradient(90deg, #101d2d, #0f2b2a 50%, #101d2d);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
+.fx-marquee-track { display: flex; width: max-content; }
+.fx-marquee-track > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 23px;
+  padding-right: 23px;
+  font: 500 12px/1 var(--mono);
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  color: #9db6ab;
+  white-space: nowrap;
+}
+.fx-marquee-track > span::after {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #63e6be;
+  opacity: .75;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .fx-marquee-track { animation: fx-marquee 44s linear infinite; }
+  .fx-marquee:hover .fx-marquee-track { animation-play-state: paused; }
+  @keyframes fx-marquee { to { transform: translate3d(-50%, 0, 0); } }
+}
+
+/* 8. The intro curtain. It hides itself even if the script never runs again. */
+.fx-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(65% 65% at 50% 45%, #16241d, #0a1310 78%);
+  animation: fx-intro-out .65s var(--motion-ease) 1.15s both;
+}
+.fx-intro-inner { display: grid; gap: 16px; justify-items: center; }
+.fx-intro-mark { font: 500 clamp(30px, 6vw, 56px)/1 var(--display); letter-spacing: -2.5px; color: #eaf3ec; }
+.fx-intro-bar { display: block; width: min(210px, 46vw); height: 2px; background: #1d2f26; overflow: hidden; }
+.fx-intro-bar i { display: block; height: 100%; transform-origin: left; background: linear-gradient(90deg, #63e6be, #8ee7ff); animation: fx-intro-load 1.05s var(--motion-ease) both; }
+@keyframes fx-intro-load { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes fx-intro-out { to { opacity: 0; visibility: hidden; } }
+
+/* 9. The custom pointer: a precise dot with a ring that trails it. */
+.fx-cursor-dot,
+.fx-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 150;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+}
+.fx-cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: #c2e7cd;
+  transition: opacity .2s ease;
+}
+.fx-cursor-ring {
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  border: 1px solid #c2e7cdad;
+  transition: width .3s var(--motion-ease), height .3s var(--motion-ease), margin .3s var(--motion-ease),
+    background .3s ease, border-color .3s ease, opacity .2s ease;
+}
+.fx-cursor-ring.is-hover { width: 64px; height: 64px; margin: -32px 0 0 -32px; background: #c2e7cd1a; border-color: #c2e7cd70; }
+.fx-cursor-ring.is-down { width: 26px; height: 26px; margin: -13px 0 0 -13px; background: #c2e7cd2e; }
+html.fx-cursor-on,
+html.fx-cursor-on body,
+html.fx-cursor-on * { cursor: none !important; }
+html.fx-cursor-on :is(input, textarea, select) { cursor: auto !important; }
+
+@media (max-width: 760px) {
+  .site-home::before { background: radial-gradient(150% 110% at 50% 30%, transparent 60%, #00000059 100%); }
+  @media (prefers-reduced-motion: no-preference) {
+    .site-home .hero .portrait-card { animation: none; box-shadow: 0 22px 50px #00000059; }
+  }
+}

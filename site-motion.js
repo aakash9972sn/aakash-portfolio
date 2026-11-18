@@ -360,3 +360,332 @@
     primeTraces();
   }
 })();
+
+/* ---------------------------------------------------------------------------
+   Power layer — the loud, high-impact behaviour: an intro curtain, a reactive
+   particle field inside the hero, a custom pointer, 3D card framing and a
+   running toolkit marquee. Everything is decorative, is built only when motion
+   is welcome, and is torn down again the moment it is not.
+--------------------------------------------------------------------------- */
+(() => {
+  'use strict';
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const finePointer = matchMedia('(hover: hover) and (pointer: fine) and (min-width: 900px)');
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const home = document.body.classList.contains('site-home');
+  const hero = document.querySelector('.site-home .hero');
+
+  /* ------------------------------------------------------------ the curtain */
+  let intro = null;
+  function dropIntro() {
+    intro?.remove();
+    intro = null;
+  }
+  function buildIntro() {
+    if (intro || !home) return;
+    try {
+      if (sessionStorage.getItem('fx-intro-seen')) return;
+      sessionStorage.setItem('fx-intro-seen', '1');
+    } catch (_) { /* private modes may refuse storage; the curtain is optional */ }
+    intro = document.createElement('div');
+    intro.className = 'fx-intro';
+    intro.setAttribute('aria-hidden', 'true');
+    intro.innerHTML = '<span class="fx-intro-inner"><span class="fx-intro-mark">AAKASH</span>'
+      + '<span class="fx-intro-bar"><i></i></span></span>';
+    document.body.append(intro);
+    intro.addEventListener('animationend', event => {
+      if (event.animationName === 'fx-intro-out') dropIntro();
+    });
+    setTimeout(dropIntro, 2600);
+  }
+
+  /* ------------------------------------------------------------- the pointer */
+  let dot = null;
+  let ring = null;
+  let cursorFrame = 0;
+  let cursorX = 0;
+  let cursorY = 0;
+  let ringX = 0;
+  let ringY = 0;
+  let cursorHidden = true;
+
+  function buildCursor() {
+    if (dot || !finePointer.matches) return;
+    dot = document.createElement('div');
+    dot.className = 'fx-cursor-dot';
+    dot.setAttribute('aria-hidden', 'true');
+    ring = document.createElement('div');
+    ring.className = 'fx-cursor-ring';
+    ring.setAttribute('aria-hidden', 'true');
+    document.body.append(dot, ring);
+    document.documentElement.classList.add('fx-cursor-on');
+  }
+  function dropCursor() {
+    document.documentElement.classList.remove('fx-cursor-on');
+    dot?.remove();
+    ring?.remove();
+    dot = ring = null;
+    cursorHidden = true;
+    cursorFrame = 0;
+  }
+  function showCursor() {
+    if (!dot || !cursorHidden) return;
+    cursorHidden = false;
+    dot.style.opacity = '1';
+    ring.style.opacity = '1';
+  }
+  function hideCursor() {
+    if (!dot || cursorHidden) return;
+    cursorHidden = true;
+    dot.style.opacity = '0';
+    ring.style.opacity = '0';
+  }
+  function paintCursor() {
+    cursorFrame = 0;
+    if (!dot) return;
+    ringX += (cursorX - ringX) * .18;
+    ringY += (cursorY - ringY) * .18;
+    dot.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0)`;
+    ring.style.transform = `translate3d(${ringX.toFixed(2)}px, ${ringY.toFixed(2)}px, 0)`;
+    if (Math.abs(cursorX - ringX) > .15 || Math.abs(cursorY - ringY) > .15) {
+      cursorFrame = requestAnimationFrame(paintCursor);
+    }
+  }
+
+  /* -------------------------------------------------------- the particle field */
+  const LINK = 132;
+  const REACH = 150;
+  let canvas = null;
+  let ctx = null;
+  let nodes = [];
+  let fieldW = 0;
+  let fieldH = 0;
+  let fieldFrame = 0;
+  let fieldVisible = false;
+  let aimX = -9999;
+  let aimY = -9999;
+  let fieldObserver = null;
+  let fieldSizer = null;
+
+  function startField() {
+    if (!canvas || fieldFrame || !fieldVisible || document.hidden) return;
+    fieldFrame = requestAnimationFrame(stepField);
+  }
+  function stopField() {
+    cancelAnimationFrame(fieldFrame);
+    fieldFrame = 0;
+  }
+  function seedField() {
+    const count = Math.round(clamp((fieldW * fieldH) / 17000, 24, 72));
+    nodes = Array.from({ length: count }, () => ({
+      x: Math.random() * fieldW,
+      y: Math.random() * fieldH,
+      vx: (Math.random() - .5) * .24,
+      vy: (Math.random() - .5) * .24,
+      r: 1 + Math.random() * 1.4
+    }));
+  }
+  function sizeField() {
+    if (!canvas || !hero) return;
+    const rect = hero.getBoundingClientRect();
+    if (rect.width < 2 || rect.height < 2) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    fieldW = Math.round(rect.width);
+    fieldH = Math.round(rect.height);
+    canvas.width = Math.round(fieldW * dpr);
+    canvas.height = Math.round(fieldH * dpr);
+    canvas.style.width = `${fieldW}px`;
+    canvas.style.height = `${fieldH}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    seedField();
+  }
+  function strokeLinks(bucket, alpha) {
+    const near = LINK * .55;
+    ctx.beginPath();
+    for (let i = 0; i < nodes.length; i += 1) {
+      const a = nodes[i];
+      for (let j = i + 1; j < nodes.length; j += 1) {
+        const b = nodes[j];
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 > LINK * LINK || d2 < 1) continue;
+        if (bucket === 'near' ? d2 > near * near : d2 <= near * near) continue;
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+      }
+    }
+    ctx.strokeStyle = `rgba(126, 224, 195, ${alpha})`;
+    ctx.stroke();
+  }
+  function drawField() {
+    ctx.clearRect(0, 0, fieldW, fieldH);
+    for (const node of nodes) {
+      node.x += node.vx;
+      node.y += node.vy;
+      if (node.x < -24) node.x = fieldW + 24; else if (node.x > fieldW + 24) node.x = -24;
+      if (node.y < -24) node.y = fieldH + 24; else if (node.y > fieldH + 24) node.y = -24;
+      const dx = node.x - aimX;
+      const dy = node.y - aimY;
+      const dist = Math.hypot(dx, dy);
+      if (dist < REACH && dist > .5) {
+        const push = (1 - dist / REACH) * .9;
+        node.x += (dx / dist) * push;
+        node.y += (dy / dist) * push;
+      }
+    }
+    strokeLinks('far', .14);
+    strokeLinks('near', .34);
+    ctx.beginPath();
+    for (const node of nodes) {
+      ctx.moveTo(node.x + node.r, node.y);
+      ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
+    }
+    ctx.fillStyle = 'rgba(190, 238, 214, .5)';
+    ctx.fill();
+  }
+  function stepField() {
+    fieldFrame = 0;
+    if (!ctx || !fieldVisible || document.hidden) return;
+    drawField();
+    fieldFrame = requestAnimationFrame(stepField);
+  }
+  function buildField() {
+    if (canvas || !hero || !home) return;
+    const element = document.createElement('canvas');
+    element.className = 'fx-canvas';
+    element.setAttribute('aria-hidden', 'true');
+    const context = element.getContext('2d');
+    if (!context) return;
+    canvas = element;
+    ctx = context;
+    hero.prepend(canvas);
+    sizeField();
+    fieldVisible = true;
+    if (typeof window.IntersectionObserver === 'function') {
+      fieldObserver = new IntersectionObserver(entries => {
+        fieldVisible = entries.some(entry => entry.isIntersecting);
+        if (fieldVisible) startField(); else stopField();
+      }, { threshold: 0 });
+      fieldObserver.observe(hero);
+    }
+    if (typeof window.ResizeObserver === 'function') {
+      fieldSizer = new ResizeObserver(() => { stopField(); sizeField(); startField(); });
+      fieldSizer.observe(hero);
+    }
+    startField();
+  }
+  function dropField() {
+    stopField();
+    fieldObserver?.disconnect();
+    fieldSizer?.disconnect();
+    fieldObserver = null;
+    fieldSizer = null;
+    canvas?.remove();
+    canvas = null;
+    ctx = null;
+    nodes = [];
+    fieldVisible = false;
+  }
+
+  /* ----------------------------------------------------------- card framing */
+  let framedCard = null;
+  function primeCards() {
+    if (reducedMotion.matches) return;
+    document.querySelectorAll('.site-home .collection-card').forEach(card => card.classList.add('fx-tilt'));
+  }
+  function clearFraming() {
+    if (!framedCard) return;
+    framedCard.style.removeProperty('--fx-tilt-x');
+    framedCard.style.removeProperty('--fx-tilt-y');
+    framedCard.style.removeProperty('--fx-glare-x');
+    framedCard.style.removeProperty('--fx-glare-y');
+    framedCard = null;
+  }
+
+  /* -------------------------------------------------------------- the marquee */
+  let marquee = null;
+  function dropMarquee() {
+    marquee?.remove();
+    marquee = null;
+  }
+  function buildMarquee() {
+    if (marquee || !home || !hero) return;
+    const labels = [...document.querySelectorAll('.site-home .toolkit li')]
+      .map(item => item.textContent.trim())
+      .filter(Boolean);
+    if (!labels.length) return;
+    const track = document.createElement('div');
+    track.className = 'fx-marquee-track';
+    const half = labels.map(label => `<span>${label}</span>`).join('');
+    track.innerHTML = half + half;
+    marquee = document.createElement('div');
+    marquee.className = 'fx-marquee';
+    marquee.setAttribute('aria-hidden', 'true');
+    marquee.append(track);
+    hero.insertAdjacentElement('afterend', marquee);
+  }
+
+  /* ------------------------------------------------------------------ wiring */
+  document.addEventListener('pointermove', event => {
+    if (event.pointerType && event.pointerType !== 'mouse') return;
+    if (ring) {
+      if (cursorHidden) {
+        cursorX = ringX = event.clientX;
+        cursorY = ringY = event.clientY;
+        showCursor();
+      }
+      cursorX = event.clientX;
+      cursorY = event.clientY;
+      const over = event.target.closest?.('a, button, input, textarea, select, summary, [role="button"]');
+      ring.classList.toggle('is-hover', Boolean(over));
+      if (!cursorFrame) cursorFrame = requestAnimationFrame(paintCursor);
+    }
+    if (canvas) {
+      const rect = hero.getBoundingClientRect();
+      aimX = event.clientX - rect.left;
+      aimY = event.clientY - rect.top;
+    }
+    const card = event.target.closest?.('.site-home .collection-card') || null;
+    if (card !== framedCard) {
+      clearFraming();
+      framedCard = card;
+    }
+    if (framedCard && finePointer.matches) {
+      const rect = framedCard.getBoundingClientRect();
+      const x = clamp(event.clientX - rect.left, 0, rect.width);
+      const y = clamp(event.clientY - rect.top, 0, rect.height);
+      framedCard.style.setProperty('--fx-glare-x', `${x.toFixed(1)}px`);
+      framedCard.style.setProperty('--fx-glare-y', `${y.toFixed(1)}px`);
+      framedCard.style.setProperty('--fx-tilt-x', `${((.5 - y / rect.height) * 6).toFixed(2)}deg`);
+      framedCard.style.setProperty('--fx-tilt-y', `${((x / rect.width - .5) * 6).toFixed(2)}deg`);
+    }
+  }, { passive: true });
+  document.documentElement.addEventListener('mouseleave', () => { hideCursor(); clearFraming(); });
+  document.addEventListener('pointerdown', () => ring?.classList.add('is-down'), { passive: true });
+  document.addEventListener('pointerup', () => ring?.classList.remove('is-down'), { passive: true });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) startField(); });
+  window.addEventListener('blur', () => { hideCursor(); clearFraming(); });
+  document.addEventListener('portfolio:rendered', () => { primeCards(); if (canvas) { stopField(); sizeField(); startField(); } });
+  window.addEventListener('error', dropCursor);
+
+  function boot() {
+    if (reducedMotion.matches) {
+      dropIntro();
+      dropCursor();
+      dropField();
+      dropMarquee();
+      clearFraming();
+      document.querySelectorAll('.fx-tilt').forEach(card => card.classList.remove('fx-tilt'));
+      return;
+    }
+    buildIntro();
+    buildCursor();
+    buildField();
+    buildMarquee();
+    primeCards();
+  }
+  reducedMotion.addEventListener('change', boot);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+  else boot();
+})();
