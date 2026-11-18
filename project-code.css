@@ -18,3 +18,21 @@
 .source-panel pre { padding:16px; font-size:12px; max-height:460px; }
 .source-index { gap:8px; }
 }
+
+.software-guide { margin:0 0 42px; scroll-margin-top:130px; }
+.report-page .guide-eyebrow { font-size:11px; letter-spacing:.16em; font-weight:600; color:#abd2bb; margin:0 0 12px; }
+.guide-table-wrap { overflow-x:auto; margin:24px 0 32px; border:1px solid #3b534e; border-radius:12px; }
+.guide-table { width:100%; border-collapse:collapse; font-size:14px; }
+.guide-table th,.guide-table td { padding:16px; text-align:left; vertical-align:top; border-bottom:1px solid #31453e; }
+.guide-table thead { background:#17272a; color:#e3f0e9; }
+.guide-table th[scope=row] { width:31%; font-weight:500; color:#d3e9dc; }
+.guide-table tr:last-child>* { border-bottom:0; }
+.guide-steps { padding-left:23px; }
+.guide-steps li { padding-left:7px; margin:0 0 15px; line-height:1.8; }
+.code-walkthrough { margin:24px 0; }
+.code-walkthrough>div { padding:18px 0; border-top:1px solid #35483e; }
+.code-walkthrough dt { color:#c7e8d4; font-weight:600; margin-bottom:7px; }
+.code-walkthrough dd { margin:0; line-height:1.8; }
+.report-page .guide-reference { font-size:13px; line-height:1.8; }
+.software-guide code { overflow-wrap:anywhere; }
+@media(max-width:600px) { .guide-table th,.guide-table td { padding:12px; font-size:12px; } }
