@@ -99,6 +99,7 @@ function renderCollection() {
     : `${matched.length} ${selectedType === 'all' ? 'things built & learned' : selectedType + (matched.length === 1 ? '' : 's')}`;
   document.querySelector('#empty-results').hidden = matched.length !== 0;
   document.querySelector('#clear-search').hidden = !search.value;
+  document.dispatchEvent(new Event('portfolio:rendered'));
 }
 
 filters.forEach(button => {

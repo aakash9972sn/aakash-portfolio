@@ -31,6 +31,7 @@ For a project use `type: 'project'`, a playable/live website in `href`, and an a
 - `script.js`: cards, search, filters and mobile navigation.
 - `style.css` and `collection.css`: base styling and collection layout.
 - `site-polish.css`: shared typography, responsive layouts, navigation and visual refinements.
+- `site-motion.css` and `site-motion.js`: staggered entrance/reveal effects, hover lighting, desktop depth, reading progress and progressive browser page transitions. Animations respect reduced motion and keep content visible without JavaScript.
 - `site-interactions.js`: keyboard-accessible workshop document viewers using native modal dialogs.
 - `analog-circuit-analysis-design.html`, `pcb-designing-bootcamp.html`: detailed workshop pages.
 - `rfid-card-detection.html` and `smart-id-attendance.html`: engineering case studies, styled by `project-report.css` and `case-study.css`.

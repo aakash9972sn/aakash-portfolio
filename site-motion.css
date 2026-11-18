@@ -1,0 +1,133 @@
+/* Motion is an enhancement: content stays visible without JavaScript. */
+:root { --motion-ease: cubic-bezier(.22, 1, .36, 1); }
+
+.reading-progress {
+  position: fixed;
+  z-index: 100;
+  inset: 0 0 auto;
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(90deg, #c2e7cd, #9fc8f0, #e3c98f);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.site-home .header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  isolation: isolate;
+}
+.site-home .header::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0 calc(-1 * var(--header-gutter, 48px));
+  background: #121c18f2;
+  box-shadow: 0 12px 35px #0000;
+  opacity: 1;
+  pointer-events: none;
+  backdrop-filter: blur(18px);
+  transition: opacity .35s ease, box-shadow .35s ease;
+}
+.site-home .header.is-scrolled::before { opacity: 1; box-shadow: 0 12px 35px #0003; }
+.motion-enhanced .site-home .header:not(.is-scrolled)::before { opacity: 0; }
+.site-home section[id], .site-home .collection-card[id] { scroll-margin-top: 120px; }
+.site-home .header nav a { position: relative; }
+.site-home .header nav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -7px;
+  height: 1px;
+  background: #c2e7cd;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .35s var(--motion-ease);
+}
+.site-home .header nav a:is(:hover, :focus-visible, [aria-current="location"])::after { transform: scaleX(1); }
+.site-home .header nav a[aria-current="location"] { color: #e1eedf; }
+.site-home .hero { isolation: isolate; }
+.site-home .hero::before { right: 0; pointer-events: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  ::view-transition-group(root) { animation-duration: .25s; }
+  /* The observer handles newly filtered cards as well as the initial collection. */
+  .motion-enhanced .collection-card { animation: none; }
+  .motion-enhanced .site-home .hero::before { animation: ambient-arrival 1.8s var(--motion-ease) both; }
+  @keyframes ambient-arrival {
+    from { opacity: 0; transform: translateY(20px) scale(.94); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .site-home .portrait-card img { transition: transform .8s var(--motion-ease), filter .4s ease; }
+  .site-home .portrait-card:hover img { transform: scale(1.025); }
+  :is(.button, .report-download, .download-btn, .btn-primary-mint, .btn-secondary-dark) {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    transition: transform .35s var(--motion-ease), box-shadow .35s ease, background .25s ease;
+  }
+  :is(.button, .report-download, .download-btn, .btn-primary-mint, .btn-secondary-dark)::after {
+    content: '';
+    position: absolute;
+    inset: -50% -30%;
+    pointer-events: none;
+    background: linear-gradient(110deg, transparent 40%, #ffffff30 50%, transparent 60%);
+    transform: translateX(-110%);
+    transition: transform .75s var(--motion-ease);
+  }
+  :is(.button, .report-download, .download-btn, .btn-primary-mint, .btn-secondary-dark):is(:hover, :focus-visible)::after { transform: translateX(110%); }
+  :is(.button, .report-download):hover { transform: translateY(-3px); box-shadow: 0 9px 24px #0003; }
+  :is(.button, .report-download):active { transform: translateY(0) scale(.98); }
+  :is(.button, .hero-secondary, .next-card) .icon { transition: transform .35s var(--motion-ease); }
+  :is(.button, .hero-secondary):hover .icon { transform: translate(2px, -2px); }
+  .next-card:hover > .icon { transform: translateX(5px); }
+  .collection-filters button, .example-options button { transition: background .25s, color .25s, border-color .25s, transform .25s var(--motion-ease); }
+  .collection-filters button:active, .example-options button:active { transform: scale(.96); }
+  .site-home .collection-card { transition: transform .45s var(--motion-ease), box-shadow .4s ease, border-color .4s ease; }
+  .site-home .collection-card:is(:hover, :focus-within) { transform: translateY(-7px); border-color: #7da99c; box-shadow: 0 22px 42px #0005; }
+  .entry-art::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 40%), #d9f3e222, transparent 70%);
+    opacity: 0;
+    transition: opacity .4s ease;
+  }
+  .collection-card:is(:hover, :focus-within) .entry-art::after { opacity: 1; }
+  .entry-art .circuit-art, .entry-art .rfid-art { transition: opacity .5s ease, transform .7s var(--motion-ease); }
+  .entry-link:hover .circuit-art { transform: translateX(-10px); }
+  .entry-link:hover .rfid-art { transform: translateY(-4px); opacity: .8; }
+  :is(.card-grid article, .takeaway-brick, .concept-box-card, .module-clean-card, .download-card) { transition: border-color .35s ease, box-shadow .35s ease; }
+  :is(.card-grid article, .takeaway-brick, .concept-box-card, .module-clean-card, .download-card):hover { border-color: #74948b; box-shadow: 0 12px 28px #0002; }
+  .workflow-stage-panel { transition: opacity .18s ease; }
+  .site-home .header nav.is-open { animation: menu-arrival .25s var(--motion-ease); transform-origin: top; }
+  @keyframes menu-arrival {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .site-home .portrait-card.motion-depth, .hero-visual.motion-depth {
+    transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+    transition: transform .45s var(--motion-ease), box-shadow .45s ease;
+  }
+}
+@media (max-width: 1050px) {
+  .site-home .header { --header-gutter: 30px; }
+}
+@media (max-width: 760px) {
+  .site-home .header { --header-gutter: 20px; }
+  .site-home .header nav a::after { left: 14px; right: auto; width: 24px; bottom: 7px; }
+  .site-home section[id], .site-home .collection-card[id] { scroll-margin-top: 100px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  .reading-progress { display: none; }
+  .motion-depth { transform: none !important; }
+  ::view-transition-group(root), ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
+}
