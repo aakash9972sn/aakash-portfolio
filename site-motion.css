@@ -52,7 +52,14 @@
 
 @media (prefers-reduced-motion: no-preference) {
   @view-transition { navigation: auto; }
-  ::view-transition-group(root) { animation-duration: .25s; }
+  ::view-transition { background: #151b19; }
+  ::view-transition-group(root) { animation-duration: .42s; }
+  ::view-transition-old(root) { animation: fx-vt-out .3s var(--motion-ease) both; }
+  ::view-transition-new(root) { animation: fx-vt-in .42s var(--motion-ease) both; }
+  @keyframes fx-vt-out { to { opacity: 0; } }
+  @keyframes fx-vt-in {
+    from { opacity: 0; transform: scale(1.012); }
+  }
   /* The observer handles newly filtered cards as well as the initial collection. */
   .motion-enhanced .collection-card { animation: none; }
   .motion-enhanced .site-home .hero::before { animation: ambient-arrival 1.8s var(--motion-ease) both; }
@@ -987,3 +994,66 @@ html.fx-cursor-on :is(input, textarea, select) { cursor: auto !important; }
 .report-page .diagram .node.core:hover { box-shadow: 0 12px 26px #00000047, inset 0 0 0 1px var(--accent); }
 .report-page .check-list li::marker { color: var(--accent); }
 .report-page .formula { border-left: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); }
+
+/* 24. The ambience — one soft light that lives on all three page families. On a
+   fine pointer it trails the cursor; elsewhere it drifts on its own. Either way
+   it borrows its colour from how far the reader has travelled: the very same
+   mint → sky → amber ramp as the progress rail, so the light of the page moves
+   with the page. Decorative, never intercepts a pointer, gone for reduced
+   motion. */
+.fx-ambience {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: min(880px, 92vmin);
+  aspect-ratio: 1;
+  z-index: 7;
+  border-radius: 50%;
+  pointer-events: none;
+  translate: -50% -50%;
+  opacity: 0;
+  mix-blend-mode: screen;
+  background: radial-gradient(circle at 50% 50%,
+    rgb(var(--fx-amb-rgb, 194 231 205) / .5) 0,
+    rgb(var(--fx-amb-rgb, 194 231 205) / .16) 36%,
+    transparent 70%);
+  transition: opacity 1.1s ease;
+  will-change: transform;
+}
+.fx-ambience.is-ready { opacity: .42; }
+@media (prefers-reduced-motion: no-preference) {
+  .fx-ambience:not(.is-live) { animation: fx-ambience-drift 34s ease-in-out infinite alternate; }
+  @keyframes fx-ambience-drift {
+    from { transform: translate3d(-11vw, -7vh, 0) scale(.94); }
+    to { transform: translate3d(11vw, 8vh, 0) scale(1.08); }
+  }
+}
+@media (max-width: 900px), (prefers-reduced-motion: reduce) {
+  .fx-ambience { display: none; }
+}
+
+/* 25. The two grand portraits answer the pointer with a soft foil sheen lit on
+   the same spot the motion system already measures, so the hero artwork reads
+   as an object catching the light instead of a flat crop. */
+.site-home .portrait-card { --sheen-tint: #c2e7cd; }
+.case-study-page .poster-exhibition-card { --sheen-tint: var(--project-accent, #c2e7cd); }
+.site-home .portrait-card,
+.case-study-page .poster-exhibition-card { position: relative; }
+.site-home .portrait-card::after,
+.case-study-page .poster-exhibition-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  mix-blend-mode: soft-light;
+  background:
+    radial-gradient(340px circle at var(--spot-x, 46%) var(--spot-y, 30%),
+      #ffffffb3 0, var(--sheen-tint, #c2e7cd) 34%, transparent 72%),
+    linear-gradient(118deg, transparent 40%, #38bdf82e 48%, #e3c98f2e 56%, transparent 66%);
+  transition: opacity .5s ease;
+}
+.site-home .portrait-card:is(:hover, :focus-within)::after,
+.case-study-page .poster-exhibition-card:is(:hover, :focus-within)::after { opacity: 1; }

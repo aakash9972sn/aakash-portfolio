@@ -701,3 +701,105 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
   else boot();
 })();
+
+/* ---------------------------------------------------------------------------
+   Presence layer — one ambient light that lives on every page family. On a fine
+   pointer it trails the cursor; on anything else it drifts on its own. Either
+   way it takes its colour from how far the reader has scrolled, walking the
+   same mint → sky → amber ramp as the progress rail at the top of the page, so
+   the light of the page travels with the page. Purely decorative: it never
+   takes a pointer and reduced motion removes it entirely.
+--------------------------------------------------------------------------- */
+(() => {
+  'use strict';
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const RAMP = [[194, 231, 205], [159, 200, 240], [227, 201, 143]];
+
+  let light = null;
+  let frame = 0;
+  let handX = 0;
+  let handY = 0;
+  let aimX = 0;
+  let aimY = 0;
+  let travelling = false;
+  let painted = '';
+
+  function tone(progress) {
+    const value = progress < 0 ? 0 : progress > 1 ? 1 : progress;
+    const index = value < .5 ? 0 : 1;
+    const local = value < .5 ? value * 2 : (value - .5) * 2;
+    const from = RAMP[index];
+    const to = RAMP[index + 1];
+    return from.map((channel, step) => Math.round(channel + (to[step] - channel) * local)).join(' ');
+  }
+
+  function readProgress() {
+    if (!light) return;
+    const max = document.documentElement.scrollHeight - innerHeight;
+    const ratio = max > 0 ? Math.max(0, Math.min(1, scrollY / max)) : 0;
+    const next = tone(Math.round(ratio * 40) / 40);
+    if (next === painted) return;
+    painted = next;
+    light.style.setProperty('--fx-amb-rgb', next);
+  }
+
+  function paint() {
+    frame = 0;
+    if (!light) return;
+    handX += (aimX - handX) * .13;
+    handY += (aimY - handY) * .13;
+    light.style.transform = `translate3d(${handX.toFixed(1)}px, ${handY.toFixed(1)}px, 0)`;
+    if (Math.abs(aimX - handX) > .5 || Math.abs(aimY - handY) > .5) frame = requestAnimationFrame(paint);
+  }
+
+  function handOver(x, y) {
+    if (!light) return;
+    if (!travelling) {
+      // Take the light from wherever it is drifting, then hand it to the pointer.
+      const rect = light.getBoundingClientRect();
+      handX = rect.left + rect.width / 2 - innerWidth / 2;
+      handY = rect.top + rect.height / 2 - innerHeight / 2;
+      travelling = true;
+      light.classList.add('is-live');
+    }
+    aimX = x - innerWidth / 2;
+    aimY = y - innerHeight / 2;
+    if (!frame) frame = requestAnimationFrame(paint);
+  }
+
+  function build() {
+    if (light || reducedMotion.matches || innerWidth <= 900) return;
+    light = document.createElement('div');
+    light.className = 'fx-ambience';
+    light.setAttribute('aria-hidden', 'true');
+    document.body.append(light);
+    painted = '';
+    readProgress();
+    requestAnimationFrame(() => light?.classList.add('is-ready'));
+  }
+
+  function drop() {
+    cancelAnimationFrame(frame);
+    frame = 0;
+    travelling = false;
+    painted = '';
+    light?.remove();
+    light = null;
+  }
+
+  document.addEventListener('pointermove', event => {
+    if (event.pointerType && event.pointerType !== 'mouse') return;
+    handOver(event.clientX, event.clientY);
+  }, { passive: true });
+  window.addEventListener('scroll', readProgress, { passive: true });
+  window.addEventListener('resize', () => { readProgress(); build(); });
+  document.addEventListener('portfolio:rendered', readProgress);
+
+  function boot() {
+    if (reducedMotion.matches) drop();
+    else build();
+  }
+  reducedMotion.addEventListener('change', boot);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+  else boot();
+})();
