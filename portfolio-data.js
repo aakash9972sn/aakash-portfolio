@@ -32,7 +32,7 @@ window.portfolioEntries = [
   {
     id: 'blunder-pro-max', type: 'project', title: 'Blunder — Everyday Store',
     category: 'Grocery commerce', level: 'Full-stack build', artwork: 'shop',
-    description: 'A grocery storefront with product search, saved items and a persistent basket. Includes a server for COD orders and verified payments; the public store is preparing for launch.',
+    description: 'A grocery storefront with search, saved items and a persistent basket. Customers can pin a delivery location and send a Cash on Delivery request through WhatsApp, with email as an alternative.',
     tags: ['JavaScript', 'Node.js', 'SQLite'],
     href: 'https://aakash9972sn.github.io/my-website/', action: 'Explore the store'
   },
