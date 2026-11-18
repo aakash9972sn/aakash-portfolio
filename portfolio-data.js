@@ -23,11 +23,11 @@ window.portfolioEntries = [
     href: 'https://aakash9972sn.github.io/perfect_guess/', action: 'Play game'
   },
   {
-    id: 'biology-test', type: 'project', title: 'Biology Test',
+    id: 'biology-test', type: 'project', title: 'Test Centre — NEET & GATE',
     category: 'Learning tool', artwork: 'quiz',
-    description: 'A timed biology quiz with saved progress, question navigation, and answers to review after the test.',
-    tags: ['JavaScript', 'Interactive learning'],
-    href: 'https://aakash9972sn.github.io/newTest/', action: 'Try the quiz'
+    description: 'A practice-test centre with subject-wise tests for NEET (Physics, Chemistry, Biology) and GATE. Live timers, a question palette, exam marking, saved progress and full solutions.',
+    tags: ['JavaScript', 'NEET & GATE', 'Practice tests'],
+    href: 'https://aakash9972sn.github.io/newTest/', action: 'Open the test centre'
   },
   {
     id: 'blunder-pro-max', type: 'project', title: 'Blunder — Everyday Store',
