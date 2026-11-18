@@ -24,7 +24,9 @@
     '.card-grid > article', '.diagram', '.example-shell', '.resource-card', '.next-card',
     '.section-title-wrap', '.section-lead-header', '.white-panel', '.lineage-card',
     '.pillar-spec-card', '.takeaway-brick', '.concept-box-card', '.module-clean-card',
-    '.download-card', '.certificate-grand-card'
+    '.download-card', '.certificate-grand-card', '.pillars-box-card', '.element-pill-card',
+    '.insight-single-card', '.checklist-card', '.compare-card', '.eet-math-card',
+    '.stage-aside-box'
   ].join(',');
 
   function hashTarget() {
@@ -595,7 +597,10 @@
   const cardSelector = [
     '.collection-card', '.card-grid > article', '.next-card',
     '.module-clean-card', '.pillar-spec-card', '.concept-box-card',
-    '.lineage-card', '.takeaway-brick', '.download-card', '.quote-editorial-box'
+    '.lineage-card', '.takeaway-brick', '.download-card', '.quote-editorial-box',
+    '.pillars-box-card', '.white-panel', '.element-pill-card', '.insight-single-card',
+    '.checklist-card', '.certificate-grand-card', '.resource-card', '.compare-card',
+    '.eet-math-card'
   ].join(',');
   function primeCards() {
     if (reducedMotion.matches) return;
