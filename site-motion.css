@@ -113,7 +113,7 @@
 
 @media (hover: hover) and (pointer: fine) and (min-width: 900px) and (prefers-reduced-motion: no-preference) {
   .site-home .portrait-card.motion-depth, .hero-visual.motion-depth {
-    transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+    transform: translate3d(0, var(--fx-parallax, 0px), 0) perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
     transition: transform .45s var(--motion-ease), box-shadow .45s ease;
   }
 }
@@ -130,4 +130,90 @@
   .reading-progress { display: none; }
   .motion-depth { transform: none !important; }
   ::view-transition-group(root), ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
+}
+
+/* ---------------------------------------------------------------------------
+   Effects layer — measurement-free enhancement on top of the motion system.
+   Ambient aurora light, a masked hero headline, magnetic primary controls,
+   scroll parallax and self-drawing circuitry. Everything here is decorative
+   and is dropped entirely when the visitor asks for reduced motion.
+--------------------------------------------------------------------------- */
+@property --fx-glow-a { syntax: '<number>'; inherits: true; initial-value: 0; }
+
+.site-home .hero {
+  position: relative;
+  --fx-glow-x: 66%;
+  --fx-glow-y: 28%;
+  --fx-glow-a: 0;
+  transition: --fx-glow-a .5s ease;
+}
+.site-home .about { position: relative; isolation: isolate; }
+.site-home #hero-title .fx-line { display: block; overflow: hidden; padding-bottom: .15em; margin-bottom: -.15em; }
+.site-home #hero-title .fx-line-inner { display: block; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .site-home .hero::after,
+  .site-home .about::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: -10% 0;
+    pointer-events: none;
+    background:
+      radial-gradient(36% 44% at 16% 26%, #63e6be1f, transparent 68%),
+      radial-gradient(40% 48% at 84% 18%, #3b82f626, transparent 70%),
+      radial-gradient(44% 46% at 66% 86%, #c2e7cd1a, transparent 72%);
+    animation: fx-aurora 28s var(--motion-ease) infinite;
+    will-change: transform;
+  }
+  .site-home .hero::after {
+    background:
+      radial-gradient(340px circle at var(--fx-glow-x) var(--fx-glow-y), rgb(186 246 218 / var(--fx-glow-a, 0)), transparent 62%),
+      radial-gradient(36% 44% at 16% 26%, #63e6be1f, transparent 68%),
+      radial-gradient(40% 48% at 84% 18%, #3b82f626, transparent 70%),
+      radial-gradient(44% 46% at 66% 86%, #c2e7cd1a, transparent 72%);
+  }
+  .site-home .about::after {
+    inset: -16% 0;
+    background:
+      radial-gradient(42% 56% at 88% 26%, #3b82f61f, transparent 70%),
+      radial-gradient(38% 52% at 6% 80%, #c2e7cd17, transparent 70%);
+    animation-duration: 34s;
+    animation-direction: reverse;
+  }
+  @keyframes fx-aurora {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    33% { transform: translate3d(-2.4%, 1.8%, 0) scale(1.07); }
+    66% { transform: translate3d(2.4%, -1.4%, 0) scale(.95); }
+    100% { transform: translate3d(0, 0, 0) scale(1); }
+  }
+  .site-home #hero-title.fx-split .fx-line-inner {
+    animation: fx-line-rise .92s var(--motion-ease) both;
+    animation-delay: calc(var(--fx-i, 0) * 110ms + 130ms);
+  }
+  @keyframes fx-line-rise {
+    from { transform: translate3d(0, 112%, 0); }
+    to { transform: translate3d(0, 0, 0); }
+  }
+  .site-home .collection-heading h2 em,
+  .site-home .section-heading h2 span {
+    background-size: 220% 100%;
+    animation: fx-shimmer 8s linear infinite;
+  }
+  @keyframes fx-shimmer {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .site-home .hero:hover { --fx-glow-a: 1; }
+  .fx-magnet {
+    translate: var(--fx-mag-x, 0px) var(--fx-mag-y, 0px);
+    transition: translate .35s var(--motion-ease), transform .35s var(--motion-ease), box-shadow .35s ease, background .25s ease, color .25s ease, border-color .25s ease;
+  }
+  .fx-magnet:is(:hover, :focus-visible) {
+    transition: translate .1s linear, transform .35s var(--motion-ease), box-shadow .35s ease, background .25s ease, color .25s ease, border-color .25s ease;
+  }
+  .site-home .about-stamp { transform: translate3d(0, var(--fx-parallax, 0px), 0) rotate(-8deg); }
 }

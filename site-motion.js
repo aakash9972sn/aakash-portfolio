@@ -181,3 +181,182 @@
     });
   });
 })();
+
+/* ---------------------------------------------------------------------------
+   Effects layer — the decorative enhancements layered on top of the motion
+   system: an ambient pointer light in the hero, a masked headline reveal,
+   magnetic primary controls, scroll parallax and self-drawing circuitry.
+   Nothing here owns layout, and all of it stands down for reduced motion.
+--------------------------------------------------------------------------- */
+(() => {
+  'use strict';
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const finePointer = matchMedia('(hover: hover) and (pointer: fine) and (min-width: 900px)');
+  const ease = 'cubic-bezier(.22, 1, .36, 1)';
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+  const hero = document.querySelector('.site-home .hero');
+  const heroTitle = document.querySelector('.site-home #hero-title');
+
+  /* Split the headline on its existing line breaks so each line can rise out of a mask. */
+  if (heroTitle && !reducedMotion.matches) {
+    const lines = [[]];
+    for (const node of heroTitle.childNodes) {
+      if (node.nodeType === 1 && node.tagName === 'BR') lines.push([]);
+      else lines[lines.length - 1].push(node);
+    }
+    const fragment = document.createDocumentFragment();
+    lines.filter(line => line.length).forEach((nodes, index) => {
+      const line = document.createElement('span');
+      line.className = 'fx-line';
+      const inner = document.createElement('span');
+      inner.className = 'fx-line-inner';
+      inner.style.setProperty('--fx-i', String(index));
+      nodes.forEach(node => inner.append(node));
+      line.append(inner);
+      fragment.append(line);
+    });
+    heroTitle.replaceChildren(fragment);
+    heroTitle.classList.add('fx-split');
+  }
+
+  /* A soft light that trails the pointer across the hero. */
+  let heroFrame = 0;
+  let pointer = null;
+  function paintPointerLight() {
+    heroFrame = 0;
+    if (!hero || !pointer) return;
+    const rect = hero.getBoundingClientRect();
+    const x = clamp(pointer.x - rect.left, 0, rect.width);
+    const y = clamp(pointer.y - rect.top, 0, rect.height) + rect.height * 0.1;
+    hero.style.setProperty('--fx-glow-x', `${x.toFixed(1)}px`);
+    hero.style.setProperty('--fx-glow-y', `${y.toFixed(1)}px`);
+  }
+
+  /* Primary controls lean gently towards the pointer. */
+  document.querySelectorAll([
+    '.header .github-nav', '.hero-cta-row > *', '.hero-actions > *', '.contact-bottom .button',
+    '.case-header .github-nav', '.case-header .back-btn', '.footer-nav-links > *'
+  ].join(',')).forEach(element => element.classList.add('fx-magnet'));
+  let activeMagnet = null;
+  let magnetFrame = 0;
+  let magnetPoint = null;
+  function paintMagnet() {
+    magnetFrame = 0;
+    if (!activeMagnet || !magnetPoint) return;
+    const rect = activeMagnet.getBoundingClientRect();
+    const dx = magnetPoint.x - (rect.left + rect.width / 2);
+    const dy = magnetPoint.y - (rect.top + rect.height / 2);
+    activeMagnet.style.setProperty('--fx-mag-x', `${clamp(dx * 0.3, -9, 9).toFixed(1)}px`);
+    activeMagnet.style.setProperty('--fx-mag-y', `${clamp(dy * 0.45, -7, 7).toFixed(1)}px`);
+  }
+  function releaseMagnet() {
+    if (!activeMagnet) return;
+    activeMagnet.style.removeProperty('--fx-mag-x');
+    activeMagnet.style.removeProperty('--fx-mag-y');
+    activeMagnet = null;
+    magnetPoint = null;
+  }
+
+  /* Depth: the hero portrait and the about stamp drift against the scroll. */
+  const parallaxTargets = [
+    { element: document.querySelector('.site-home .hero .portrait-card'), range: 16 },
+    { element: document.querySelector('.site-home .about-stamp'), range: 12 }
+  ].filter(target => target.element);
+  let parallaxFrame = 0;
+  function paintParallax() {
+    parallaxFrame = 0;
+    for (const { element, range } of parallaxTargets) {
+      const rect = element.getBoundingClientRect();
+      if (rect.bottom < -160 || rect.top > innerHeight + 160) continue;
+      const applied = parseFloat(element.style.getPropertyValue('--fx-parallax')) || 0;
+      const progress = (rect.top - applied + rect.height / 2 - innerHeight / 2) / innerHeight;
+      element.style.setProperty('--fx-parallax', `${(clamp(progress, -1.4, 1.4) * -range).toFixed(1)}px`);
+    }
+  }
+  function scheduleParallax() {
+    if (reducedMotion.matches || parallaxFrame) return;
+    parallaxFrame = requestAnimationFrame(paintParallax);
+  }
+
+  /* Decorative circuitry draws itself the first time a card is revealed. */
+  const traceObserver = typeof window.IntersectionObserver === 'function'
+    ? new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const element = entry.target;
+        traceObserver.unobserve(element);
+        element.animate(
+          [{ strokeDashoffset: `${element.dataset.fxLength}px` }, { strokeDashoffset: '0px' }],
+          { duration: 1250, easing: ease, fill: 'forwards' }
+        );
+      });
+    }, { threshold: .3 })
+    : null;
+  function primeTraces(scope = document) {
+    if (!traceObserver || reducedMotion.matches) return;
+    scope.querySelectorAll('.entry-art svg :is(path, rect, circle, ellipse, polygon, polyline, line)[stroke]').forEach(element => {
+      if (element.dataset.fxTrace || typeof element.getTotalLength !== 'function') return;
+      let length = 0;
+      try { length = element.getTotalLength(); } catch { return; }
+      if (!length) return;
+      element.dataset.fxTrace = '1';
+      element.dataset.fxLength = String(length);
+      element.style.strokeDasharray = `${length}px`;
+      element.style.strokeDashoffset = `${length}px`;
+      traceObserver.observe(element);
+    });
+  }
+
+  function resetEffects() {
+    releaseMagnet();
+    parallaxTargets.forEach(({ element }) => element.style.removeProperty('--fx-parallax'));
+    if (hero) {
+      hero.style.removeProperty('--fx-glow-x');
+      hero.style.removeProperty('--fx-glow-y');
+    }
+    document.querySelectorAll('[data-fx-trace]').forEach(element => {
+      element.getAnimations?.().forEach(animation => animation.cancel());
+      element.style.removeProperty('stroke-dasharray');
+      element.style.removeProperty('stroke-dashoffset');
+      element.removeAttribute('data-fx-trace');
+    });
+  }
+
+  document.addEventListener('pointermove', event => {
+    if (reducedMotion.matches || !finePointer.matches || event.pointerType !== 'mouse') return;
+    if (hero && hero.contains(event.target)) {
+      pointer = { x: event.clientX, y: event.clientY };
+      if (!heroFrame) heroFrame = requestAnimationFrame(paintPointerLight);
+    }
+    const magnet = event.target.closest ? event.target.closest('.fx-magnet') : null;
+    if (magnet !== activeMagnet) {
+      releaseMagnet();
+      activeMagnet = magnet;
+    }
+    if (activeMagnet) {
+      magnetPoint = { x: event.clientX, y: event.clientY };
+      if (!magnetFrame) magnetFrame = requestAnimationFrame(paintMagnet);
+    }
+  }, { passive: true });
+  document.addEventListener('pointerout', event => {
+    if (activeMagnet && (!event.relatedTarget || !activeMagnet.contains(event.relatedTarget))) releaseMagnet();
+  }, { passive: true });
+  window.addEventListener('blur', releaseMagnet);
+  finePointer.addEventListener('change', releaseMagnet);
+  window.addEventListener('scroll', scheduleParallax, { passive: true });
+  window.addEventListener('resize', scheduleParallax, { passive: true });
+  document.addEventListener('portfolio:rendered', () => primeTraces());
+  reducedMotion.addEventListener('change', () => {
+    resetEffects();
+    if (!reducedMotion.matches) {
+      scheduleParallax();
+      primeTraces();
+    }
+  });
+
+  if (!reducedMotion.matches) {
+    scheduleParallax();
+    primeTraces();
+  }
+})();
