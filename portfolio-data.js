@@ -30,11 +30,11 @@ window.portfolioEntries = [
     href: 'https://aakash9972sn.github.io/newTest/', action: 'Try the quiz'
   },
   {
-    id: 'blunder-pro-max', type: 'project', title: 'Blunder Pro Max',
-    category: 'Frontend experiment', artwork: 'shop',
-    description: 'A storefront prototype exploring product layouts, responsive styling, and simple cart interactions.',
-    tags: ['HTML / CSS', 'JavaScript'],
-    href: 'https://aakash9972sn.github.io/my-website/', action: 'Open website'
+    id: 'blunder-pro-max', type: 'project', title: 'Blunder — Everyday Store',
+    category: 'Grocery commerce', level: 'Full-stack build', artwork: 'shop',
+    description: 'A grocery storefront with product search, saved items and a persistent basket. Includes a server for COD orders and verified payments; the public store is preparing for launch.',
+    tags: ['JavaScript', 'Node.js', 'SQLite'],
+    href: 'https://aakash9972sn.github.io/my-website/', action: 'Explore the store'
   },
   {
     id: 'analog-workshop', type: 'workshop', title: 'Analog Circuit Analysis, Design & Testing',
