@@ -18,8 +18,10 @@
   <script src="case-study.js?v=20261117-1" defer></script>
   <link rel="stylesheet" href="site-motion.css?v=20261124-1">
   <script src="site-motion.js?v=20261124-1" defer></script>
-  <link rel="stylesheet" href="project-gallery.css?v=20261118-1">
+  <link rel="stylesheet" href="project-gallery.css?v=20261118-2">
   <script src="project-gallery.js?v=20261118-1" defer></script>
+  <link rel="stylesheet" href="project-code.css?v=20261118-1">
+  <script src="project-code.js?v=20261118-1" defer></script>
 </head>
 <body class="report-page theme-rfid">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -28,7 +30,7 @@
     <span class="report-tag">ENGINEERING / PROJECT NOTES</span>
     <a class="back-link" href="index.html#rfid-card-detection"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg> Back to portfolio</a>
   </header>
-  <nav class="report-subnav" aria-label="On this page"><div class="wrap"><a href="#overview">Overview</a><a href="#gallery">Images</a><a href="#approach">The approach</a><a href="#hardware">Hardware</a><a href="#wiring">Connections</a><a href="#software">Firmware</a><a href="#testing">Validation</a><a href="#learning">Learning</a><a href="#resources">Report</a></div></nav>
+  <nav class="report-subnav" aria-label="On this page"><div class="wrap"><a href="#overview">Overview</a><a href="#gallery">Images</a><a href="#approach">The approach</a><a href="#hardware">Hardware</a><a href="#wiring">Connections</a><a href="#software">Code</a><a href="#testing">Validation</a><a href="#learning">Learning</a><a href="#resources">Report</a></div></nav>
   <main id="main">
 <section class="report-hero wrap" id="overview" aria-labelledby="page-title">
   <div class="report-meta"><span class="pill level">FOUNDATION PROJECT</span><span class="pill">EMBEDDED SYSTEMS</span><span class="pill">AAKASH · DTU ECE</span></div>
@@ -93,7 +95,7 @@
 <section class="report-section" id="software" aria-labelledby="software-title">
   <div class="wrap section-grid">
     <header><p class="section-index">05 / FIRMWARE</p><h2 id="software-title">Read. Compare.<br>Respond. Repeat.</h2></header>
-    <div class="section-body"><ol class="flow"><li><strong>Initialize</strong>Start USB serial at 9600 baud, initialize SPI and the reader, and configure the output pins.</li><li><strong>Wait for a card</strong>Use the library’s new-card check and card-selection call before accessing UID data.</li><li><strong>Print the identifier</strong>Display each UID byte in hexadecimal, including leading zeroes, for repeatable registration.</li><li><strong>Compare the UID</strong>Reject a length mismatch, then compare every byte against the configured credential.</li><li><strong>Signal the result</strong>Select the green or red LED and pulse the buzzer. The sample keeps feedback visible for about one second.</li><li><strong>End the exchange</strong>Halt the selected card and stop the crypto session before returning to polling.</li></ol><details class="code-details"><summary>View the Arduino C++ sketch <span>· documented reference implementation</span></summary><pre tabindex="0" aria-label="View the Arduino C++ sketch"><code>#include &lt;SPI.h&gt;
+    <div class="section-body"><ol class="flow"><li><strong>Initialize</strong>Start USB serial at 9600 baud, initialize SPI and the reader, and configure the output pins.</li><li><strong>Wait for a card</strong>Use the library’s new-card check and card-selection call before accessing UID data.</li><li><strong>Print the identifier</strong>Display each UID byte in hexadecimal, including leading zeroes, for repeatable registration.</li><li><strong>Compare the UID</strong>Reject a length mismatch, then compare every byte against the configured credential.</li><li><strong>Signal the result</strong>Select the green or red LED and pulse the buzzer. The sample keeps feedback visible for about one second.</li><li><strong>End the exchange</strong>Halt the selected card and stop the crypto session before returning to polling.</li></ol><article class="source-panel" id="arduino-source" aria-labelledby="arduino-source-title"><div class="source-toolbar"><div><h3 id="arduino-source-title">Arduino UNO · RFID card detection</h3><span>rfid_card_detection.ino · 43 lines</span></div><div class="source-actions"><button type="button" data-copy-code="arduino-source-code" hidden>Copy code</button><a href="assets/code/rfid_card_detection.ino" download>Download</a></div></div><pre tabindex="0" aria-label="Arduino UNO · RFID card detection source code"><code id="arduino-source-code">#include &lt;SPI.h&gt;
 #include &lt;MFRC522.h&gt;
 
 #define SS_PIN 10
@@ -135,7 +137,8 @@ void loop() {
   digitalWrite(GREEN_LED, LOW); digitalWrite(RED_LED, LOW);
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
-}</code></pre></details><div class="uid-demo" id="uid-demo"><h3>Try the UID decision</h3><p>Choose an illustrative card presentation to follow the same full-byte comparison used by the sketch. This browser demonstration is not connected to RFID hardware.</p><div class="uid-demo-controls" role="group" aria-label="RFID demonstration scenario"><button type="button" data-uid-scenario="registered" aria-pressed="false">Registered card</button><button type="button" data-uid-scenario="unregistered" aria-pressed="false">Unregistered card</button><button type="button" data-uid-scenario="idle" aria-pressed="true">No card</button></div><div class="uid-console" data-state="idle" role="status" aria-live="polite" aria-atomic="true"><div class="uid-indicator"><span class="uid-lamp" aria-hidden="true"></span><span data-uid-status>Waiting for a card</span></div><output>No UID received.
+}
+</code></pre><p class="source-copy-status" role="status" aria-live="polite"></p></article><div class="uid-demo" id="uid-demo"><h3>Try the UID decision</h3><p>Choose an illustrative card presentation to follow the same full-byte comparison used by the sketch. This browser demonstration is not connected to RFID hardware.</p><div class="uid-demo-controls" role="group" aria-label="RFID demonstration scenario"><button type="button" data-uid-scenario="registered" aria-pressed="false">Registered card</button><button type="button" data-uid-scenario="unregistered" aria-pressed="false">Unregistered card</button><button type="button" data-uid-scenario="idle" aria-pressed="true">No card</button></div><div class="uid-console" data-state="idle" role="status" aria-live="polite" aria-atomic="true"><div class="uid-indicator"><span class="uid-lamp" aria-hidden="true"></span><span data-uid-status>Waiting for a card</span></div><output>No UID received.
 LEDs off · no buzzer indication.</output></div></div><h3>Registration and repeat testing</h3><p>Install the MFRC522 library, select the UNO board and serial port, and upload the sketch. Read a card’s UID from the Serial Monitor, replace the placeholder <code>registeredUID</code> byte array, and upload again. Remove the card from the field before presenting it for another test.</p><aside class="callout"><strong>A deliberate tradeoff in the reference sketch</strong><p>The feedback delay makes the result easy to observe on a bench, but blocks polling while it runs. A later version could use a non-blocking state machine. The one-second indication interval must not be reported as the reader’s RF detection latency.</p></aside></div>
   </div>
 </section>

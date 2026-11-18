@@ -62,3 +62,7 @@ The interface supports keyboard navigation, visible focus, reduced motion, categ
 
 ## Project image galleries
 Each engineering case study has its own image gallery and full-report reader. `project-gallery.css` and `project-gallery.js` provide responsive photographs, an accessible image dialog, lazy PDF loading and the illustrative RFID decision demo. Source photographs extracted from the supplied PDFs live under `assets/projects/`; captions identify the report and page. They are reference images, not evidence of a personally assembled prototype. The two wiring SVGs are redrawn from the reports and labelled as functional/proposed connections. Generic ESP32 photographs in the report are not presented as ESP32-S3 hardware. The original 21-page and 25-page cleaned reports are preserved.
+
+### Project source downloads
+
+The RFID and Smart ID pages show source code directly with Copy and Download controls. Files live in assets/code/. The UNO sketch is a reference implementation; the ESP32-S3 file is initialization only, with hardware integration pending. The Python file runs with the standard library; the JavaScript file exports the same analytics function used by the interactive case study. Keep the displayed code and downloaded files in sync.

@@ -18,8 +18,10 @@
   <script src="case-study.js?v=20261117-1" defer></script>
   <link rel="stylesheet" href="site-motion.css?v=20261124-1">
   <script src="site-motion.js?v=20261124-1" defer></script>
-  <link rel="stylesheet" href="project-gallery.css?v=20261118-1">
+  <link rel="stylesheet" href="project-gallery.css?v=20261118-2">
   <script src="project-gallery.js?v=20261118-1" defer></script>
+  <link rel="stylesheet" href="project-code.css?v=20261118-1">
+  <script src="project-code.js?v=20261118-1" defer></script>
 </head>
 <body class="report-page theme-attendance">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -28,7 +30,7 @@
     <span class="report-tag">ENGINEERING / PROJECT NOTES</span>
     <a class="back-link" href="index.html#smart-id-attendance"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg> Back to portfolio</a>
   </header>
-  <nav class="report-subnav" aria-label="On this page"><div class="wrap"><a href="#overview">Overview</a><a href="#gallery">Images</a><a href="#problem">The problem</a><a href="#architecture">Architecture</a><a href="#wiring">Connections</a><a href="#cards">Identity</a><a href="#data">Data</a><a href="#analytics">Try the logic</a><a href="#code">Software</a><a href="#budget">Budget</a><a href="#validation">Validation</a><a href="#resources">Report</a></div></nav>
+  <nav class="report-subnav" aria-label="On this page"><div class="wrap"><a href="#overview">Overview</a><a href="#gallery">Images</a><a href="#problem">The problem</a><a href="#architecture">Architecture</a><a href="#wiring">Connections</a><a href="#cards">Identity</a><a href="#data">Data</a><a href="#analytics">Try the logic</a><a href="#code">Code</a><a href="#budget">Budget</a><a href="#validation">Validation</a><a href="#resources">Report</a></div></nav>
   <main id="main">
 <section class="report-hero wrap" id="overview" aria-labelledby="page-title">
   <div class="report-meta"><span class="pill level">APPLIED SYSTEM DESIGN</span><span class="pill">EMBEDDED SYSTEMS</span><span class="pill">AAKASH · DTU ECE</span></div>
@@ -142,8 +144,9 @@ E004,P001,C001,2026-11-16T17:00:00+05:30,OUT,ACCEPTED</code></pre></details><p>E
 </section>
 <section class="report-section" id="code" aria-labelledby="code-title">
   <div class="wrap section-grid">
-    <header><p class="section-index">07 / SOFTWARE DESIGN</p><h2 id="code-title">Separate acquisition<br>from calculation.</h2></header>
-    <div class="section-body"><p>The firmware is responsible for reading devices and preserving events. Analytics operate on those stored events, so their calculations can be tested independently on a computer or in a browser.</p><ol class="flow"><li><strong>Start and check</strong>Initialize both readers, the clock and storage. Validate the time source and load the credential registry.</li><li><strong>Classify the scan</strong>Read the UID, resolve the Person ID and obtain direction from the reader that detected it.</li><li><strong>Persist and acknowledge</strong>Timestamp the event, write and verify it, then provide success feedback. Surface failures instead of silently dropping events.</li></ol><h3>Reference UART initialization</h3><p>The report uses the Adafruit PN532 library with two ESP32 hardware serial ports. The following excerpt shows interface initialization; it is not complete attendance firmware and has not been validated on the physical dual-reader assembly.</p><details class="code-details"><summary>View the ESP32-S3 initialization excerpt <span>· integration reference</span></summary><pre tabindex="0" aria-label="View the ESP32-S3 initialization excerpt"><code>#include &lt;Arduino.h&gt;
+    <header><p class="section-index">07 / SOFTWARE DESIGN</p><h2 id="code-title">Project code.<br>Ready to explore.</h2></header>
+    <div class="section-body"><p>The firmware is responsible for reading devices and preserving events. Analytics operate on those stored events, so their calculations can be tested independently on a computer or in a browser.</p><ol class="flow"><li><strong>Start and check</strong>Initialize both readers, the clock and storage. Validate the time source and load the credential registry.</li><li><strong>Classify the scan</strong>Read the UID, resolve the Person ID and obtain direction from the reader that detected it.</li><li><strong>Persist and acknowledge</strong>Timestamp the event, write and verify it, then provide success feedback. Surface failures instead of silently dropping events.</li></ol><nav class="source-index" aria-label="Project code files"><a href="#esp32-source">ESP32-S3 / C++</a><a href="#python-source">Date ranges / Python</a><a href="#analytics-source">Analytics / JavaScript</a></nav><h3>Reference UART initialization</h3><p>The report uses the Adafruit PN532 library with two ESP32 hardware serial ports. The following excerpt shows interface initialization; it is not complete attendance firmware and has not been validated on the physical dual-reader assembly.</p><article class="source-panel" id="esp32-source" aria-labelledby="esp32-source-title"><div class="source-toolbar"><div><h3 id="esp32-source-title">ESP32-S3 · Reader initialization</h3><span>smart_id_reader_init.ino · 41 lines</span></div><div class="source-actions"><button type="button" data-copy-code="esp32-source-code" hidden>Copy code</button><a href="assets/code/smart_id_reader_init.ino" download>Download</a></div></div><pre tabindex="0" aria-label="ESP32-S3 · Reader initialization source code"><code id="esp32-source-code">// Reference initialization only; physical integration is pending.
+#include &lt;Arduino.h&gt;
 #include &lt;Adafruit_PN532.h&gt;
 
 // GPIO assignments
@@ -178,7 +181,91 @@ void setup() {
   Serial.begin(115200);
   startReader(entryReader, entrySerial, ENTRY_RX, ENTRY_TX, "ENTRY");
   startReader(exitReader,  exitSerial,  EXIT_RX,  EXIT_TX,  "EXIT");
-}</code></pre></details><h3>What the browser demonstration verifies</h3><p>The example on this page calculates completed-session durations from synthetic timestamps, clips them to a reporting window and excludes rejected credentials. It demonstrates the data-processing rules. It does not demonstrate RF performance, SD durability or a deployed device dashboard.</p><aside class="callout"><strong>Software integration still to complete</strong><p>Reader scheduling, repeated-scan suppression, RTC error handling, persistent credential updates, restart-safe event IDs and the hardware-connected reporting interface require implementation and integration tests.</p></aside></div>
+}
+
+void loop() {
+  // Initialization reference only. Reader polling, RTC and SD logging are not implemented here.
+}
+</code></pre><p class="source-copy-status" role="status" aria-live="polite"></p></article><h3>Date-range calculation · Python</h3><p>An executable adaptation of report section 12.2. Run <code>python attendance_date_range.py</code> with Python 3.7 or newer. It uses only the standard library and prints November 1:30:00, December 1:15:00 and total 2:45:00.</p><article class="source-panel" id="python-source" aria-labelledby="python-source-title"><div class="source-toolbar"><div><h3 id="python-source-title">Python · Split a visit across months</h3><span>attendance_date_range.py · 33 lines</span></div><div class="source-actions"><button type="button" data-copy-code="python-source-code" hidden>Copy code</button><a href="assets/code/attendance_date_range.py" download>Download</a></div></div><pre tabindex="0" aria-label="Python · Split a visit across months source code"><code id="python-source-code">"""Date-range example adapted from the Smart ID report, section 12.2.
+Run: python attendance_date_range.py
+Synthetic timestamps, not hardware measurements.
+"""
+from datetime import datetime, timedelta, timezone
+
+# Fixed India Standard Time offset; no third-party packages required.
+IST = timezone(timedelta(hours=5, minutes=30))
+
+def timestamp(value):
+    parsed = datetime.fromisoformat(value)
+    return parsed.replace(tzinfo=IST) if parsed.tzinfo is None else parsed.astimezone(IST)
+
+def time_in_range(entry, exit, start, end):
+    if exit &lt;= entry:
+        raise ValueError("Invalid session")
+    if end &lt;= start:
+        raise ValueError("Invalid reporting range")
+    overlap_start = max(entry, start)
+    overlap_end = min(exit, end)
+    return max(timedelta(0), overlap_end - overlap_start)
+
+if __name__ == "__main__":
+    entry = timestamp("2026-11-30T22:30:00")
+    exit = timestamp("2026-12-01T01:15:00")
+    nov_start = timestamp("2026-11-01T00:00:00")
+    dec_start = timestamp("2026-12-01T00:00:00")
+    jan_start = timestamp("2027-01-01T00:00:00")
+    november = time_in_range(entry, exit, nov_start, dec_start)
+    december = time_in_range(entry, exit, dec_start, jan_start)
+    print("November:", november)
+    print("December:", december)
+    print("Total:   ", november + december)
+</code></pre><p class="source-copy-status" role="status" aria-live="polite"></p></article><h3>Attendance analytics · JavaScript</h3><p>The calculation function used by the interactive example above, available as a standalone file. Call <code>analyzeAttendance(events, rangeStart, rangeEnd)</code> with timestamped records containing <code>time</code>, <code>person</code>, <code>direction</code> (IN/OUT) and <code>status</code> (ACCEPTED for valid scans). Use ISO timestamps with an explicit timezone offset. Returns minutes, completed sessions, review flags and rejected scans. Flags and rejected counts cover all supplied records; durations are clipped to the selected period.</p><article class="source-panel" id="analytics-source" aria-labelledby="analytics-source-title"><div class="source-toolbar"><div><h3 id="analytics-source-title">JavaScript · Reconstruct and total sessions</h3><span>attendance_analytics.js · 46 lines</span></div><div class="source-actions"><button type="button" data-copy-code="analytics-source-code" hidden>Copy code</button><a href="assets/code/attendance_analytics.js" download>Download</a></div></div><pre tabindex="0" aria-label="JavaScript · Reconstruct and total sessions source code"><code id="analytics-source-code">'use strict';
+
+// This model processes illustrative records. It has no connection to RFID hardware.
+function analyzeAttendance(events, rangeStart, rangeEnd) {
+  const start = Date.parse(rangeStart);
+  const end = Date.parse(rangeEnd);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end &lt;= start) {
+    throw new RangeError('A reporting window must have a valid start and a later end.');
+  }
+  const open = new Map();
+  let milliseconds = 0;
+  let sessions = 0;
+  let flags = 0;
+  let rejected = 0;
+  const chronological = [...events].sort((a, b) =&gt; Date.parse(a.time) - Date.parse(b.time));
+  for (const event of chronological) {
+    if (event.status !== 'ACCEPTED') { rejected++; continue; }
+    const time = Date.parse(event.time);
+    if (!Number.isFinite(time) || !event.person) { flags++; continue; }
+    const previous = open.get(event.person);
+    if (event.direction === 'IN') {
+      if (previous) {
+        // A second IN makes the interval ambiguous; do not infer a missing exit.
+        previous.ambiguous = true;
+        flags++;
+      } else {
+        open.set(event.person, { time, ambiguous: false });
+      }
+    } else if (event.direction === 'OUT') {
+      if (!previous) { flags++; continue; }
+      if (time &lt;= previous.time) {
+        flags++;
+      } else if (!previous.ambiguous) {
+        const overlap = Math.max(0, Math.min(time, end) - Math.max(previous.time, start));
+        if (overlap &gt; 0) { milliseconds += overlap; sessions++; }
+      }
+      open.delete(event.person);
+    } else {
+      flags++;
+    }
+  }
+  flags += open.size;
+  return { minutes: milliseconds / 60000, sessions, flags, rejected };
+}
+
+if (typeof module !== "undefined") module.exports = { analyzeAttendance };
+</code></pre><p class="source-copy-status" role="status" aria-live="polite"></p></article><h3>What the browser demonstration verifies</h3><p>The example on this page calculates completed-session durations from synthetic timestamps, clips them to a reporting window and excludes rejected credentials. It demonstrates the data-processing rules. It does not demonstrate RF performance, SD durability or a deployed device dashboard.</p><aside class="callout"><strong>Software integration still to complete</strong><p>Reader scheduling, repeated-scan suppression, RTC error handling, persistent credential updates, restart-safe event IDs and the hardware-connected reporting interface require implementation and integration tests.</p></aside></div>
   </div>
 </section>
 <section class="report-section paper" id="budget" aria-labelledby="budget-title">

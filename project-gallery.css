@@ -85,3 +85,6 @@
 .project-photo:has(img[src$=".svg"]) { grid-column:1 / -1; }
 .project-photo a[href$=".svg"] { background:#101c27; }
 .project-photo img[src$=".svg"] { height:auto; max-height:650px; object-fit:contain; padding:12px; }
+
+.report-page { overflow-x:clip; }
+.hero-reference-photo { height:auto; }
