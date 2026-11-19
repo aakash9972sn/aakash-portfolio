@@ -66,3 +66,17 @@ Each engineering case study has its own image gallery and full-report reader. `p
 ### Project source downloads
 
 The RFID and Smart ID pages show source code directly with Copy and Download controls. Files live in assets/code/. The UNO sketch is a reference implementation; the ESP32-S3 file is initialization only, with hardware integration pending. The Python file runs with the standard library; the JavaScript file exports the same analytics function used by the interactive case study. Keep the displayed code and downloaded files in sync.
+
+## AI portfolio guide
+
+The Ask AI panel is available on the home page and project/workshop pages. It uses
+the public project registry and selected published technical notes; it does not
+read demo attendance records or browser storage. Questions and public context go
+to the Cloudflare endpoint in `ai-config.js` only when the visitor asks. Responses
+are displayed as plain text and chat history is kept in memory.
+
+The shared Worker at `aakash9972sn/newTest/worker/src/index.js` requires deployment
+of its version 2 `assistant` action. This workspace cannot deploy it without the
+owner's Cloudflare login. The endpoint URL being configured does not prove live
+service availability. See that repository's `AI-SETUP.md` for exact dashboard/CLI
+steps. Core navigation continues to work when AI is unavailable.
