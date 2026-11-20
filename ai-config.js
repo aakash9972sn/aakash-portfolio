@@ -1,5 +1,5 @@
 window.AAKASH_AI = {
-  endpoint: 'https://aakash-test-ai.aakashinfinity72.workers.dev',
+  endpoint: 'https://ais-pre-wdyrf6yb4psuwizvqpn4hw-374223411049.asia-northeast1.run.app',
   app: 'portfolio', title: 'Aakash portfolio guide',
   intro: 'Explore the projects, understand the electronics or find a good place to start.',
   suggestions: ['Which project should I explore first?', 'Explain the two RFID projects', 'What skills are demonstrated here?'],
