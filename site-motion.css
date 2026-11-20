@@ -475,10 +475,9 @@
 }
 .fx-cursor-ring.is-hover { width: 64px; height: 64px; margin: -32px 0 0 -32px; background: #c2e7cd1a; border-color: #c2e7cd70; }
 .fx-cursor-ring.is-down { width: 26px; height: 26px; margin: -13px 0 0 -13px; background: #c2e7cd2e; }
-html.fx-cursor-on,
-html.fx-cursor-on body,
-html.fx-cursor-on * { cursor: none !important; }
-html.fx-cursor-on :is(input, textarea, select) { cursor: auto !important; }
+/* Keep the native pointer above browser top-layer dialogs and shadow dialogs.
+   The trailing ring is decorative; it must never replace the system pointer. */
+.fx-cursor-dot { display: none; }
 
 @media (max-width: 760px) {
   .site-home::before { background: radial-gradient(150% 110% at 50% 30%, transparent 60%, #00000059 100%); }
