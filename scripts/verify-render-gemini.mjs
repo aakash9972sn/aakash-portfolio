@@ -29,7 +29,7 @@ if(ai.status!==200||!type.includes('text/event-stream')) {
  throw new Error('Real Gemini request failed: '+sanitized);
 }
 check(text.includes('data:'),'SSE stream contained no data events');
-const events=text.split(/\\r?\\n/).filter(x=>x.startsWith('data:')).map(x=>x.slice(5).trim()).filter(Boolean);
+const events=text.split(/\r?\n/).filter(x=>x.startsWith('data:')).map(x=>x.slice(5).trim()).filter(Boolean);
 const parsed=events.map(raw=>{try{return JSON.parse(raw)}catch{return {invalid:true}}});
 const pieces=parsed.filter(x=>typeof x.text==='string').map(x=>x.text);
 const combined=pieces.join('').trim();
