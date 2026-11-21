@@ -832,6 +832,7 @@
     getState() {
       return {
         signedIn: Boolean(auth?.currentUser),
+        uid: auth?.currentUser?.uid || null,
         profile: auth?.currentUser ? { ...currentProfile } : null,
       };
     },
@@ -1096,9 +1097,26 @@
     try {
       const cloud = await window.AakashAccount.list('testAttempts');
       if (!Array.isArray(cloud)) throw new Error('Cloud result history unavailable.');
-      // Local device histories are uploaded on login; do not silently merge
-      // possibly unrelated signed-out or other-account browser results here.
-      createResultsDialog(cloud);
+      // Merge device records only when attributed to this signed-in account,
+      // or when their attempt ID already exists in this account's cloud data.
+      const uid = auth.currentUser.uid;
+      let device = [];
+      try {
+        const raw = JSON.parse(localStorage.getItem('tclab.analysis.history.v1') || '[]');
+        if (Array.isArray(raw)) device = raw;
+      } catch {}
+      const ids = new Set(cloud.map(x => String(x.testId) + ':' + String(x.at)));
+      const merged = new Map(cloud.map(x => [String(x.testId) + ':' + String(x.at), x]));
+      for (const row of device) {
+        if (!row?.testId || !row?.at) continue;
+        const key = String(row.testId) + ':' + String(row.at);
+        if (row.ownerUid !== uid && !ids.has(key)) continue;
+        const base = merged.get(key) || {};
+        merged.set(key, { ...base, ...row,
+          topicStats: row.topicStats || base.topicStats,
+          unitStats: row.unitStats || base.unitStats });
+      }
+      createResultsDialog([...merged.values()]);
       message('My Results loaded.');
     } catch (error) {
       console.error('My Results load failed:',error);
