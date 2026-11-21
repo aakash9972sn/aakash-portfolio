@@ -1,5 +1,5 @@
 /* Public backend address only. Do not put GEMINI_API_KEY here. */
-window.AAKASH_BACKEND_ORIGIN = ""; // Set to the HTTPS origin of YOUR deployed Node server.
+window.AAKASH_BACKEND_ORIGIN = window.AAKASH_BACKEND_ORIGIN || ""; // Set to your deployed Node origin.
 (() => {
   "use strict";
   function origin() {
