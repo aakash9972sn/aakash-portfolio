@@ -13,7 +13,7 @@
 
   const host = document.createElement('aakash-assistant');
   const root = host.attachShadow({ mode: 'open' });
-  root.innerHTML = `<link rel="stylesheet" href="${new URL('ai-assistant.css?v=20261121-studio1', assetBase)}"><button class="launcher" aria-haspopup="dialog" aria-label="Open AI assistant"><span aria-hidden="true">${spark}</span> Ask AI</button><dialog aria-labelledby="assistant-title"><header><div class="mark" aria-hidden="true">${spark}</div><div><span class="eyebrow">FAST PORTFOLIO ASSISTANT</span><h2 id="assistant-title"></h2></div><button class="close" aria-label="Close AI assistant">×</button></header><div class="conversation"><div class="welcome"><span class="spark" aria-hidden="true">${spark}</span><h3>What’s on your mind?</h3><p></p><div class="suggestions"></div></div><div class="messages" role="log" aria-label="Conversation" aria-live="polite"></div></div><div class="status" role="status"></div><form><label class="sr-only" for="ai-question">Your question</label><textarea id="ai-question" rows="2" maxlength="700" placeholder="Ask in English or Hindi…" required></textarea><button class="send" aria-label="Send question">${arrow}</button></form><footer><span>AI can make mistakes. Check the source details.</span><button type="button" class="clear">Clear chat</button></footer><p class="privacy"></p></dialog>`;
+  root.innerHTML = `<link rel="stylesheet" href="${new URL('ai-assistant.css?v=20261121-actual1', assetBase)}"><button class="launcher" aria-haspopup="dialog" aria-label="Open AI assistant"><span aria-hidden="true">${spark}</span> Ask Gemini</button><dialog aria-labelledby="assistant-title"><header><div class="mark" aria-hidden="true">${spark}</div><div><span class="eyebrow">GEMINI · PORTFOLIO & STUDY GUIDE</span><h2 id="assistant-title"></h2></div><button class="close" aria-label="Close AI assistant">×</button></header><div class="conversation"><div class="welcome"><span class="spark" aria-hidden="true">${spark}</span><h3>What’s on your mind?</h3><p></p><div class="suggestions"></div></div><div class="messages" role="log" aria-label="Conversation" aria-live="polite"></div></div><div class="status" role="status"></div><form><label class="sr-only" for="ai-question">Your question</label><textarea id="ai-question" rows="2" maxlength="700" placeholder="Ask in English or Hindi…" required></textarea><button class="send" aria-label="Send question">${arrow}</button></form><footer><span>AI can make mistakes. Check the source details.</span><button type="button" class="clear">Clear chat</button></footer><p class="privacy"></p></dialog>`;
   document.body.appendChild(host);
 
   const $ = (s) => root.querySelector(s);
@@ -54,6 +54,10 @@
     if (!permitted()) return;
     if (!dialog.open) dialog.showModal();
     if (question) input.value = question;
+    if (!window.AakashBackend?.configured()) {
+      status.textContent = "Gemini is not connected: GitHub Pages needs a deployed Node backend. " +
+        "Your portfolio and built-in practice questions still work.";
+    }
     input.focus();
   }
 
@@ -98,14 +102,21 @@
   }
 
   async function requestAnswer(payload, signal, onChunk) {
-    const response = await fetch(config.endpoint, {
-      method: 'POST',
-      credentials: 'same-origin',
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
-      body: JSON.stringify(payload),
-      signal,
-    });
+    const target = window.AakashBackend?.url(config.endpoint) || config.endpoint;
+    let response;
+    try {
+      response = await fetch(target, {
+        method: 'POST',
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+        body: JSON.stringify(payload),
+        signal,
+      });
+    } catch (error) {
+      if (error?.name === 'TimeoutError' || error?.name === 'AbortError') throw error;
+      throw new Error('Cannot reach the Gemini backend. Check its deployment, AAKASH_BACKEND_ORIGIN and CORS.');
+    }
 
     const contentType = (response.headers.get('content-type') || '').toLowerCase();
     if (!response.ok) {
@@ -125,7 +136,7 @@
     }
 
     if (contentType.includes('text/html')) {
-      throw new Error('Session returned a web page instead of an AI response. Refresh the page and retry.');
+      throw new Error('The AI endpoint returned an HTML webpage, not a Gemini response. Check the Node backend URL; refreshing alone cannot fix an incorrect endpoint.');
     }
 
     if (contentType.includes('application/json')) {
@@ -137,6 +148,9 @@
       return data.answer;
     }
 
+    if (!contentType.includes('text/event-stream')) {
+      throw new Error('The Gemini backend returned an unsupported response format. Check the server API route.');
+    }
     if (!response.body) {
       throw new Error('Streaming response unavailable.');
     }

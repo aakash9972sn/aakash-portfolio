@@ -1,6 +1,6 @@
 # Current deployment
 
-This repository contains the latest uploaded AI Studio application. It includes a Node Gemini backend and an integrated Test Centre. **Read [DEPLOYMENT.md](DEPLOYMENT.md) before publishing**; GitHub Pages alone cannot run its AI routes.
+The public portfolio website is **https://aakash9972sn.github.io/aakash-portfolio/**. Frontend AI now reports whether a real Gemini Node backend is connected. GitHub Pages alone does not run `server.js`; see [DEPLOYMENT.md](DEPLOYMENT.md) for safe private-key setup. The old preview URL returned HTML instead of an AI API response and was removed from the default configuration.
 
 # AAKASH — portfolio
 A static portfolio for a DTU Electronics & Communication Engineering student (2024–2028).
