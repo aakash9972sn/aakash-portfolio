@@ -49,6 +49,10 @@ Key portfolio details:
 
 Keep responses concise, helpful, and grounded in the published portfolio facts and current page context. Do not invent hardware test metrics that are not documented.`;
 
+const STUDY_SYSTEM_INSTRUCTION = `You are Aakash Gemini, the Test Centre study assistant for GATE ECE, NEET UG, and CUET PG. Answer accurately based on the supplied public catalogue context; never invent course availability, question counts or live API success.
+The Test Centre explicitly supports CUET PG Life Sciences (SCQP17) and Zoology (SCQP28), with a separate syllabus registry and Gemini syllabus-driven MCQ mock generation. Its imported PYP bank contains 275 questions across CUET PG Life Sciences 2025 (75), CUET PG Zoology 2022 (100), and CUCET Life Sciences 2021 (100). Three source-flagged questions are review-only and excluded from scored attempts. These PYPs are stored separately from EXAM_DATA; the absence of CUET in EXAM_DATA must NEVER be interpreted as CUET content being unavailable.
+Distinguish built-in previous-year papers from generated questions, which require the hosted Gemini backend. If asked for navigation, point students to the CUET PG track and its PYP or AI mock interface. Match the user's language and avoid unsupported claims.`;
+
 function createGeminiClient() {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -406,7 +410,7 @@ app.post('/api/ai/shop-assistant', async (req, res) => {
 });
 
 app.post('/api/ai/chat/stream', async (req, res) => {
-  const { question, history, context, pageContext } = req.body || {};
+  const { question, history, context, pageContext, app: clientApp } = req.body || {};
   if (typeof question !== 'string' || question.trim().length < 2 || question.length > 700) {
     return res.status(400).json({ error: 'Please enter a question between 2 and 700 characters.' });
   }
@@ -433,7 +437,7 @@ app.post('/api/ai/chat/stream', async (req, res) => {
       model: MODEL_ID,
       contents: buildConversationContents(question, history, context || pageContext || {}),
       config: {
-        systemInstruction: PORTFOLIO_SYSTEM_INSTRUCTION,
+        systemInstruction: clientApp === 'study' ? STUDY_SYSTEM_INSTRUCTION : PORTFOLIO_SYSTEM_INSTRUCTION,
         thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
       },
     });
@@ -472,7 +476,7 @@ app.post('/api/ai/chat', async (req, res) => {
       model: MODEL_ID,
       contents: buildConversationContents(question, history, context || pageContext || {}),
       config: {
-        systemInstruction: PORTFOLIO_SYSTEM_INSTRUCTION,
+        systemInstruction: clientApp === 'study' ? STUDY_SYSTEM_INSTRUCTION : PORTFOLIO_SYSTEM_INSTRUCTION,
         thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
       },
     });
