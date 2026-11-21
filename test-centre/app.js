@@ -24,6 +24,22 @@
   const PKEY = (id) => 'tclab.progress.' + id;
   const BKEY = (id) => 'tclab.best.' + id;
   const RKEY = (id) => 'tclab.result.' + id;
+  const HISTORY_KEY = 'tclab.analysis.history.v1';
+  function recordDailyAttempt(result) {
+    if (!result || !result.testId || !Number.isFinite(result.at)) return;
+    const history = store.get(HISTORY_KEY, []);
+    const rows = Array.isArray(history) ? history : [];
+    if (rows.some(x => x.testId === result.testId && x.at === result.at)) return;
+    rows.push({
+      testId: result.testId, at: result.at, title: result.title,
+      exam: result.exam, subject: result.subject, examId: result.examId,
+      subjectId: result.subjectId, correct: result.correct, wrong: result.wrong,
+      unattempted: result.unattempted, excluded: result.excluded || 0,
+      accuracy: result.accuracy, topics: result.topics
+    });
+    store.set(HISTORY_KEY, rows);
+  }
+
 
   /* ------------------------------------------------------------------ index */
   const Core = window.TestCentreCore;
@@ -331,7 +347,7 @@
           });
           return;
         }
-        go('#/t/' + id);
+        go('#/' + (store.get(RKEY(id), null) ? 'r/' : 't/') + id);
       }));
     });
   }
@@ -345,10 +361,13 @@
     if (prog) {
       const done = prog.responses.filter((r) => r !== null && r !== undefined).length;
       status = '<span class="card-status is-progress">In progress · ' + done + '/' + qs + '</span>';
+    } else if (store.get(RKEY(test.id), null)) {
+      status = '<span class="card-status is-done">Submitted · review available</span>';
     } else if (best) {
       status = '<span class="card-status is-done">Best ' + best.score + '/' + best.total + '</span>';
     }
-    const cta = prog ? 'Resume' : (best ? 'Retake' : 'Start test');
+    const submitted = store.get(RKEY(test.id), null);
+    const cta = submitted && !prog ? 'Review result' : prog ? 'Resume' : 'Start test';
     return '<article class="card" data-id="' + esc(test.id) + '" style="--card-accent:' + x.exam.accent + ';--card-accent2:' + x.exam.accent2 + '">' +
       '<div class="card-tags"><span class="tag tag-exam">' + esc(x.exam.name) + '</span><span class="tag">' + esc(x.subject.name) + '</span>' +
       (test.level ? '<span class="tag tag-level">' + esc(test.level) + '</span>' : '') + '</div>' +
@@ -360,12 +379,17 @@
       '<div><dt>Marking</dt><dd>' + esc(markLabel(test)) + '</dd></div>' +
       '</dl>' +
       '<div class="card-foot">' + status +
-      '<a class="card-cta" href="#/t/' + esc(test.id) + '">' + cta + '<span aria-hidden="true">→</span></a>' +
+      '<a class="card-cta" href="#/' + (submitted && !prog ? 'r/' : 't/') + esc(test.id) + '">' + cta + '<span aria-hidden="true">→</span></a>' +
       '</div>' + (test.generated ? '<button type="button" class="ai-test-delete" data-delete-ai>Delete saved AI test</button>' : '') + '</article>';
   }
 
   /* ------------------------------------------------------------ test runner */
   function openTest(entry) {
+    // After submission, keep the review accessible until an explicit reset.
+    if (store.get(RKEY(entry.test.id), null)) {
+      go('#/r/' + entry.test.id);
+      return;
+    }
     const mappedTrack = trackForExamId(entry.exam.id);
     if (TRACK_IDS.includes(mappedTrack) && mappedTrack !== filterExam) {
       filterExam = mappedTrack;
@@ -626,6 +650,8 @@
       title: run.test.title,
       exam: run.entry.exam.name,
       subject: run.entry.subject.name,
+      examId: run.entry.exam.id,
+      subjectId: run.entry.subject.id,
       score: score,
       total: totalMarks,
       correct: correct,
@@ -642,6 +668,7 @@
       at: Date.now()
     };
     store.set(RKEY(run.test.id), result);
+    recordDailyAttempt(result);
     window.AakashAccount?.save('testAttempts', result.testId+'-'+result.at, result);
     store.del(PKEY(run.test.id));
     const prevBest = store.get(BKEY(run.test.id), null);
@@ -671,6 +698,7 @@
     setScreen('result');
     const result = lastResult && lastResult.testId === entry.test.id ? lastResult : store.get(RKEY(entry.test.id), null);
     if (!result || !Array.isArray(result.responses) || !result.topics) { go('#/'); return; }
+    recordDailyAttempt(result); // Backfill saved results created before daily tracking.
     solutionFilter = 'all';
     const questions = questionsOf(entry.test);
     const pct = result.total ? Math.round((Math.max(0, result.score) / result.total) * 100) : 0;
@@ -692,12 +720,24 @@
       '</div></div>' +
       '<div class="result-actions">' +
       '<button type="button" class="btn btn-ghost" id="res-home">Back to tests</button>' +
-      '<button type="button" class="btn btn-ghost" id="res-retake">Retake test</button>' +
+      '<button type="button" class="btn btn-ghost" id="res-retake">Reset &amp; retake</button>' +
       '<button type="button" class="btn btn-primary" id="res-review">Review solutions</button>' +
       '</div>' +
       (Object.keys(result.topics).length > 1 ? topicBreakdown(result.topics) : '');
     $('#res-home').addEventListener('click', () => go('#/'));
-    $('#res-retake').addEventListener('click', () => { store.del(RKEY(result.testId)); lastResult = null; go('#/t/' + result.testId); });
+    $('#res-retake').addEventListener('click', () => {
+      modal({
+        title: 'Reset submitted test?',
+        body: '<p>This unlocks a new attempt and replaces the current review result after your next submission. Your date-wise performance history will be retained.</p>',
+        confirm: 'Reset and retake', cancel: 'Keep review',
+        onConfirm: () => {
+          store.del(RKEY(result.testId));
+          store.del(PKEY(result.testId));
+          lastResult = null;
+          go('#/t/' + result.testId);
+        }
+      });
+    });
     $('#res-review').addEventListener('click', () => { $('#solutions').hidden = false; $('#solutions').scrollIntoView({ behavior: 'smooth' }); });
     renderSolutions(entry, result, questions);
     if (window.TestCentreAI) window.TestCentreAI.mount(result, questions);
