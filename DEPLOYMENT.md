@@ -48,3 +48,39 @@ The account implementation validates fields and document IDs against these rules
 5. Check the account dialog and test submit controls on a phone.
 
 Local tests exercise real Express routes with injected provider replies where inference is required. They verify CORS, routing, output handling and missing-key behavior. They do not prove live Gemini access or completed Google sign-in.
+
+
+## Strict ₹0 option: Render Free (manual opt-in, no billing activation)
+
+The repository includes `render.yaml` with a **Render Free** Node web service.
+This file does not deploy, register, charge, or connect anything automatically.
+Render's published free web-service documentation currently allows a no-card
+deployment, subject to free-tier limits, inactivity sleeps, and provider policies.
+
+1. Create/sign into a Render account and connect the GitHub repository
+   `aakash9972sn/aakash-portfolio` under **New → Blueprint**.
+2. Review `render.yaml`: it explicitly sets `plan: free` and uses
+   `npm ci` / `npm start`. Do not select a paid tier or add a payment
+   method. Stop if the provider asks for billing to create this service.
+3. During the Blueprint creation flow, set **GEMINI_API_KEY** as a private
+   secret in Render, using an eligible Google AI Studio free-tier API key.
+   Never paste the secret into GitHub, browser JavaScript or this chat.
+   `ALLOWED_ORIGINS` already includes `https://aakash9972sn.github.io`.
+4. Once Render actually deploys the Express server, take the **real** HTTPS
+   `onrender.com` service origin shown by Render (not the GitHub Pages URL,
+   not a preview login URL).
+5. Visit `https://<actual-render-origin>/api/health`. It must return
+   `application/json`, `ok:true`, and `configured:true`.
+   This verifies routing/configuration, not whether your API key has valid
+   model access.
+6. Set `window.AAKASH_BACKEND_ORIGIN` in public `backend-config.js` to
+   the real HTTPS origin shown by Render. Do not change other page content.
+   Reload the published portfolio with Ctrl+Shift+R.
+7. Verify **one real chat answer**, **one generated MCQ set** and
+   **one doubt explanation** on the GitHub Pages website. Verify Google login
+   separately in Firebase; it is not fixed by hosting the AI server.
+
+This is not a promise of 24/7 availability. Render Free may sleep after
+inactivity and may suspend resources under its limits. Gemini's API free-tier
+eligibility and quotas are also separate from Render's hosting allowance.
+The application should show a useful error when either limit is reached.
