@@ -745,9 +745,21 @@
         }
       });
     });
-    $('#res-review').addEventListener('click', () => { $('#solutions').hidden = false; $('#solutions').scrollIntoView({ behavior: 'smooth' }); });
-    renderSolutions(entry, result, questions);
     if (window.TestCentreAI) window.TestCentreAI.mount(result, questions);
+    // Start the familiar single-question review directly from the result CTA.
+    // Keep the original accordion list as an optional, separately controlled view.
+    const solutionArea = $('#solutions');
+    solutionArea.hidden = true;
+    $('#res-review').addEventListener('click', () => {
+      if (typeof window.TestCentreAI?.openReview === 'function') {
+        solutionArea.hidden = true;
+        window.TestCentreAI.openReview('focus');
+      } else {
+        renderSolutions(entry, result, questions);
+        solutionArea.hidden = false;
+        solutionArea.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
   }
 
   function scoreRow(label, value, tone) {
