@@ -1,5 +1,12 @@
 name: Verify live Render Gemini backend
 on:
+  push:
+    branches: [main]
+    paths:
+      - "server.js"
+      - "test-centre/**"
+      - "scripts/verify-render-gemini.mjs"
+      - ".github/workflows/render-gemini-check.yml"
   pull_request:
     branches: [main]
     paths:
