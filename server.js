@@ -583,7 +583,7 @@ app.post('/api/ai/study-mcq', async (req, res) => {
 
       try {
         const parsed = JSON.parse((response.text || '{}').trim());
-        const allowPartial = attempt === 1 && targetCount >= 5;
+        const allowPartial = attempt === 1 && targetCount >= 2;
         validated = sanitizeMcqList(parsed.questions, topicName || unitName || subjectName, targetCount, allowPartial);
         if (validated) break;
       } catch {}
