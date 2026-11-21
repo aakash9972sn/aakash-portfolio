@@ -239,7 +239,7 @@
     });
     panel.querySelector('#ai-daily-history-list').innerHTML = dailyHTML();
     let opened = false;
-    button.addEventListener('click', () => {
+    function revealReview() {
       if (opened) {
         review.scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
@@ -336,7 +336,21 @@
           ? weak.map(([name, v]) => esc(name) + ' (' + (v.wrong+v.skipped) + ' needs review)').join(' · ')
           : 'No wrong or skipped questions in this attempt.') + '</p>' +
         '<p class="muted">Figures are calculated from your actual submitted answers. Untagged units are shown separately, not guessed. Detailed Gemini option explanations are available under each question.</p>';
+    }
+    button.addEventListener('click', () => {
+      revealReview();
+      mode = 'list';
+      updateMode();
+      output.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+    // Public action for the result-page Review solutions button: no additional click
+    // on Open AI analysis and no old accordion list.
+    window.TestCentreAI.openReview = (requestedMode = 'focus') => {
+      if (!opened) revealReview();
+      mode = requestedMode === 'list' ? 'list' : 'focus';
+      updateMode();
+      workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
   }
 
   async function explainQuestion(q, selected, result, button, status) {
