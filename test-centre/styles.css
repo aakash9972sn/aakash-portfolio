@@ -747,3 +747,39 @@ p { margin: 0; }
   .score-side { min-width:0; }
   .ai-daily-attempts > div { min-width:0; }
 }
+
+/* Minimal exam-style result review: only marked options, palette, Previous/Next. */
+#ai-review-workspace { min-width:0; position:relative; }
+#ai-review-workspace:not([hidden]) { display:flex; flex-direction:column; }
+#ai-review-workspace #ai-inline-questions { order:1; }
+#ai-review-workspace #ai-review-navigation { order:2; }
+#ai-review-workspace #ai-review-palette { order:3; }
+#ai-study-coach.is-test-review > p,
+#ai-study-coach.is-test-review > #ai-analysis-output,
+#ai-study-coach.is-test-review > .ai-daily-history,
+#ai-study-coach.is-test-review > #ai-analyze,
+#ai-study-coach.is-test-review .ai-inline-question > p,
+#ai-study-coach.is-test-review .ai-inline-question > .btn-ai-doubt,
+#ai-study-coach.is-test-review .ai-inline-question > .ai-coach-output { display:none !important; }
+#ai-study-coach.is-test-review .ai-inline-question { margin:12px 0 0; }
+#ai-study-coach.is-test-review .ai-review-modebar { order:0; }
+#ai-review-palette[hidden] { display:none !important; }
+.ai-review-palette { border:1px solid var(--line-strong); background:var(--surface);
+  border-radius:12px; padding:14px; margin-top:10px; width:100%; box-sizing:border-box; }
+.ai-review-palette-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+.ai-review-palette-head button { padding:5px 12px; border:1px solid var(--line); border-radius:6px; background:var(--surface-2); color:var(--text); cursor:pointer; }
+.ai-review-palette-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(40px,1fr)); gap:9px; }
+.ai-review-jump { min-height:40px; border-radius:8px; background:var(--surface-2);
+  border:1px solid var(--line-strong); color:var(--text); font-weight:700; cursor:pointer; }
+.ai-review-jump.is-correct { background:rgba(22,163,74,.13); border-color:var(--good); }
+.ai-review-jump.is-wrong { background:rgba(220,38,38,.12); border-color:var(--bad); }
+.ai-review-jump.is-skipped { background:rgba(217,119,6,.12); border-color:var(--warn); }
+.ai-review-jump.is-excluded { border-style:dashed; }
+.ai-review-jump.is-current { outline:3px solid var(--text); outline-offset:2px; }
+#ai-review-navigation { width:100%; box-sizing:border-box; }
+#ai-review-navigation button { flex:1; }
+@media(max-width:600px) {
+  #ai-review-navigation { gap:5px; }
+  #ai-review-navigation button { padding:11px 5px; font-size:.76rem; }
+  .ai-review-palette-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
+}
