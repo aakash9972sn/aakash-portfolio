@@ -550,6 +550,80 @@
       ].slice(0, 30),
     );
   }
+  // Browser-local, visibly simulated fulfilment. Never masquerades as a store order.
+  const demoStages = [
+    { name: "Received", note: "Saved in your browser. No seller has received this order." },
+    { name: "Confirmed", note: "Demo seller confirmation simulated." },
+    { name: "Packed", note: "Demo packaging simulated." },
+    { name: "Out for delivery", note: "Demo dispatch simulated. No courier has been booked." },
+    { name: "Received by customer", note: "Demo completion simulated. No delivery has happened." },
+  ];
+  function demoOrders() {
+    const rows = read("demo-orders-v1", []);
+    return Array.isArray(rows) ? rows.filter(o => /^DEMO-BL-[A-F0-9]{12}$/.test(o?.id)).slice(0, 50) : [];
+  }
+  function persistDemoOrder(order) {
+    save("demo-orders-v1", [order, ...demoOrders().filter(o => o.id !== order.id)].slice(0, 50));
+  }
+  function placeDemoOrder(customer) {
+    const items = totals().items.map(i => ({
+      name: i.name, pack: i.pack, quantity: i.quantity,
+      price: i.price, image: i.image,
+    }));
+    const subtotal = items.reduce((sum,i) => sum + i.price * i.quantity, 0);
+    const shipping = subtotal >= state.config.shipping.freeAbove ? 0 : state.config.shipping.standard;
+    const bytes = new Uint8Array(6);
+    crypto.getRandomValues(bytes);
+    const id = "DEMO-BL-" + [...bytes].map(x => x.toString(16).padStart(2,"0")).join("").toUpperCase();
+    const order = {
+      id, demo: true, stage: 0, method: "cod",
+      status: "demo_received", fulfillment: "unfulfilled",
+      customer: {name: customer.name, city: customer.city, state: customer.state, pincode: customer.pincode},
+      items, subtotal, shipping, discount: 0, total: subtotal + shipping,
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+    };
+    persistDemoOrder(order);
+    state.cart = [];
+    state.quote = null;
+    state.coupon = "";
+    save("bag", state.cart);
+    paintCounts();
+    renderProducts();
+    closeDialog($("#checkout-dialog"));
+    showDemoOrder(order);
+  }
+  function showDemoOrder(order) {
+    clearTimeout(pollTimer);
+    state.activeOrder = order;
+    state.orderToken = "";
+    $("#orders-title").textContent = "Demo order tracking";
+    const stage = Math.max(0, Math.min(4, Number(order.stage) || 0));
+    const rows = demoStages.map((item,i) =>
+      '<li class="' + (i < stage ? "is-complete" : i === stage ? "is-current" : "") +
+      '"><span class="demo-stage-number">' + (i < stage ? "✓" : i+1) +
+      '</span><span><b>' + esc(item.name) + '</b>' +
+      (i === stage ? '<small>' + esc(item.note) + '</small>' : "") + '</span></li>').join("");
+    $("#orders-content").innerHTML =
+      '<div class="demo-order-warning"><b>DEMO ONLY · NO REAL ORDER</b>' +
+      '<p>This order is stored only in this browser. Nothing was sent to a seller or courier. No payment was taken.</p></div>' +
+      '<div class="order-success"><div class="success-icon">' + icon("box") +
+      '</div><h3>' + (stage === 4 ? "Demo delivery completed" : "Demo order " + esc(demoStages[stage].name.toLowerCase())) +
+      '</h3><p>' + esc(demoStages[stage].note) + '</p></div>' +
+      '<div class="order-reference"><span>' + esc(order.id) + '</span><button data-action="copy-order">Copy demo reference</button></div>' +
+      '<ol class="demo-order-timeline">' + rows + '</ol>' +
+      '<div class="order-details"><h4>Demo destination</h4><p>' + esc(order.customer.name) + " · " +
+      esc(order.customer.city) + ", " + esc(order.customer.state) + " " + esc(order.customer.pincode) +
+      '</p><small>Street address, phone and email are not saved for demo orders.</small></div>' +
+      order.items.map(i => '<div class="bag-line"><img src="' + esc(i.image) +
+      '" alt="" width="52"><div><h3>' + esc(i.name) + '</h3><p>' + esc(i.pack) +
+      " × " + i.quantity + '</p></div><strong>' + money(i.quantity*i.price) + '</strong></div>').join("") +
+      totalRows(order,false) +
+      '<div class="order-actions">' +
+      (stage < 4 ? '<button class="button button-dark" data-action="advance-demo">Simulate next stage ' + icon("arrow") + '</button>' : "") +
+      '<button class="button button-outline" data-action="receipt">Download demo summary</button>' +
+      '<button class="button button-outline" data-action="orders">All orders</button></div>';
+    openDialog("orders-dialog");
+  }
   async function placeOrder(form) {
     if (state.checkoutBusy) return;
     if (!form.reportValidity()) return;
