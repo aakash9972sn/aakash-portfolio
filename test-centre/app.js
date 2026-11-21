@@ -673,7 +673,9 @@
     };
     store.set(RKEY(run.test.id), result);
     recordDailyAttempt(result, run.questions);
-    window.AakashAccount?.save('testAttempts', result.testId+'-'+result.at, result);
+    const dailyRows = store.get(HISTORY_KEY, []);
+    const detailedRecord = Array.isArray(dailyRows) ? dailyRows.find(x => x.testId === result.testId && x.at === result.at) : null;
+    window.AakashAccount?.save('testAttempts', result.testId+'-'+result.at, { ...result, ...detailedRecord });
     store.del(PKEY(run.test.id));
     const prevBest = store.get(BKEY(run.test.id), null);
     if (!prevBest || score > prevBest.score) store.set(BKEY(run.test.id), { score: score, total: totalMarks, at: Date.now() });
