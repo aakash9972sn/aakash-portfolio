@@ -11,3 +11,38 @@ test('portfolio and integrated Test Centre assets are served; private server fil
 test('chat and SSE use server-side Gemini responses and preserve page context',async()=>{const calls=[];app.locals.aiFactory=()=>({models:{generateContent:async p=>{calls.push(p);return {text:'Fixture tutor response'};}}});try{let r=await post('/api/ai/chat',{question:'Explain RFID',context:{project:'RFID'}});assert.equal(r.status,200);assert.equal((await r.json()).answer,'Fixture tutor response');r=await post('/api/ai/chat/stream',{question:'Explain RFID'});assert.match(await r.text(),/data: .*Fixture tutor response[\s\S]*"done":true/);assert.ok(JSON.stringify(calls[0]).includes('RFID'));}finally{delete app.locals.aiFactory;}});
 test('MCQ JSON is validated before publication',async()=>{const questions=Array.from({length:2},(_,i)=>({q:`A ${i+4} ohm resistor carries 2 A. What voltage is across it?`,options:['1 V',`${(i+4)*2} V`,'20 V','40 V'],answerIndex:1,explanation:'Voltage equals the current multiplied by resistance.',topic:'Ohms law'}));app.locals.aiFactory=()=>({models:{generateContent:async()=>({text:JSON.stringify({questions})})}});try{const r=await post('/api/ai/study-mcq',{exam:'GATE ECE',subject:'Network Theory',count:2});assert.equal(r.status,200);assert.deepEqual((await r.json()).questions,questions);}finally{delete app.locals.aiFactory;}});
 test('invalid chat is rejected before inference; missing credentials fail explicitly',async()=>{assert.equal((await post('/api/ai/chat',{question:''})).status,400);if(!process.env.GEMINI_API_KEY){const r=await post('/api/ai/chat',{question:'Explain RFID'});assert.equal(r.status,500);assert.match((await r.json()).error,/not configured/);}});
+
+
+test('Render HTML navigation redirects to authorized GitHub Pages without redirecting Gemini APIs',async()=>{
+  const http=require('node:http');
+  const request=path=>new Promise((resolve,reject)=>{
+    const req=http.get(base+path,{headers:{Host:'aakash-portfolio-g3fb.onrender.com'}},res=>{
+      res.resume();
+      res.on('end',()=>resolve({
+        status:res.statusCode,
+        location:res.headers.location,
+        type:res.headers['content-type'],
+      }));
+    });
+    req.on('error',reject);
+  });
+  for(const [path,expected] of [
+    ['/','https://aakash9972sn.github.io/aakash-portfolio/'],
+    ['/index.html?from=render','https://aakash9972sn.github.io/aakash-portfolio/index.html?from=render'],
+    ['/test-centre/','https://aakash9972sn.github.io/aakash-portfolio/test-centre/'],
+    ['/rfid-card-detection.html','https://aakash9972sn.github.io/aakash-portfolio/rfid-card-detection.html'],
+    ['/workshops/pcb-designing-bootcamp/','https://aakash9972sn.github.io/aakash-portfolio/workshops/pcb-designing-bootcamp/'],
+  ]) {
+    const response=await request(path);
+    assert.equal(response.status,302,path);
+    assert.equal(response.location,expected,path);
+  }
+  const health=await request('/api/health');
+  assert.equal(health.status,200);
+  assert.match(health.type,/application\/json/);
+  const config=await request('/firebase-applet-config.json');
+  assert.equal(config.status,200);
+  assert.match(config.type,/json/);
+  const js=await request('/firebase-account.js');
+  assert.equal(js.status,200);
+});
