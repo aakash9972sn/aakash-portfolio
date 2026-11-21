@@ -783,3 +783,20 @@ p { margin: 0; }
   #ai-review-navigation button { padding:11px 5px; font-size:.76rem; }
   .ai-review-palette-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
 }
+
+/* Two review actions: concise saved explanation or contextual chatbot. */
+.ai-review-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+.ai-review-actions button { cursor:pointer; padding:10px 15px; border-radius:9px;
+  border:1px solid var(--line-strong); color:var(--text); background:var(--surface-2);
+  font:inherit; font-size:.9rem; font-weight:700; }
+.ai-review-actions .ai-short-explanation-btn { background:var(--gold); border-color:var(--gold); color:var(--gold-ink); }
+.ai-review-short-explanation { padding:13px 15px; margin-top:12px;
+  border-radius:9px; border-left:3px solid var(--good);
+  background:var(--surface-2); overflow-wrap:anywhere; white-space:pre-wrap; line-height:1.6; }
+.ai-review-short-explanation[hidden] { display:none !important; }
+.ai-review-detailed { margin-top:12px; }
+#ai-study-coach.is-test-review .ai-review-detailed { display:none !important; }
+@media(max-width:600px) {
+  .ai-review-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .ai-review-actions button { min-width:0; padding:11px 7px; font-size:.85rem; }
+}
