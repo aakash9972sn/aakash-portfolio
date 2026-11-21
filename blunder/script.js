@@ -835,8 +835,9 @@
   function ordersList() {
     clearTimeout(pollTimer);
     const orders = savedOrders();
+    const demos = demoOrders();
     $("#orders-content").innerHTML =
-      `<p class="orders-intro">Your orders are private. Orders placed on this device appear here; use your reference and private access code to find an order from another device.</p>${orders.length ? orders.map((o) => `<button class="order-list-card" data-order="${esc(o.id)}"><span><strong>${esc(o.id)}</strong><span>${new Date(o.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" })}</span></span>${icon("arrow")}</button>`).join("") : '<p class="notice">No orders on this device yet. Your first little basket is waiting.</p>'}<form class="lookup-form" id="lookup-form"><h3>Find an order</h3><label for="lookup-reference">Order reference</label><input id="lookup-reference" name="reference" placeholder="BL-…" pattern="BL-[A-Fa-f0-9]{14}" required><label for="lookup-code">Private access code</label><input id="lookup-code" name="code" type="password" autocomplete="off" minlength="64" maxlength="64" required><button class="button button-dark">Find my order ${icon("arrow")}</button><p id="lookup-feedback" role="status"></p></form>`;
+      `<p class="orders-intro">Your orders are private. Orders placed on this device appear here; use your reference and private access code to find an order from another device.</p>${demos.length ? '<div class="demo-order-warning"><b>Local demonstration orders</b><p>Not transmitted to the store or courier.</p></div>' + demos.map((o) => '<button class="order-list-card" data-demo-order="' + esc(o.id) + '"><span><strong>' + esc(o.id) + '</strong><span>' + esc(demoStages[Math.min(4,o.stage||0)].name) + '</span></span>' + icon("arrow") + '</button>').join("") : ""}${orders.length ? orders.map((o) => `<button class="order-list-card" data-order="${esc(o.id)}"><span><strong>${esc(o.id)}</strong><span>${new Date(o.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" })}</span></span>${icon("arrow")}</button>`).join("") : '<p class="notice">No orders on this device yet. Your first little basket is waiting.</p>'}<form class="lookup-form" id="lookup-form"><h3>Find an order</h3><label for="lookup-reference">Order reference</label><input id="lookup-reference" name="reference" placeholder="BL-…" pattern="BL-[A-Fa-f0-9]{14}" required><label for="lookup-code">Private access code</label><input id="lookup-code" name="code" type="password" autocomplete="off" minlength="64" maxlength="64" required><button class="button button-dark">Find my order ${icon("arrow")}</button><p id="lookup-feedback" role="status"></p></form>`;
     openDialog("orders-dialog");
   }
   const statusCopy = {
@@ -928,7 +929,7 @@
   }
   function downloadReceipt() {
     const o = state.activeOrder;
-    const body = `BLUNDER · ORDER DETAILS\n${o.id}\nStatus: ${o.status}\nPayment: ${o.method === "cod" ? "Cash on Delivery" : "Razorpay"}\n\n${o.items.map((i) => `${i.name} · ${i.pack} × ${i.quantity} — ${money(i.price * i.quantity)}`).join("\n")}\n\nProducts: ${money(o.subtotal)}\nDiscount: ${money(o.discount)}\nDelivery: ${money(o.shipping)}\nTotal: ${money(o.total)}\n\nDeliver to:\n${o.customer.name}\n${o.customer.address}\n${o.customer.city}, ${o.customer.state} ${o.customer.pincode}\n${directions(o.customer.location) ? `Delivery pin: ${directions(o.customer.location)}\n` : ""}\nThis is an order summary, not a tax invoice.\n`;
+    const body = `${o.demo ? "BLUNDER · DEMO ONLY · NO REAL PURCHASE OR DELIVERY" : "BLUNDER · ORDER DETAILS"}\n${o.id}\nStatus: ${o.status}\nPayment: ${o.method === "cod" ? "Cash on Delivery" : "Razorpay"}\n\n${o.items.map((i) => `${i.name} · ${i.pack} × ${i.quantity} — ${money(i.price * i.quantity)}`).join("\n")}\n\nProducts: ${money(o.subtotal)}\nDiscount: ${money(o.discount)}\nDelivery: ${money(o.shipping)}\nTotal: ${money(o.total)}\n\nDeliver to:\n${o.customer.name}\n${o.customer.address || "(Demo: street address not stored)"}\n${o.customer.city}, ${o.customer.state} ${o.customer.pincode}\n${directions(o.customer.location) ? `Delivery pin: ${directions(o.customer.location)}\n` : ""}\nThis is an order summary, not a tax invoice.\n`;
     const url = URL.createObjectURL(
       new Blob([body], { type: "text/plain;charset=utf-8" }),
     );
@@ -1003,6 +1004,11 @@
       return;
     }
     if (button.dataset.policy) return policy(button.dataset.policy);
+    if (button.dataset.demoOrder) {
+      const demo = demoOrders().find(o => o.id === button.dataset.demoOrder);
+      if (demo) showDemoOrder(demo);
+      return;
+    }
     if (button.dataset.order) {
       const saved = savedOrders().find((o) => o.id === button.dataset.order);
       try {
@@ -1013,6 +1019,14 @@
       return;
     }
     const action = button.dataset.action;
+    if (action === "advance-demo") {
+      const order = state.activeOrder;
+      if (!order?.demo) return;
+      const updated = { ...order, stage: Math.min(4, (order.stage || 0) + 1), updatedAt: new Date().toISOString() };
+      persistDemoOrder(updated);
+      showDemoOrder(updated);
+      return;
+    }
     if (action === "bag") {
       $("#toast").hidden = true;
       renderBag();
@@ -1419,11 +1433,9 @@
         state.maxPrice = Number(params.get("max"));
       paintCounts();
       renderProducts();
-      if (state.config.checkoutEnabled)
-        $("#store-status").textContent =
-          state.config.paymentMode === "test"
-            ? "PAYMENT TEST MODE · NO REAL ONLINE CHARGE"
-            : "YOUR EVERYDAY STORE · NOW OPEN";
+      $("#store-status").textContent = state.config.checkoutEnabled
+        ? (state.config.paymentMode === "test" ? "PAYMENT TEST MODE · NO REAL ONLINE CHARGE" : "YOUR EVERYDAY STORE · NOW OPEN")
+        : "STORE DEMO · CHECKOUT DOES NOT SEND REAL ORDERS";
       if (read("pin", ""))
         $("#delivery-label").textContent = `Delivery to ${read("pin", "")}`;
       configureLocation();
