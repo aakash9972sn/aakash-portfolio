@@ -2,7 +2,8 @@
 (() => {
   'use strict';
 
-  const base = window.AAKASH_BACKEND_BASE || '';
+  const base = window.AakashBackend?.configured() ? window.AakashBackend.origin() : '';
+  const apiURL = path => window.AakashBackend?.url(path) || path;
 
   async function parseJsonSafely(response, fallbackError) {
     const raw = await response.text();
@@ -25,20 +26,10 @@
   }
 
   async function post(path, body, signal) {
-    const url = base + path;
-    let response = await fetch(url, {
-      method: 'POST',
-      credentials: 'same-origin',
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
-      body: JSON.stringify(body),
-      signal: signal || AbortSignal.timeout(60000),
-    });
-
-    const ct = (response.headers.get('content-type') || '').toLowerCase();
-    if (ct.includes('text/html') && response.ok) {
-      // Retry once with cache-busting query in case an auth/proxy edge served stale HTML
-      response = await fetch(url + '?_=' + Date.now(), {
+    const url = apiURL(path);
+    let response;
+    try {
+      response = await fetch(url, {
         method: 'POST',
         credentials: 'same-origin',
         cache: 'no-store',
@@ -46,8 +37,15 @@
         body: JSON.stringify(body),
         signal: signal || AbortSignal.timeout(60000),
       });
+    } catch (error) {
+      if (['AbortError','TimeoutError'].includes(error?.name)) throw error;
+      throw new Error('Cannot connect to the Gemini server. Check Node deployment, AAKASH_BACKEND_ORIGIN and CORS.');
     }
+    const ct = (response.headers.get('content-type') || '').toLowerCase();
 
+    if (response.ok && ct.includes('text/html')) {
+      throw new Error('The AI endpoint returned HTML instead of Gemini data. Configure the actual Node server URL; retrying an HTML page will not fix the API.');
+    }
     if (!response.ok) {
       let msg = '';
       try {
@@ -70,8 +68,10 @@
     const response = await post('/api/ai/chat/stream', body, signal);
     const ct = (response.headers.get('content-type') || '').toLowerCase();
     if (ct.includes('text/html')) {
-      throw new Error('Please refresh this page once and retry your question.');
+      throw new Error('The AI server returned an HTML webpage, not a Gemini stream. Check its deployed API URL.');
     }
+    if (!ct.includes('text/event-stream'))
+      throw new Error('The AI server did not return a Gemini event stream.');
     if (!response.body) throw new Error('The AI stream is unavailable.');
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
@@ -197,7 +197,7 @@
 
   async function transport(url, options = {}) {
     if (options.method === 'GET' || String(url).endsWith('/health')) {
-      const response = await fetch(base + '/api/health', {
+      const response = await fetch(apiURL('/api/health'), {
         credentials: 'same-origin',
         cache: 'no-store',
         headers: { Accept: 'application/json' },
