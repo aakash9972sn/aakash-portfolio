@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
-    "build": "node --check server.js && node --check firebase-account.js && node --check ai-config.js && node --check ai-assistant.js && node --check test-centre/hosted-ai.js && node --check test-centre/ai-config.js",
+    "build": "node --check server.js && node --check firebase-account.js && node --check ai-config.js && node --check ai-assistant.js && node --check test-centre/hosted-ai.js && node --check test-centre/ai-config.js && node --check test-centre/ai-coach.js",
     "lint": "node --check server.js && npx eslint firestore.rules && node --test tests/attendance.test.cjs",
     "test": "node --test tests/attendance.test.cjs"
   },
