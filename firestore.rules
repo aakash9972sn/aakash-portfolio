@@ -75,7 +75,7 @@ service cloud.firestore {
 
     function isValidTestAttempt(data) {
       return data.keys().hasAll(['uid', 'testId', 'createdAt', 'updatedAt'])
-        && data.keys().hasOnly(['uid', 'testId', 'title', 'score', 'total', 'at', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'testId', 'title', 'score', 'total', 'at', 'exam', 'subject', 'examId', 'subjectId', 'correct', 'wrong', 'unattempted', 'excluded', 'accuracy', 'topicStats', 'unitStats', 'createdAt', 'updatedAt'])
         && data.uid is string
         && data.uid.size() >= 1
         && data.uid.size() <= 128
@@ -87,6 +87,17 @@ service cloud.firestore {
         && (!('score' in data) || (data.score is number))
         && (!('total' in data) || (data.total is number))
         && (!('at' in data) || (data.at is string && data.at.size() <= 64))
+        && (!('exam' in data) || (data.exam is string && data.exam.size() <= 100))
+        && (!('subject' in data) || (data.subject is string && data.subject.size() <= 100))
+        && (!('examId' in data) || (data.examId is string && data.examId.size() <= 100))
+        && (!('subjectId' in data) || (data.subjectId is string && data.subjectId.size() <= 100))
+        && (!('correct' in data) || (data.correct is number && data.correct >= 0))
+        && (!('wrong' in data) || (data.wrong is number && data.wrong >= 0))
+        && (!('unattempted' in data) || (data.unattempted is number && data.unattempted >= 0))
+        && (!('excluded' in data) || (data.excluded is number && data.excluded >= 0))
+        && (!('accuracy' in data) || (data.accuracy is number && data.accuracy >= 0 && data.accuracy <= 100))
+        && (!('topicStats' in data) || (data.topicStats is map && data.topicStats.size() <= 125))
+        && (!('unitStats' in data) || (data.unitStats is map && data.unitStats.size() <= 125))
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
     }
@@ -166,7 +177,7 @@ service cloud.firestore {
           && incoming().uid == existing().uid
           && incoming().createdAt == existing().createdAt
           && incoming().updatedAt == request.time
-          && incoming().diff(existing()).affectedKeys().hasOnly(['testId', 'title', 'score', 'total', 'at', 'updatedAt'])
+          && incoming().diff(existing()).affectedKeys().hasOnly(['testId', 'title', 'score', 'total', 'at', 'exam', 'subject', 'examId', 'subjectId', 'correct', 'wrong', 'unattempted', 'excluded', 'accuracy', 'topicStats', 'unitStats', 'updatedAt'])
           && hasOwnerParent(userId);
         allow delete: if isValidId(userId) && isValidId(attemptId) && isVerifiedOwner(userId);
       }
