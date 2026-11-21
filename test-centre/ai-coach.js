@@ -152,8 +152,12 @@
       '<button type="button" class="ai-review-mode is-active" data-mode="list" aria-pressed="true">Vertical review</button>' +
       '<button type="button" class="ai-review-mode" data-mode="focus" aria-pressed="false">Test-style review</button></div>' +
       '<div id="ai-review-navigation" class="ai-review-navigation" hidden>' +
-      '<button type="button" id="ai-review-prev">← Previous</button><span id="ai-review-position" aria-live="polite"></span>' +
+      '<button type="button" id="ai-review-prev">← Previous</button>' +
+      '<button type="button" id="ai-review-palette-toggle" aria-expanded="false" aria-controls="ai-review-palette">Question Palette</button>' +
       '<button type="button" id="ai-review-next">Next →</button></div>' +
+      '<div id="ai-review-palette" class="ai-review-palette" hidden>' +
+      '<div class="ai-review-palette-head"><b>Jump to question</b><button type="button" id="ai-review-palette-close" aria-label="Close question palette">×</button></div>' +
+      '<div class="ai-review-palette-grid" id="ai-review-palette-grid"></div></div>' +
       '<div id="ai-inline-questions" class="ai-inline-questions"></div></div>' +
       '<details class="ai-daily-history"><summary>Daily attempt history</summary><div id="ai-daily-history-list"></div></details>';
     host.appendChild(panel);
@@ -163,7 +167,19 @@
     const workspace = panel.querySelector('#ai-review-workspace');
     const review = panel.querySelector('#ai-inline-questions');
     const navigation = panel.querySelector('#ai-review-navigation');
-    const position = panel.querySelector('#ai-review-position');
+    const palette = panel.querySelector('#ai-review-palette');
+    const paletteGrid = panel.querySelector('#ai-review-palette-grid');
+    const paletteToggle = panel.querySelector('#ai-review-palette-toggle');
+    const paletteClose = panel.querySelector('#ai-review-palette-close');
+    const closePalette = () => {
+      palette.hidden = true;
+      paletteToggle.setAttribute('aria-expanded', 'false');
+    };
+    paletteToggle.addEventListener('click', () => {
+      palette.hidden = !palette.hidden;
+      paletteToggle.setAttribute('aria-expanded', String(!palette.hidden));
+    });
+    paletteClose.addEventListener('click', closePalette);
     const prev = panel.querySelector('#ai-review-prev');
     const next = panel.querySelector('#ai-review-next');
     let mode = 'list';
@@ -173,8 +189,13 @@
       const focus = mode === 'focus';
       review.classList.toggle('is-focus', focus);
       navigation.hidden = !focus;
+      panel.classList.toggle('is-test-review', focus);
+      if (!focus) closePalette();
       cards.forEach((card, index) => { card.hidden = focus && index !== activeQuestion; });
-      position.textContent = cards.length ? 'Question ' + (activeQuestion + 1) + ' / ' + cards.length : '';
+      paletteGrid.querySelectorAll('button').forEach((btn, index) => {
+        btn.classList.toggle('is-current', index === activeQuestion);
+        btn.setAttribute('aria-current', index === activeQuestion ? 'step' : 'false');
+      });
       prev.disabled = activeQuestion === 0;
       next.disabled = activeQuestion >= cards.length - 1;
       panel.querySelectorAll('[data-mode]').forEach(btn => {
@@ -240,6 +261,26 @@
         fragment.appendChild(article);
       });
       review.appendChild(fragment);
+      paletteGrid.replaceChildren();
+      review.querySelectorAll('.ai-inline-question').forEach((card, index) => {
+        const q = questions[index];
+        const selected = result.responses[index];
+        const state = q.unscored ? 'excluded' : !Number.isInteger(selected) ? 'skipped'
+          : selected === q.a ? 'correct' : 'wrong';
+        const jump = document.createElement('button');
+        jump.type = 'button';
+        jump.className = 'ai-review-jump is-' + state;
+        jump.textContent = String(index + 1);
+        jump.title = 'Question ' + (index + 1) + ': ' + state;
+        jump.setAttribute('aria-label', jump.title);
+        jump.addEventListener('click', () => {
+          activeQuestion = index;
+          updateMode();
+          closePalette();
+          review.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        paletteGrid.appendChild(jump);
+      });
       updateMode();
       output.hidden = false;
       const groups = groupsFor(result, questions);
