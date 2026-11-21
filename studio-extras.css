@@ -1,0 +1,137 @@
+/* Selected ZIP studio upgrades: scoped to homepage, preserves the existing dark UI. */
+.site-home .studio-featured {
+  margin: 0 auto 0;
+  padding: 32px 36px;
+  display: grid;
+  grid-template-columns: minmax(230px,.85fr) minmax(0,1.15fr);
+  align-items: center;
+  gap: 34px;
+  border: 1px solid #34516c;
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at 95% 0%, #2460a525, transparent 53%),
+    linear-gradient(125deg,#12241f,#0d1c31);
+  color: #edf2ec;
+  box-shadow: 0 20px 60px #020d1429;
+}
+.studio-featured-heading { min-width:0; }
+.studio-featured-kicker,
+.studio-featured-category,
+.studio-quick-label {
+  font: 600 10px/1.5 var(--mono,ui-monospace,monospace);
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#8fbacb;
+}
+.site-home .studio-featured h2 {
+  margin: 10px 0;
+  font: 600 clamp(22px,2.6vw,37px)/1.12 var(--display,system-ui);
+  letter-spacing:-.045em;
+  color:#f1f6f5;
+}
+.studio-featured-heading p {
+  margin:0;
+  font-size:13px;
+  line-height:1.7;
+  color:#a9bcc3;
+  max-width:36ch;
+}
+.studio-featured-content { display:grid;grid-template-columns:minmax(145px,.8fr) minmax(0,1.4fr);gap:16px;min-width:0; }
+.studio-featured-tabs { display:flex;flex-direction:column;gap:7px; }
+.site-home .studio-featured-tab {
+  width:100%;
+  min-width:0;
+  padding:12px 14px;
+  text-align:left;
+  font:600 12px/1.4 var(--font,system-ui);
+  border-radius:8px;
+  border:1px solid #31475a;
+  background:#112538;
+  color:#c4d7e2;
+  cursor:pointer;
+  transition:background .2s,border-color .2s;
+}
+.site-home .studio-featured-tab[aria-selected="true"] {background:#254958;border-color:#8ac7bb;color:#f8fcf9;}
+.site-home .studio-featured-tab:hover {border-color:#7cacb2;}
+.site-home .studio-featured-tab:focus-visible,
+.site-home .studio-topic-chip:focus-visible,
+.site-home .studio-view-chip:focus-visible,
+.site-home .studio-featured-link:focus-visible {
+ outline:3px solid #9dddc0;outline-offset:3px;
+}
+.studio-featured-details {
+  min-width:0;
+  min-height:180px;
+  padding:21px 22px;
+  border:1px solid #334f63;
+  border-radius:10px;
+  background:linear-gradient(145deg,#172e41,#0f2332);
+  display:flex;
+  flex-direction:column;
+}
+.studio-featured-details[data-kind="rfid"] {background:linear-gradient(140deg,#193b38,#112735);}
+.studio-featured-details[data-kind="quiz"] {background:linear-gradient(140deg,#243259,#142437);}
+.studio-featured-details[data-kind="shop"] {background:linear-gradient(140deg,#3b3129,#1b2b37);}
+.site-home .studio-featured-title {
+  color:#f3f5ef;margin:9px 0;font:600 clamp(17px,1.6vw,24px)/1.3 var(--display,system-ui);
+  letter-spacing:-.03em;
+}
+.studio-featured-description {margin:0 0 18px;color:#b8cbd4;font-size:12px;line-height:1.6;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;}
+.site-home .studio-featured-link {color:#bce8cc;font-size:12px;font-weight:700;text-decoration:none;margin-top:auto;display:inline-flex;gap:12px;align-items:center;align-self:flex-start;}
+.site-home .studio-featured-link:hover {color:white;}
+.site-home .studio-featured-link>span {font-size:17px;}
+.site-home .studio-quick-actions {display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;margin:24px 0 8px;}
+.site-home .studio-topic-actions,.site-home .studio-view-actions {display:flex;align-items:center;flex-wrap:wrap;gap:8px;}
+.site-home .studio-quick-label {margin-right:6px;color:#9db6d2;}
+.site-home .studio-topic-chip,.site-home .studio-view-chip {
+  padding:9px 12px;
+  background:#101e32;
+  border:1px solid #334c66;
+  border-radius:7px;
+  color:#b9d1e2;
+  cursor:pointer;
+  font:600 11px/1.3 var(--font,system-ui);
+}
+.site-home .studio-topic-chip:hover,.site-home .studio-view-chip:hover {background:#1c304a;border-color:#6689b0;}
+.site-home .studio-topic-chip[aria-pressed="true"],
+.site-home .studio-view-chip[aria-pressed="true"] {border-color:#9ac8ad;background:#2b4c49;color:#ecfff1;}
+/* Compact index: override existing asymmetric Bento grid without changing cards or data. */
+.site-home.studio-list-view .projects-grid,
+.site-home.studio-list-view .workshops-grid {display:flex;flex-direction:column;gap:12px;}
+.site-home.studio-list-view .projects-grid .collection-card,
+.site-home.studio-list-view .projects-grid .collection-card:has(.entry-art-rfid),
+.site-home.studio-list-view .projects-grid .collection-card:has(.entry-art-attendance) {width:100%;grid-column:auto;}
+.site-home.studio-list-view .collection-card .entry-link {
+  display:flex;flex-direction:row;align-items:stretch;min-height:146px;
+}
+.site-home.studio-list-view .collection-card .entry-art,
+.site-home.studio-list-view .collection-card .entry-art-rfid,
+.site-home.studio-list-view .collection-card .entry-art-attendance,
+.site-home.studio-list-view .collection-card .entry-art-analog,
+.site-home.studio-list-view .collection-card .entry-art-pcb {
+  flex:0 0 210px;width:210px;height:auto;min-height:146px;
+  border-radius:7px 0 0 7px;
+}
+.site-home.studio-list-view .collection-card .entry-body {padding:16px 20px;min-width:0;}
+.site-home.studio-list-view .collection-card .entry-body h4 {font-size:19px;margin:6px 0;}
+.site-home.studio-list-view .collection-card .entry-description {margin:0 0 8px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
+.site-home.studio-list-view .collection-card .entry-tags {margin:0 0 8px;}
+.site-home.studio-list-view .collection-card .entry-action {padding-top:8px;}
+@media(max-width:1000px) {
+  .site-home .studio-featured {grid-template-columns:1fr;gap:18px;padding:25px;}
+}
+@media(max-width:700px) {
+  .site-home .studio-featured {margin-inline:20px;padding:20px;}
+  .studio-featured-content {grid-template-columns:1fr;}
+  .studio-featured-tabs {flex-direction:row;overflow:auto;scrollbar-width:thin;}
+  .site-home .studio-featured-tab {flex:0 0 auto;width:auto;padding:10px;}
+  .studio-featured-details {min-height:155px;padding:17px;}
+  .site-home .studio-quick-actions {align-items:flex-start;gap:14px;}
+  .site-home .studio-topic-actions,.site-home .studio-view-actions {gap:6px;}
+  .site-home .studio-topic-chip,.site-home .studio-view-chip {padding:8px;}
+  .site-home.studio-list-view .collection-card .entry-art {display:none;}
+  .site-home.studio-list-view .collection-card .entry-link {min-height:0;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .site-home .studio-featured-tab {transition:none;}
+}
