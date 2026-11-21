@@ -16,7 +16,7 @@
   trigger.className = 'aakash-command-trigger';
   trigger.setAttribute('aria-label', 'Search the portfolio and projects');
   trigger.setAttribute('aria-haspopup', 'dialog');
-  trigger.innerHTML = '<span aria-hidden="true">⌕</span><span>Quick search</span><kbd>⌘ K</kbd>';
+  trigger.innerHTML = '<span aria-hidden="true">⌕</span><span>Quick search</span><kbd>Ctrl/⌘ K</kbd>';
 
   const dialog = document.createElement('dialog');
   dialog.className = 'aakash-command-dialog';
@@ -47,7 +47,8 @@
   const results = document.createElement('div');
   results.id='aakash-command-results';
   results.className='aakash-command-results';
-  results.setAttribute('role','list');
+  results.setAttribute('role','group');
+  results.setAttribute('aria-label','Portfolio search results');
   const status = document.createElement('p');
   status.className='aakash-command-status';
   status.setAttribute('role','status');
@@ -113,7 +114,6 @@
       const button=document.createElement('button');
       button.type='button';
       button.className='aakash-command-result';
-      button.setAttribute('role','listitem');
       button.dataset.index=String(index);
       const name=document.createElement('strong');
       name.textContent=item.title;
