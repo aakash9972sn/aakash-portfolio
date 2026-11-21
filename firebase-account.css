@@ -570,3 +570,20 @@
     transition: none;
   }
 }
+
+/* My Results: daily attempts, cumulative chapter/topic strength */
+.account-my-results { width:min(960px, calc(100vw - 32px)); max-height:90vh; overflow-y:auto; }
+.account-result-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:18px 0; }
+.account-result-summary > div { padding:14px; border:1px solid var(--line, #ddd); border-radius:12px; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.account-result-summary strong { font-size:1.5rem; }
+.account-result-summary span { font-size:.8rem; opacity:.75; }
+.account-result-category { padding:16px 0; border-top:1px solid rgba(120,120,120,.22); }
+.account-result-category h3 { margin:0 0 6px; }
+.account-result-category h4 { margin:16px 0 8px; }
+.account-result-category > p { margin:0 0 12px; opacity:.8; }
+.account-result-item { display:flex; flex-direction:column; gap:5px; border:1px solid rgba(120,120,120,.24); border-radius:10px; padding:12px 14px; margin:7px 0; overflow-wrap:anywhere; }
+.account-result-item span,.account-result-item small { font-size:.84rem; opacity:.78; }
+.account-result-item details { margin-top:6px; }
+.account-result-item summary { cursor:pointer; font-weight:600; }
+.account-result-item details p { margin:6px 0; font-size:.82rem; }
+@media(max-width:600px){ .account-result-summary { grid-template-columns:repeat(2,minmax(0,1fr)); } }
