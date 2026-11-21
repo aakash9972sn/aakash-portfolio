@@ -469,6 +469,11 @@
                   if (stillNeeded > 0) {
                     const dedupeHistory = allPrevious.concat(baseHistory, questions.map((q) => q.q));
                     const fresh = extractUniqueQuestions(data, dedupeHistory, stillNeeded);
+                    // A single selected unit is ground truth; full-syllabus mixed waves
+                    // span multiple units, so do not mislabel their individual questions.
+                    if (selectedUnitId !== 'all' && waveCtx.unitLabel) {
+                      fresh.forEach((q) => { q.unit = waveCtx.unitLabel; });
+                    }
                     if (fresh.length > 0) {
                       questions.push(...fresh);
                       addedInWave += fresh.length;
