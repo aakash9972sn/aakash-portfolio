@@ -1095,8 +1095,9 @@
     myResultsBtn.disabled = true;
     message('Loading test history from your account…');
     try {
-      const cloud = await window.AakashAccount.list('testAttempts');
-      if (!Array.isArray(cloud)) throw new Error('Cloud result history unavailable.');
+      const cloudResponse = await window.AakashAccount.list('testAttempts');
+      const cloud = Array.isArray(cloudResponse) ? cloudResponse : [];
+      const cloudUnavailable = !Array.isArray(cloudResponse);
       // Merge device records only when attributed to this signed-in account,
       // or when their attempt ID already exists in this account's cloud data.
       const uid = auth.currentUser.uid;
@@ -1117,7 +1118,7 @@
           unitStats: row.unitStats || base.unitStats });
       }
       createResultsDialog([...merged.values()]);
-      message('My Results loaded.');
+      message(cloudUnavailable ? 'Showing this device’s saved results. Cloud history could not be loaded.' : 'My Results loaded.');
     } catch (error) {
       console.error('My Results load failed:',error);
       message('Could not load cloud results. Please retry.');
