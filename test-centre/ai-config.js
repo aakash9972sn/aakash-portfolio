@@ -1,9 +1,8 @@
-// Hosted service on GitHub Pages; same-origin Gemini routes on Node hosting.
-window.TEST_CENTRE_AI_ENDPOINT = (window.AAKASH_BACKEND_BASE || '') + '/api';
+// Portfolio and Test Centre share the same configured Node Gemini backend.
+window.TEST_CENTRE_AI_ENDPOINT = '/api';
 
 window.AAKASH_AI = {
-  endpoint: (window.AAKASH_BACKEND_BASE || '') + '/api/ai/chat/stream',
-  app: 'study',
+  endpoint: '/api/ai/chat/stream',  app: 'study',
   title: 'Aakash Gemini',
   intro:
     'Your fast Gemini study companion. Ask GATE/NEET concepts, clear doubts, or plan your revision right here.',
