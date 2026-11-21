@@ -1,0 +1,24 @@
+name: Verify production Firebase-login redirect
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/check-live-firebase-redirect.mjs"
+      - ".github/workflows/live-firebase-redirect.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-live-url:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check canonical website redirects and live Gemini API
+        run: node scripts/check-live-firebase-redirect.mjs
