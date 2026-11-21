@@ -351,7 +351,7 @@
             topic: topicInput.value.trim(), difficulty: levelSelect.value,
             count: 2, avoid: []
           })
-        }, 45000);
+        }, 75000);
         validateGenerated(answer, 2, []);
         status.dataset.state = 'success';
         status.textContent = 'Live AI generated 2 valid ' + exam.name + ' syllabus questions in ' +
@@ -411,10 +411,10 @@
         await checkBackend(controller.signal);
         for (let n = 0; n < batch; n++) {
           const questions = [];
-          const chunkSize = 10;
-          const maxConcurrency = 3;
+          const chunkSize = 4;
+          const maxConcurrency = 2;
           const totalPlanned = Math.ceil(count / chunkSize);
-          const maxWaves = totalPlanned + 5;
+          const maxWaves = totalPlanned + 8;
           let wavesDone = 0;
           let batchCursor = 0;
           let consecutiveEmptyWaves = 0;
@@ -463,7 +463,7 @@
                       topic: customTopic, difficulty: difficulty, count: askCount,
                       avoid: avoidHistory, batchIndex: n * 16 + batchCursor + idx
                     })
-                  }, 45000, controller.signal);
+                  }, 75000, controller.signal);
 
                   const stillNeeded = count - questions.length;
                   if (stillNeeded > 0) {
@@ -505,7 +505,7 @@
               }
               status.textContent = (sawRateLimit ? 'Temporary AI demand pause — retrying… ' : 'Fetching fresh syllabus questions… ') +
                 '(' + questions.length + '/' + count + ' ready)';
-              await new Promise((resolve) => setTimeout(resolve, sawRateLimit ? 1500 : 400));
+              await new Promise((resolve) => setTimeout(resolve, sawRateLimit ? 3500 : 600));
             }
           }
 
