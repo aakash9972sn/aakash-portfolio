@@ -32,6 +32,7 @@ try {
  const item=dialog.locator('.aakash-command-result').filter({hasText:'RFID Card Detection System'});
  assert.equal(await item.first().isVisible(),true);
  await page.keyboard.press('Escape');
+ await dialog.waitFor({state:'hidden',timeout:5000});
  assert.equal(await page.locator('.aakash-command-dialog[open]').count(),0);
  await trigger.click();
  await page.locator('#aakash-command-query').fill('Fourier transform');
