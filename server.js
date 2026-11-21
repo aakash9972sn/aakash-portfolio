@@ -194,7 +194,7 @@ function sanitizeMcqList(rawList, fallbackTopic, expectedCount, allowPartial = f
     if (cleaned.length === expectedCount) break;
   }
   if (cleaned.length === expectedCount) return cleaned;
-  if (allowPartial && cleaned.length >= Math.max(1, Math.ceil(expectedCount * 0.6))) return cleaned;
+  if (allowPartial && cleaned.length >= 1) return cleaned;
   return null;
 }
 
