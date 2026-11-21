@@ -932,6 +932,182 @@
     },
   };
 
+
+  /* Account-wide test intelligence: each attempt is counted once by its test ID
+     and submission timestamp; classifications require multiple distinct days. */
+  function aggregateResults(entries) {
+    const all = new Map();
+    for (const attempt of entries) {
+      const date = new Date(Number(attempt.at));
+      if (!Number.isFinite(date.getTime())) continue;
+      const day = date.getFullYear() + '-' + String(date.getMonth()+1).padStart(2,'0') +
+        '-' + String(date.getDate()).padStart(2,'0');
+      for (const [type, stats] of [['chapter', attempt.unitStats], ['topic', attempt.topicStats]]) {
+        if (!stats || typeof stats !== 'object') continue;
+        for (const [name, counts] of Object.entries(stats)) {
+          if (!name || name === '__proto__' || name === 'constructor') continue;
+          const key = JSON.stringify([attempt.examId || attempt.exam || 'Unknown exam',
+            attempt.subjectId || attempt.subject || 'Unknown subject', type, name]);
+          if (!all.has(key)) all.set(key, {
+            exam: attempt.exam || attempt.examId || 'Exam',
+            subject: attempt.subject || attempt.subjectId || 'Subject',
+            type, name, correct:0, wrong:0, skipped:0, correctDays:new Set(), wrongDays:new Set(),
+            seenDays:new Set()
+          });
+          const item = all.get(key);
+          const c = Math.max(0, Number(counts?.correct) || 0);
+          const w = Math.max(0, Number(counts?.wrong) || 0);
+          const skipped = Math.max(0, Number(counts?.skipped ?? counts?.unattempted) || 0);
+          item.correct += c; item.wrong += w; item.skipped += skipped;
+          if (c) item.correctDays.add(day);
+          if (w) item.wrongDays.add(day);
+          if (c || w || skipped) item.seenDays.add(day);
+        }
+      }
+    }
+    const rows = [...all.values()].map(x => ({
+      ...x, days: x.seenDays.size, errorDays:x.wrongDays.size, successDays:x.correctDays.size,
+      category: x.wrongDays.size >= 2 && x.wrong >= x.correct ? 'Weak' :
+        x.correctDays.size >= 2 && x.wrong === 0 ? 'Strong' : 'Developing'
+    }));
+    return {
+      weak: rows.filter(x => x.category === 'Weak').sort((a,b)=>b.errorDays-a.errorDays || b.wrong-a.wrong),
+      strong: rows.filter(x => x.category === 'Strong').sort((a,b)=>b.successDays-a.successDays || b.correct-a.correct),
+      developing: rows.filter(x => x.category === 'Developing').sort((a,b)=>b.wrong-a.wrong)
+    };
+  }
+
+  function createResultsDialog(entries) {
+    const dialog = document.createElement('dialog');
+    dialog.className = 'account-records account-my-results';
+    dialog.setAttribute('aria-label','My Results');
+    const head = document.createElement('div');
+    head.className = 'account-records-head';
+    const title = document.createElement('h2');
+    title.textContent = 'My Results';
+    const close = document.createElement('button');
+    close.className = 'account-close'; close.type = 'button'; close.textContent = '×';
+    close.setAttribute('aria-label','Close My Results');
+    close.onclick = () => dialog.close();
+    head.append(title,close); dialog.append(head);
+    const help = document.createElement('p');
+    help.textContent = 'All saved test attempts, daily progress, weak chapters/topics and strong areas. A topic is Weak after mistakes on at least two different days (with wrong ≥ correct); Strong after correct answers on at least two different days with no mistakes. Otherwise it stays Developing.';
+    dialog.append(help);
+    const sorted = entries.slice().sort((a,b)=>Number(b.at)-Number(a.at));
+    const summary = document.createElement('div');
+    summary.className = 'account-result-summary';
+    const count = (key) => sorted.reduce((sum,r)=>sum+(Number(r[key])||0),0);
+    for (const [label,value] of [['Tests', sorted.length],['Correct',count('correct')],
+      ['Wrong',count('wrong')],['Skipped',count('unattempted')]]) {
+      const item = document.createElement('div'); const number = document.createElement('strong');
+      number.textContent = String(value); const caption = document.createElement('span');
+      caption.textContent = label; item.append(number,caption); summary.append(item);
+    }
+    dialog.append(summary);
+    const intelligence = aggregateResults(sorted);
+    for (const [titleText,items,description] of [
+      ['Weak chapters & topics',intelligence.weak,'Repeated errors on two or more different days'],
+      ['Strong chapters & topics',intelligence.strong,'Consistently right across two or more days'],
+      ['Developing / insufficient evidence',intelligence.developing,'Mixed results or fewer than two distinct days']
+    ]) {
+      const section = document.createElement('section'); section.className = 'account-result-category';
+      const h = document.createElement('h3'); h.textContent = titleText;
+      const sub = document.createElement('p'); sub.textContent = description;
+      section.append(h,sub);
+      if (!items.length) {
+        const empty = document.createElement('p'); empty.textContent = 'No topics in this category yet.';
+        section.append(empty);
+      } else {
+        for (const item of items.slice(0,100)) {
+          const row = document.createElement('div'); row.className = 'account-result-item';
+          const name = document.createElement('b'); name.textContent = item.name + ' · ' +
+            (item.type === 'chapter' ? 'Chapter / unit' : 'Topic');
+          const desc = document.createElement('span'); desc.textContent = item.exam + ' · ' + item.subject +
+            ' | ' + item.correct + ' correct · ' + item.wrong + ' wrong · ' + item.skipped +
+            ' skipped | ' + item.successDays + ' correct-day(s), ' + item.errorDays + ' error-day(s)';
+          row.append(name,desc); section.append(row);
+        }
+      }
+      dialog.append(section);
+    }
+
+    const log = document.createElement('section'); log.className = 'account-result-category';
+    const logTitle = document.createElement('h3'); logTitle.textContent = 'All test results · day by day';
+    log.append(logTitle);
+    if (!sorted.length) {
+      const blank = document.createElement('p'); blank.textContent = 'No test attempts saved in this account yet.';
+      log.append(blank);
+    }
+    const days = new Map();
+    for (const item of sorted) {
+      const date = new Date(Number(item.at));
+      const day = Number.isFinite(date.getTime()) ? date.toLocaleDateString('en-IN',
+        {day:'numeric',month:'short',year:'numeric'}) : 'Date unknown';
+      if (!days.has(day)) days.set(day,[]);
+      days.get(day).push(item);
+    }
+    for (const [day,records] of days) {
+      const dateTitle = document.createElement('h4');
+      dateTitle.textContent = day + ' · ' + records.length + ' test(s)';
+      log.append(dateTitle);
+      for (const attempt of records) {
+        const row = document.createElement('div'); row.className = 'account-result-item';
+        const heading = document.createElement('b'); heading.textContent = String(attempt.title || attempt.testId || 'Test');
+        const info = document.createElement('span');
+        info.textContent = String(attempt.exam || '') + ' · ' + String(attempt.subject || '') +
+          ' | ' + (attempt.correct ?? '—') + ' correct, ' + (attempt.wrong ?? '—') +
+          ' wrong, ' + (attempt.unattempted ?? '—') + ' skipped' +
+          (attempt.accuracy != null ? ' · ' + attempt.accuracy + '% accuracy' : '') +
+          (attempt.score != null ? ' · Score ' + attempt.score + '/' + attempt.total : '');
+        row.append(heading, info);
+        const topicEntries = Object.entries(attempt.topicStats || {});
+        if (topicEntries.length) {
+          const details = document.createElement('details');
+          const label = document.createElement('summary'); label.textContent = 'Topics in this test';
+          details.append(label);
+          for (const [name,stat] of topicEntries) {
+            const p = document.createElement('p');
+            p.textContent = name + ': ' + (stat.correct || 0) + ' correct, ' +
+              (stat.wrong || 0) + ' wrong, ' + (stat.skipped || stat.unattempted || 0) + ' skipped';
+            details.append(p);
+          }
+          row.append(details);
+        } else {
+          const note = document.createElement('small');
+          note.textContent = 'Older result: detailed topic data was not saved.';
+          row.append(note);
+        }
+        log.append(row);
+      }
+    }
+    dialog.append(log);
+    document.body.append(dialog);
+    dialog.addEventListener('close',()=>dialog.remove());
+    dialog.showModal();
+  }
+
+  myResultsBtn.onclick = async () => {
+    if (!auth?.currentUser) {
+      message('Sign in to view My Results.');
+      return;
+    }
+    myResultsBtn.disabled = true;
+    message('Loading test history from your account…');
+    try {
+      const cloud = await window.AakashAccount.list('testAttempts');
+      if (!Array.isArray(cloud)) throw new Error('Cloud result history unavailable.');
+      // Local device histories are uploaded on login; do not silently merge
+      // possibly unrelated signed-out or other-account browser results here.
+      createResultsDialog(cloud);
+      message('My Results loaded.');
+    } catch (error) {
+      console.error('My Results load failed:',error);
+      message('Could not load cloud results. Please retry.');
+    } finally {
+      myResultsBtn.disabled = false;
+    }
+  };
+
   saved.onclick = async () => {
     if (!auth?.currentUser) {
       message('Sign in to view your saved data.');
