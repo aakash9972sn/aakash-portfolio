@@ -185,6 +185,7 @@
   }
 
   function showHome() {
+    window.TestCentreAI?.mountHistory?.();
     stopTimer();
     run = null;
     setScreen('home');
