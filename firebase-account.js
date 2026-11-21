@@ -948,7 +948,8 @@
         for (const [name, counts] of Object.entries(stats)) {
           if (!name || name === '__proto__' || name === 'constructor') continue;
           const key = JSON.stringify([attempt.examId || attempt.exam || 'Unknown exam',
-            attempt.subjectId || attempt.subject || 'Unknown subject', type, name]);
+            attempt.subjectId || attempt.subject || 'Unknown subject', type,
+            name.toLowerCase().replace(/\s+/g,' ').trim()]);
           if (!all.has(key)) all.set(key, {
             exam: attempt.exam || attempt.examId || 'Exam',
             subject: attempt.subject || attempt.subjectId || 'Subject',
