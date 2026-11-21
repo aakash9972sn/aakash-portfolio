@@ -1,0 +1,8 @@
+{
+  "firestore": [
+    {
+      "database": "ai-studio-aakashportfolio-297b730c-ac6e-46a6-ab26-9a99d1551840",
+      "rules": "firestore.rules"
+    }
+  ]
+}

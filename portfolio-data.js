@@ -27,7 +27,7 @@ window.portfolioEntries = [
     category: 'Learning tool', artwork: 'quiz',
     description: 'A practice-test centre with subject-wise tests for NEET (Physics, Chemistry, Biology) and GATE. Live timers, a question palette, exam marking, saved progress and full solutions.',
     tags: ['JavaScript', 'NEET & GATE', 'Practice tests'],
-    href: 'https://aakash9972sn.github.io/newTest/', action: 'Open the test centre'
+    href: 'test-centre/', action: 'Open the test centre'
   },
   {
     id: 'blunder-pro-max', type: 'project', title: 'Blunder — Everyday Store',

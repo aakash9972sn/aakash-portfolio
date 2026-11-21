@@ -1,0 +1,197 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isVerifiedOwner(userId) {
+      return isVerifiedUser() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function hasOwnerParent(userId) {
+      return exists(/databases/$(database)/documents/users/$(userId))
+        && get(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['uid', 'displayName', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'displayName', 'photoURL', 'photoDataUrl', 'bestGuessScore', 'createdAt', 'updatedAt'])
+        && data.uid is string
+        && data.uid.size() >= 1
+        && data.uid.size() <= 128
+        && data.uid == userId
+        && data.uid == request.auth.uid
+        && data.displayName is string
+        && data.displayName.size() <= 120
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 1000))
+        && (!('photoDataUrl' in data) || (data.photoDataUrl is string && data.photoDataUrl.size() <= 150000 && (data.photoDataUrl == '' || data.photoDataUrl.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'))))
+        && (!('bestGuessScore' in data) || (data.bestGuessScore is int && data.bestGuessScore >= 1 && data.bestGuessScore <= 100000))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidBookmark(data) {
+      return data.keys().hasAll(['uid', 'url', 'title', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'url', 'title', 'createdAt', 'updatedAt'])
+        && data.uid is string
+        && data.uid.size() >= 1
+        && data.uid.size() <= 128
+        && data.uid == request.auth.uid
+        && data.url is string
+        && data.url.size() >= 1
+        && data.url.size() <= 500
+        && data.title is string
+        && data.title.size() >= 1
+        && data.title.size() <= 200
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidTestAttempt(data) {
+      return data.keys().hasAll(['uid', 'testId', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'testId', 'title', 'score', 'total', 'at', 'createdAt', 'updatedAt'])
+        && data.uid is string
+        && data.uid.size() >= 1
+        && data.uid.size() <= 128
+        && data.uid == request.auth.uid
+        && data.testId is string
+        && data.testId.size() >= 1
+        && data.testId.size() <= 100
+        && (!('title' in data) || (data.title is string && data.title.size() <= 200))
+        && (!('score' in data) || (data.score is number))
+        && (!('total' in data) || (data.total is number))
+        && (!('at' in data) || (data.at is string && data.at.size() <= 64))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidOrderRecord(data) {
+      return data.keys().hasAll(['uid', 'orderId', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'orderId', 'title', 'status', 'total', 'createdAt', 'updatedAt'])
+        && data.uid is string
+        && data.uid.size() >= 1
+        && data.uid.size() <= 128
+        && data.uid == request.auth.uid
+        && data.orderId is string
+        && data.orderId.size() >= 1
+        && data.orderId.size() <= 100
+        && (!('title' in data) || (data.title is string && data.title.size() <= 200))
+        && (!('status' in data) || (data.status is string && data.status.size() <= 50))
+        && (!('total' in data) || (data.total is number))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow create: if isValidId(userId)
+        && isVerifiedOwner(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId)
+        && isVerifiedOwner(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'photoDataUrl', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly(['bestGuessScore', 'updatedAt'])
+        );
+      allow delete: if isValidId(userId) && isVerifiedOwner(userId);
+
+      match /bookmarks/{bookmarkId} {
+        allow get: if isValidId(userId) && isValidId(bookmarkId) && isOwner(userId);
+        allow list: if isValidId(userId) && isOwner(userId) && resource.data.uid == request.auth.uid;
+        allow create: if isValidId(userId)
+          && isValidId(bookmarkId)
+          && isVerifiedOwner(userId)
+          && isValidBookmark(incoming())
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && hasOwnerParent(userId);
+        allow update: if isValidId(userId)
+          && isValidId(bookmarkId)
+          && isVerifiedOwner(userId)
+          && isValidBookmark(incoming())
+          && incoming().uid == existing().uid
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['url', 'title', 'updatedAt'])
+          && hasOwnerParent(userId);
+        allow delete: if isValidId(userId) && isValidId(bookmarkId) && isVerifiedOwner(userId);
+      }
+
+      match /testAttempts/{attemptId} {
+        allow get: if isValidId(userId) && isValidId(attemptId) && isOwner(userId);
+        allow list: if isValidId(userId) && isOwner(userId) && resource.data.uid == request.auth.uid;
+        allow create: if isValidId(userId)
+          && isValidId(attemptId)
+          && isVerifiedOwner(userId)
+          && isValidTestAttempt(incoming())
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && hasOwnerParent(userId);
+        allow update: if isValidId(userId)
+          && isValidId(attemptId)
+          && isVerifiedOwner(userId)
+          && isValidTestAttempt(incoming())
+          && incoming().uid == existing().uid
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['testId', 'title', 'score', 'total', 'at', 'updatedAt'])
+          && hasOwnerParent(userId);
+        allow delete: if isValidId(userId) && isValidId(attemptId) && isVerifiedOwner(userId);
+      }
+
+      match /orders/{orderId} {
+        allow get: if isValidId(userId) && isValidId(orderId) && isOwner(userId);
+        allow list: if isValidId(userId) && isOwner(userId) && resource.data.uid == request.auth.uid;
+        allow create: if isValidId(userId)
+          && isValidId(orderId)
+          && isVerifiedOwner(userId)
+          && isValidOrderRecord(incoming())
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && hasOwnerParent(userId);
+        allow update: if isValidId(userId)
+          && isValidId(orderId)
+          && isVerifiedOwner(userId)
+          && isValidOrderRecord(incoming())
+          && incoming().uid == existing().uid
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['orderId', 'title', 'status', 'total', 'updatedAt'])
+          && hasOwnerParent(userId);
+        allow delete: if isValidId(userId) && isValidId(orderId) && isVerifiedOwner(userId);
+      }
+    }
+  }
+}

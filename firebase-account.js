@@ -1,60 +1,919 @@
-/* Firebase web config is public; it is NOT a Gemini server credential. */
+/* Firebase Account, Google Profile Fetch, Custom Avatar Upload & Firestore Sync */
 (() => {
- const config={projectId:'gen-lang-client-0580718541',appId:'1:714373498331:web:9ca598d4603eda9c9553fe',apiKey:'AIzaSyB2M8rFSHGlke4uS1qLvh_CTpF8yxp8HQY',authDomain:'gen-lang-client-0580718541.firebaseapp.com',firestoreDatabaseId:'ai-studio-aakasheceembedde-cbb0adda-8b7b-403c-a84c-887e93610453',storageBucket:'gen-lang-client-0580718541.firebasestorage.app',messagingSenderId:'714373498331'};
- let auth,db,fs,au,loading;
- const assetBase=new URL('.',document.currentScript.src);
- const sheet=document.createElement('link');sheet.rel='stylesheet';sheet.href=new URL('firebase-account.css?v=20261120-ui2',assetBase);document.head.append(sheet);
- const bar=document.createElement('dialog');bar.className='account-panel';bar.setAttribute('aria-labelledby','cloud-account-title');
- const heading=document.createElement('h2');heading.id='cloud-account-title';heading.textContent='Your account';
- const intro=document.createElement('p');intro.className='account-intro';intro.textContent='Sign in to keep your saved activity and bookmarks together across devices.';
- const close=document.createElement('button');close.className='account-close';close.textContent='×';close.setAttribute('aria-label','Close account');close.onclick=()=>bar.close();
- const launch=document.createElement('button');launch.className='account-launcher';launch.type='button';launch.textContent='Account';launch.setAttribute('aria-haspopup','dialog');launch.onclick=()=>{bar.showModal();prepareSignIn();};bar.addEventListener('close',()=>launch.focus());
- const target=document.querySelector('.top-links, .header-actions, #main-navigation');if(target)target.append(launch);else{const row=document.createElement('div');row.className='account-fallback';row.append(launch);document.body.prepend(row);}
- const login=document.createElement('button'),bookmark=document.createElement('button'),status=document.createElement('span');login.className='account-login';login.textContent='Continue with Google';bookmark.textContent='Bookmark this page';bookmark.hidden=true;status.setAttribute('role','status');bar.append(close,heading,intro,login,bookmark,status);document.body.append(bar);
- const message=s=>status.textContent=s;
- async function init(){if(loading)return loading;loading=(async()=>{const prefix='https://www.gstatic.com/firebasejs/11.10.0/';const [app,a,f]=await Promise.all([import(prefix+'firebase-app.js'),import(prefix+'firebase-auth.js'),import(prefix+'firebase-firestore.js')]);au=a;fs=f;const instance=app.getApps().length?app.getApp():app.initializeApp(config);auth=a.getAuth(instance);db=f.getFirestore(instance,config.firestoreDatabaseId);await new Promise(resolve=>a.onAuthStateChanged(auth,user=>{login.textContent=user?'Sign out':'Continue with Google';bookmark.hidden=!user;message(user?'Signed in as '+(user.displayName||'your account'):'Progress stays on this device until you sign in.');resolve();}));})().catch(e=>{loading=null;throw e;});return loading;}
- async function save(collection,id,data){if(!auth?.currentUser||!['testAttempts','bookmarks','orders'].includes(collection))return false;try{const uid=auth.currentUser.uid;await fs.setDoc(fs.doc(db,'users',uid,collection,String(id).replace(/\//g,'_')),{...JSON.parse(JSON.stringify(data)),updatedAt:fs.serverTimestamp()},{merge:true});message('Saved to your account.');return true;}catch{message('Cloud save unavailable. Your local progress is unchanged.');return false;}}
- function signInError(error){
-  const code=error?.code||'auth/sdk-unavailable';
-  const messages={
-   'auth/popup-blocked':'Your browser blocked the sign-in window. Allow popups for this site, then try again.',
-   'auth/popup-closed-by-user':'Sign-in was cancelled. You can continue without an account.',
-   'auth/cancelled-popup-request':'Another sign-in window is already open.',
-   'auth/unauthorized-domain':'Google sign-in is not enabled for this website domain.',
-   'auth/operation-not-allowed':'Google sign-in has not been enabled for this Firebase project.',
-   'auth/invalid-api-key':'The Firebase sign-in configuration needs to be corrected.',
-   'auth/api-key-not-valid.-please-pass-a-valid-api-key.':'The Firebase sign-in configuration needs to be corrected.',
-   'auth/network-request-failed':'Could not connect to Google sign-in. Check your connection and retry.',
-   'auth/sdk-unavailable':'Sign-in could not load. Check your connection or content blocker, then reopen Account.'
-  };
-  message((messages[code]||'Sign-in could not finish. Please retry.')+' ('+code+')');
- }
- async function prepareSignIn(){
-  login.disabled=true;login.textContent='Preparing secure sign-in…';
-  try{await init();login.textContent=auth.currentUser?'Sign out':'Continue with Google';login.disabled=false;}
-  catch(error){login.textContent='Sign-in unavailable';signInError(error);}
- }
- login.onclick=async()=>{
-  if(!auth||!au)return;
-  login.disabled=true;
-  try{
-   if(auth.currentUser){await au.signOut(auth);try{localStorage.removeItem('aakash.cloud.enabled');}catch{}return;}
-   // Open directly within the user click, before any asynchronous work.
-   const pending=au.signInWithPopup(auth,new au.GoogleAuthProvider());
-   await pending;
-   try{localStorage.setItem('aakash.cloud.enabled','1');}catch{}
-   const u=auth.currentUser;
-   try{
-    const ref=fs.doc(db,'users',u.uid),old=await fs.getDoc(ref);
-    await fs.setDoc(ref,{uid:u.uid,displayName:u.displayName||'',...(!old.exists()?{createdAt:fs.serverTimestamp()}:{}),updatedAt:fs.serverTimestamp()},{merge:true});
-    await window.AakashAccount.syncLocal();
-   }catch{message('Signed in successfully. Cloud saving is unavailable; your local progress is safe.');}
-  }catch(error){signInError(error);}
-  finally{login.disabled=false;login.textContent=auth.currentUser?'Sign out':'Continue with Google';}
- };
+  'use strict';
 
- bookmark.onclick=()=>save('bookmarks',encodeURIComponent(location.pathname),{url:location.origin+location.pathname,title:document.title});
- window.AakashAccount={save,async bestGuess(score){if(!auth?.currentUser)return;try{const ref=fs.doc(db,'users',auth.currentUser.uid);await fs.runTransaction(db,async tx=>{const snap=await tx.get(ref);const old=snap.data()?.bestGuessScore;if(!old||score<old)tx.set(ref,{bestGuessScore:score,updatedAt:fs.serverTimestamp()},{merge:true});});}catch{message('Score is saved locally; cloud sync is unavailable.');}},async list(collection){if(!auth?.currentUser)return [];if(!['testAttempts','bookmarks','orders'].includes(collection))return [];return (await fs.getDocs(fs.collection(db,'users',auth.currentUser.uid,collection))).docs.map(d=>({id:d.id,...d.data()}));},async syncLocal(){for(const key of Object.keys(localStorage)){if(key.startsWith('tclab.result.')){try{const result=JSON.parse(localStorage.getItem(key));await save('testAttempts',result.testId+'-'+(result.at||'latest'),result);}catch{}}}const score=Number(localStorage.getItem('bestScore'));if(score>0)await this.bestGuess(score);}};
- const saved=document.createElement('button');saved.textContent='My saved data';saved.onclick=async()=>{if(!auth?.currentUser){message('Sign in to view your saved data.');return;}try{const dialog=document.createElement('dialog');dialog.className='account-records';dialog.setAttribute('aria-label','Your saved data');const close=document.createElement('button');close.textContent='Close';close.onclick=()=>dialog.close();dialog.append(close);for(const name of ['testAttempts','bookmarks','orders']){const h=document.createElement('h3');h.textContent=({testAttempts:'Test history',bookmarks:'Bookmarks',orders:'Order history'})[name];dialog.append(h);for(const item of await window.AakashAccount.list(name)){const p=document.createElement('p');p.textContent=item.title||item.id;if(name==='bookmarks'&&typeof item.url==='string'&&item.url.startsWith('https://aakash9972sn.github.io/')){const a=document.createElement('a');a.href=item.url;a.textContent=p.textContent;p.replaceChildren(a);}dialog.append(p);}}document.body.append(dialog);dialog.addEventListener('close',()=>dialog.remove());dialog.showModal();}catch{message('Saved data could not be loaded. Please retry.');}};bar.append(saved);
- try{if(localStorage.getItem('aakash.cloud.enabled'))init().catch(()=>message('Cloud connection unavailable. You can continue locally.'));}catch{}
+  const OperationType = {
+    CREATE: 'create',
+    UPDATE: 'update',
+    DELETE: 'delete',
+    LIST: 'list',
+    GET: 'get',
+    WRITE: 'write',
+  };
+
+  let auth;
+  let db;
+  let fs;
+  let au;
+  let initPromise;
+  let configCache;
+  let currentProfile = {
+    displayName: '',
+    photoURL: '',
+    photoDataUrl: '',
+  };
+
+  const assetBase = new URL('.', document.currentScript?.src || location.href);
+  const sheet = document.createElement('link');
+  sheet.rel = 'stylesheet';
+  sheet.href = new URL('firebase-account.css?v=20261121-studio1', assetBase).href;
+  document.head.append(sheet);
+
+  const SVG = {
+    user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    caret: '<svg class="account-launcher-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
+    googleG: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/><path fill="#34A853" d="M12 24c3.3 0 6.08-1.09 8.1-2.96l-3.88-3.05c-1.09.73-2.48 1.16-4.22 1.16-3.25 0-6-2.19-6.98-5.14H1.01v3.14C3.05 21.2 7.24 24 12 24Z"/><path fill="#FBBC05" d="M5.02 14.01c-.25-.73-.39-1.52-.39-2.34s.14-1.61.39-2.34V6.19H1.01A11.99 11.99 0 0 0 0 11.67c0 1.93.46 3.76 1.01 5.48l4.01-3.14Z"/><path fill="#EA4335" d="M12 4.75c1.79 0 3.4.62 4.67 1.82l3.5-3.5C18.07 1.19 15.3 0 12 0 7.24 0 3.05 2.8 1.01 6.86l4.01 3.14C6 6.94 8.75 4.75 12 4.75Z"/></svg>',
+    camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>',
+    bookmark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>',
+    folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
+  };
+
+  /* Header Account Button */
+  const launch = document.createElement('button');
+  launch.className = 'account-launcher';
+  launch.type = 'button';
+  launch.dataset.signedIn = 'false';
+  launch.setAttribute('aria-haspopup', 'dialog');
+  launch.setAttribute('aria-label', 'Account and cloud sync');
+
+  const launchAvatar = document.createElement('span');
+  launchAvatar.className = 'account-launcher-avatar';
+  launchAvatar.innerHTML = SVG.user;
+
+  const launchLabel = document.createElement('span');
+  launchLabel.className = 'account-launcher-label';
+  launchLabel.textContent = 'Sign in';
+
+  launch.append(launchAvatar, launchLabel);
+  launch.insertAdjacentHTML('beforeend', SVG.caret);
+
+  /* Dialog Modal */
+  const bar = document.createElement('dialog');
+  bar.className = 'account-panel';
+  bar.setAttribute('aria-labelledby', 'cloud-account-title');
+
+  const head = document.createElement('div');
+  head.className = 'account-panel-head';
+
+  const titleGroup = document.createElement('div');
+  const eyebrow = document.createElement('span');
+  eyebrow.className = 'account-eyebrow';
+  eyebrow.textContent = 'PORTFOLIO ACCOUNT · CLOUD SYNC';
+
+  const heading = document.createElement('h2');
+  heading.id = 'cloud-account-title';
+  heading.textContent = 'Sign in to your account';
+  titleGroup.append(eyebrow, heading);
+
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'account-close';
+  close.textContent = '×';
+  close.setAttribute('aria-label', 'Close account dialog');
+  close.onclick = () => bar.close();
+
+  head.append(titleGroup, close);
+
+  /* Signed-out section */
+  const signedOutView = document.createElement('div');
+  const welcomeCard = document.createElement('div');
+  welcomeCard.className = 'account-welcome-card';
+
+  const intro = document.createElement('p');
+  intro.className = 'account-intro';
+  intro.textContent = 'Sign in with Google to sync your profile, bookmarks, and activity across sessions.';
+
+  const perks = document.createElement('ul');
+  perks.className = 'account-perks';
+  perks.innerHTML = `
+    <li>${SVG.check}<span>Sync your name &amp; profile photo or upload a custom photo</span></li>
+    <li>${SVG.check}<span>Bookmark project case studies &amp; workshop pages</span></li>
+    <li>${SVG.check}<span>Keep quiz scores &amp; activity synced to the cloud</span></li>
+  `;
+  welcomeCard.append(intro, perks);
+
+  const login = document.createElement('button');
+  login.type = 'button';
+  login.className = 'account-google-btn';
+  const loginText = document.createElement('span');
+  loginText.textContent = 'Continue with Google';
+  login.innerHTML = SVG.googleG;
+  login.append(loginText);
+
+  signedOutView.append(welcomeCard, login);
+
+  /* Signed-in section */
+  const signedInView = document.createElement('div');
+  signedInView.hidden = true;
+
+  const profileCard = document.createElement('div');
+  profileCard.className = 'account-profile-card';
+
+  const avatarWrap = document.createElement('div');
+  avatarWrap.className = 'account-avatar-wrap';
+
+  const avatarRing = document.createElement('div');
+  avatarRing.className = 'account-avatar-ring';
+  avatarRing.textContent = 'A';
+
+  const camBtn = document.createElement('button');
+  camBtn.type = 'button';
+  camBtn.className = 'account-avatar-cam';
+  camBtn.title = 'Upload custom photo';
+  camBtn.setAttribute('aria-label', 'Upload custom profile photo');
+  camBtn.innerHTML = SVG.camera;
+
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/png,image/jpeg,image/webp';
+  fileInput.hidden = true;
+
+  avatarWrap.append(avatarRing, camBtn, fileInput);
+
+  const profileMeta = document.createElement('div');
+  profileMeta.className = 'account-profile-meta';
+
+  const profileName = document.createElement('p');
+  profileName.className = 'account-profile-name';
+  profileName.textContent = 'Account';
+
+  const profileEmail = document.createElement('p');
+  profileEmail.className = 'account-profile-email';
+  profileEmail.textContent = '';
+
+  const photoActions = document.createElement('div');
+  photoActions.className = 'account-photo-actions';
+
+  const uploadBtn = document.createElement('button');
+  uploadBtn.type = 'button';
+  uploadBtn.className = 'account-chip-btn';
+  uploadBtn.textContent = 'Upload photo';
+
+  const resetPhotoBtn = document.createElement('button');
+  resetPhotoBtn.type = 'button';
+  resetPhotoBtn.className = 'account-chip-btn';
+  resetPhotoBtn.textContent = 'Use Google photo';
+  resetPhotoBtn.hidden = true;
+
+  photoActions.append(uploadBtn, resetPhotoBtn);
+  profileMeta.append(profileName, profileEmail, photoActions);
+  profileCard.append(avatarWrap, profileMeta);
+
+  const nameForm = document.createElement('form');
+  nameForm.className = 'account-name-form';
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.className = 'account-name-input';
+  nameInput.maxLength = 120;
+  nameInput.placeholder = 'Your display name';
+  nameInput.setAttribute('aria-label', 'Display name');
+  const saveNameBtn = document.createElement('button');
+  saveNameBtn.type = 'submit';
+  saveNameBtn.className = 'account-name-save';
+  saveNameBtn.textContent = 'Save name';
+  nameForm.append(nameInput, saveNameBtn);
+
+  const actionsGrid = document.createElement('div');
+  actionsGrid.className = 'account-actions-grid';
+
+  const bookmark = document.createElement('button');
+  bookmark.type = 'button';
+  bookmark.className = 'account-action-btn';
+  bookmark.innerHTML = `${SVG.bookmark}<strong>Bookmark page</strong><span>Save this page to cloud</span>`;
+
+  const saved = document.createElement('button');
+  saved.type = 'button';
+  saved.className = 'account-action-btn';
+  saved.innerHTML = `${SVG.folder}<strong>My saved data</strong><span>Bookmarks &amp; history</span>`;
+
+  actionsGrid.append(bookmark, saved);
+
+  const signOutBtn = document.createElement('button');
+  signOutBtn.type = 'button';
+  signOutBtn.className = 'account-signout-btn';
+  signOutBtn.textContent = 'Sign out';
+
+  signedInView.append(profileCard, nameForm, actionsGrid, signOutBtn);
+
+  const status = document.createElement('span');
+  status.className = 'account-status-bar';
+  status.setAttribute('role', 'status');
+
+  bar.append(head, signedOutView, signedInView, status);
+  document.body.append(bar);
+
+  /* Mount launcher cleanly inside header action bar */
+  const headerActionsTarget = document.querySelector('.top-links, .header-actions');
+  const homeHeader = document.querySelector('.site-home .header');
+  const subHeader = document.querySelector('.report-header, .case-header');
+  if (headerActionsTarget) {
+    headerActionsTarget.append(launch);
+  } else if (homeHeader) {
+    const utils = document.createElement('div');
+    utils.className = 'header-actions';
+    const githubLink = homeHeader.querySelector('.github-nav');
+    utils.append(launch);
+    if (githubLink) {
+      homeHeader.insertBefore(utils, githubLink);
+      utils.append(githubLink);
+    } else {
+      homeHeader.append(utils);
+    }
+  } else if (subHeader) {
+    const utils = document.createElement('div');
+    utils.className = 'header-actions';
+    const rightLink = subHeader.querySelector('.github-nav, .back-link');
+    utils.append(launch);
+    if (rightLink) {
+      subHeader.insertBefore(utils, rightLink);
+      utils.append(rightLink);
+    } else {
+      subHeader.append(utils);
+    }
+  } else {
+    const navTarget = document.querySelector('#main-navigation');
+    if (navTarget) {
+      navTarget.append(launch);
+    } else {
+      const row = document.createElement('div');
+      row.className = 'account-fallback';
+      row.append(launch);
+      document.body.prepend(row);
+    }
+  }
+
+  launch.onclick = () => {
+    bar.showModal();
+    prepareSignIn();
+  };
+  bar.addEventListener('close', () => launch.focus());
+
+  const message = (s) => {
+    status.textContent = s;
+  };
+
+  function sanitizeId(raw) {
+    const cleaned = String(raw || 'item')
+      .replace(/[^a-zA-Z0-9_-]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 128);
+    return cleaned || 'home';
+  }
+
+  function handleFirestoreError(error, operationType, path) {
+    const errInfo = {
+      error: error instanceof Error ? error.message : String(error),
+      authInfo: {
+        userId: auth?.currentUser?.uid ?? null,
+        email: auth?.currentUser?.email ?? null,
+        emailVerified: auth?.currentUser?.emailVerified ?? null,
+        isAnonymous: auth?.currentUser?.isAnonymous ?? null,
+        tenantId: auth?.currentUser?.tenantId ?? null,
+        providerInfo:
+          auth?.currentUser?.providerData?.map((provider) => ({
+            providerId: provider.providerId,
+            email: provider.email,
+          })) || [],
+      },
+      operationType,
+      path,
+    };
+    console.error('Firestore Error:', JSON.stringify(errInfo));
+    throw new Error(JSON.stringify(errInfo));
+  }
+
+  async function loadConfig() {
+    if (configCache) return configCache;
+    const urls = [new URL('firebase-applet-config.json', assetBase).href, '/firebase-applet-config.json'];
+    for (const url of urls) {
+      try {
+        const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
+        const ct = (response.headers.get('content-type') || '').toLowerCase();
+        if (!response.ok || ct.includes('text/html')) continue;
+        const text = await response.text();
+        if (!text || text.trim().startsWith('<')) continue;
+        configCache = JSON.parse(text);
+        return configCache;
+      } catch {}
+    }
+    throw new Error('Could not load firebase-applet-config.json');
+  }
+
+  async function testConnection() {
+    try {
+      await fs.getDocFromServer(fs.doc(db, 'test', 'connection'));
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('the client is offline')) {
+        console.error('Please check your Firebase configuration.');
+      }
+    }
+  }
+
+  function extractGoogleIdentity(user) {
+    if (!user) return { name: '', photo: '', email: '' };
+    const providerMatch = Array.isArray(user.providerData) ? user.providerData : [];
+    const nameFromProvider = providerMatch.find((p) => p?.displayName)?.displayName || '';
+    const photoFromProvider = providerMatch.find((p) => p?.photoURL)?.photoURL || '';
+    const emailFromProvider = providerMatch.find((p) => p?.email)?.email || '';
+    const email = String(user.email || emailFromProvider || '').trim();
+    const fallbackName = email ? email.split('@')[0] : 'Account';
+    const name = String(user.displayName || nameFromProvider || fallbackName)
+      .trim()
+      .slice(0, 120);
+    const photo = String(user.photoURL || photoFromProvider || '')
+      .trim()
+      .slice(0, 1000);
+    return { name, photo, email };
+  }
+
+  function setAvatarContent(container, src, initials) {
+    container.replaceChildren();
+    if (src) {
+      const img = document.createElement('img');
+      img.alt = '';
+      img.referrerPolicy = 'no-referrer';
+      img.src = src;
+      img.onerror = () => {
+        container.textContent = initials;
+      };
+      container.append(img);
+    } else {
+      container.textContent = initials;
+    }
+  }
+
+  function renderIdentityUI(user) {
+    if (user) {
+      const google = extractGoogleIdentity(user);
+      const effectiveName = (currentProfile.displayName || google.name || 'Account').trim();
+      const firstName = effectiveName.split(/\s+/)[0] || 'Account';
+      const initials = effectiveName
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part) => part.charAt(0).toUpperCase())
+        .join('') || 'A';
+      const effectivePhoto = currentProfile.photoDataUrl || currentProfile.photoURL || google.photo;
+
+      launch.dataset.signedIn = 'true';
+      launchLabel.textContent = firstName;
+      launch.setAttribute('aria-label', `Account signed in as ${effectiveName}`);
+      setAvatarContent(launchAvatar, effectivePhoto, initials.charAt(0));
+
+      heading.textContent = 'Your profile & cloud sync';
+      signedOutView.hidden = true;
+      signedInView.hidden = false;
+
+      profileName.textContent = effectiveName;
+      profileEmail.textContent = google.email || 'Signed in with Google';
+      if (document.activeElement !== nameInput) {
+        nameInput.value = effectiveName;
+      }
+      setAvatarContent(avatarRing, effectivePhoto, initials);
+      resetPhotoBtn.hidden = !(currentProfile.photoDataUrl && (google.photo || currentProfile.photoURL));
+
+      if (!status.textContent || status.textContent.startsWith('Progress stays')) {
+        message(`Signed in as ${effectiveName}`);
+      }
+    } else {
+      currentProfile = { displayName: '', photoURL: '', photoDataUrl: '' };
+      launch.dataset.signedIn = 'false';
+      launchLabel.textContent = 'Sign in';
+      launch.setAttribute('aria-label', 'Sign in to account');
+      launchAvatar.replaceChildren();
+      launchAvatar.innerHTML = SVG.user;
+
+      heading.textContent = 'Sign in to your account';
+      signedInView.hidden = true;
+      signedOutView.hidden = false;
+      loginText.textContent = 'Continue with Google';
+      message('Progress stays on this device until you sign in.');
+    }
+  }
+
+  async function ensureUserProfile(user, forceRefresh = false) {
+    if (!user) return null;
+    const path = `users/${user.uid}`;
+    const ref = fs.doc(db, 'users', user.uid);
+    const google = extractGoogleIdentity(user);
+    let snap;
+    try {
+      snap = await fs.getDoc(ref);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.GET, path);
+    }
+
+    if (!snap.exists()) {
+      const initialData = {
+        uid: user.uid,
+        displayName: google.name,
+        ...(google.photo ? { photoURL: google.photo } : {}),
+        createdAt: fs.serverTimestamp(),
+        updatedAt: fs.serverTimestamp(),
+      };
+      try {
+        await fs.setDoc(ref, initialData);
+      } catch (error) {
+        handleFirestoreError(error, OperationType.CREATE, path);
+      }
+      currentProfile = {
+        displayName: google.name,
+        photoURL: google.photo,
+        photoDataUrl: '',
+      };
+      renderIdentityUI(user);
+      return currentProfile;
+    }
+
+    const existing = snap.data() || {};
+    const updates = {};
+    if ((!existing.displayName || existing.displayName === 'Account') && google.name && google.name !== 'Account') {
+      updates.displayName = google.name;
+    }
+    if (google.photo && existing.photoURL !== google.photo) {
+      updates.photoURL = google.photo;
+    }
+    if (Object.keys(updates).length > 0 && (forceRefresh || !existing.displayName || existing.displayName === 'Account')) {
+      try {
+        await fs.updateDoc(ref, {
+          ...updates,
+          updatedAt: fs.serverTimestamp(),
+        });
+      } catch (error) {
+        console.warn('Could not refresh profile fields:', error);
+      }
+    }
+
+    currentProfile = {
+      displayName: String(existing.displayName || updates.displayName || google.name || '').slice(0, 120),
+      photoURL: String(updates.photoURL || existing.photoURL || google.photo || '').slice(0, 1000),
+      photoDataUrl: String(existing.photoDataUrl || '').slice(0, 150000),
+    };
+    renderIdentityUI(user);
+    return currentProfile;
+  }
+
+  async function compressImageToDataUrl(file) {
+    if (!file || !/^image\/(jpeg|png|webp)$/i.test(file.type)) {
+      throw new Error('Choose a PNG, JPEG, or WebP image.');
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error('Image must be smaller than 10 MB.');
+    }
+    const bitmapUrl = URL.createObjectURL(file);
+    try {
+      const img = await new Promise((resolve, reject) => {
+        const el = new Image();
+        el.onload = () => resolve(el);
+        el.onerror = () => reject(new Error('Could not read the selected image.'));
+        el.src = bitmapUrl;
+      });
+      const size = 192;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#16221c';
+      ctx.fillRect(0, 0, size, size);
+      const minSide = Math.min(img.naturalWidth || img.width, img.naturalHeight || img.height);
+      const sx = Math.max(0, Math.floor(((img.naturalWidth || img.width) - minSide) / 2));
+      const sy = Math.max(0, Math.floor(((img.naturalHeight || img.height) - minSide) / 2));
+      ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+
+      let dataUrl = canvas.toDataURL('image/jpeg', 0.86);
+      if (dataUrl.length > 130000) {
+        dataUrl = canvas.toDataURL('image/jpeg', 0.68);
+      }
+      if (dataUrl.length > 148000) {
+        throw new Error('Image is still too large after compression. Choose a simpler photo.');
+      }
+      return dataUrl;
+    } finally {
+      URL.revokeObjectURL(bitmapUrl);
+    }
+  }
+
+  async function updateProfileFields(fields, successMsg) {
+    const user = auth?.currentUser;
+    if (!user) return;
+    await ensureUserProfile(user);
+    const path = `users/${user.uid}`;
+    const ref = fs.doc(db, 'users', user.uid);
+    try {
+      await fs.updateDoc(ref, {
+        ...fields,
+        updatedAt: fs.serverTimestamp(),
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    }
+    currentProfile = {
+      ...currentProfile,
+      ...fields,
+    };
+    renderIdentityUI(user);
+    message(successMsg);
+  }
+
+  async function init() {
+    if (initPromise) return initPromise;
+    initPromise = (async () => {
+      const config = await loadConfig();
+      const prefix = 'https://www.gstatic.com/firebasejs/11.10.0/';
+      const [app, a, f] = await Promise.all([
+        import(prefix + 'firebase-app.js'),
+        import(prefix + 'firebase-auth.js'),
+        import(prefix + 'firebase-firestore.js'),
+      ]);
+      au = a;
+      fs = f;
+
+      const instance = app.getApps().length ? app.getApp() : app.initializeApp(config);
+      auth = a.getAuth(instance);
+      db = f.getFirestore(instance, config.firestoreDatabaseId);
+
+      try {
+        await a.setPersistence(auth, a.browserLocalPersistence);
+      } catch {
+        try {
+          await a.setPersistence(auth, a.inMemoryPersistence);
+        } catch {
+          // Continue with default persistence
+        }
+      }
+
+      testConnection();
+
+      await new Promise((resolve) => {
+        let settled = false;
+        a.onAuthStateChanged(auth, async (user) => {
+          renderIdentityUI(user);
+          if (user) {
+            try {
+              await ensureUserProfile(user, true);
+            } catch (err) {
+              console.warn('Profile load warning:', err);
+            }
+          }
+          if (!settled) {
+            settled = true;
+            resolve();
+          }
+        });
+      });
+    })().catch((err) => {
+      initPromise = null;
+      throw err;
+    });
+    return initPromise;
+  }
+
+  function buildValidatedPayload(collection, rawId, data, uid) {
+    if (collection === 'bookmarks') {
+      return {
+        uid,
+        url: String(data?.url || location.href).slice(0, 500),
+        title: String(data?.title || document.title || 'Portfolio page').slice(0, 200),
+      };
+    }
+    if (collection === 'testAttempts') {
+      const payload = {
+        uid,
+        testId: String(data?.testId || rawId).slice(0, 100),
+      };
+      if (data?.title != null) payload.title = String(data.title).slice(0, 200);
+      if (typeof data?.score === 'number' && Number.isFinite(data.score)) payload.score = data.score;
+      if (typeof data?.total === 'number' && Number.isFinite(data.total)) payload.total = data.total;
+      if (data?.at != null) payload.at = String(data.at).slice(0, 64);
+      return payload;
+    }
+    if (collection === 'orders') {
+      const payload = {
+        uid,
+        orderId: String(data?.orderId || rawId).slice(0, 100),
+      };
+      if (data?.title != null) payload.title = String(data.title).slice(0, 200);
+      if (data?.status != null) payload.status = String(data.status).slice(0, 50);
+      if (typeof data?.total === 'number' && Number.isFinite(data.total)) payload.total = data.total;
+      return payload;
+    }
+    return null;
+  }
+
+  async function save(collection, id, data) {
+    if (!auth?.currentUser || !['testAttempts', 'bookmarks', 'orders'].includes(collection)) {
+      return false;
+    }
+    const uid = auth.currentUser.uid;
+    const docId = sanitizeId(id);
+    try {
+      await ensureUserProfile(auth.currentUser);
+      const ref = fs.doc(db, 'users', uid, collection, docId);
+      const existingSnap = await fs.getDoc(ref);
+      const payload = buildValidatedPayload(collection, docId, data, uid);
+      if (!payload) return false;
+
+      if (!existingSnap.exists()) {
+        await fs.setDoc(ref, {
+          ...payload,
+          createdAt: fs.serverTimestamp(),
+          updatedAt: fs.serverTimestamp(),
+        });
+      } else {
+        const updatePayload = { ...payload };
+        delete updatePayload.uid;
+        await fs.updateDoc(ref, {
+          ...updatePayload,
+          updatedAt: fs.serverTimestamp(),
+        });
+      }
+      message('Saved to your cloud account.');
+      return true;
+    } catch (error) {
+      console.error('Cloud save error:', error);
+      message('Cloud save unavailable. Your local progress is unchanged.');
+      return false;
+    }
+  }
+
+  function signInError(error) {
+    const code = error?.code || 'auth/sdk-unavailable';
+    const messages = {
+      'auth/popup-blocked': 'Your browser blocked the sign-in popup. Allow popups for this site and try again.',
+      'auth/popup-closed-by-user': 'Sign-in was cancelled. You can continue browsing locally.',
+      'auth/cancelled-popup-request': 'Another sign-in popup is already open.',
+      'auth/unauthorized-domain': 'Google sign-in is not authorized for this domain.',
+      'auth/operation-not-allowed': 'Google sign-in is not enabled for this Firebase project.',
+      'auth/invalid-api-key': 'The Firebase sign-in configuration needs attention.',
+      'auth/network-request-failed': 'Could not reach Google sign-in. Check your connection and retry.',
+      'auth/sdk-unavailable': 'Sign-in could not load. Check your connection and retry.',
+    };
+    message((messages[code] || 'Sign-in could not finish. Please retry.') + ' (' + code + ')');
+  }
+
+  async function prepareSignIn() {
+    login.disabled = true;
+    loginText.textContent = 'Preparing Google sign-in…';
+    try {
+      await init();
+      loginText.textContent = 'Continue with Google';
+      login.disabled = false;
+      renderIdentityUI(auth.currentUser);
+    } catch (error) {
+      loginText.textContent = 'Sign-in unavailable';
+      login.disabled = false;
+      signInError(error);
+    }
+  }
+
+  login.onclick = async () => {
+    if (!auth || !au) {
+      await prepareSignIn();
+      if (!auth || !au) return;
+    }
+    login.disabled = true;
+    loginText.textContent = 'Opening Google…';
+    try {
+      const provider = new au.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      provider.addScope('profile');
+      provider.addScope('email');
+      const cred = await au.signInWithPopup(auth, provider);
+
+      try {
+        localStorage.setItem('aakash.cloud.enabled', '1');
+      } catch {}
+
+      const user = cred?.user || auth.currentUser;
+      try {
+        await ensureUserProfile(user, true);
+        await window.AakashAccount.syncLocal();
+      } catch (err) {
+        console.error('Profile sync error:', err);
+        message('Signed in! Cloud sync hit an error; your local progress is safe.');
+      }
+    } catch (error) {
+      signInError(error);
+    } finally {
+      login.disabled = false;
+      loginText.textContent = 'Continue with Google';
+    }
+  };
+
+  signOutBtn.onclick = async () => {
+    if (!auth || !au) return;
+    signOutBtn.disabled = true;
+    try {
+      await au.signOut(auth);
+      try {
+        localStorage.removeItem('aakash.cloud.enabled');
+      } catch {}
+    } finally {
+      signOutBtn.disabled = false;
+    }
+  };
+
+  const openFilePicker = () => fileInput.click();
+  camBtn.onclick = openFilePicker;
+  uploadBtn.onclick = openFilePicker;
+
+  fileInput.onchange = async () => {
+    const file = fileInput.files?.[0];
+    fileInput.value = '';
+    if (!file) return;
+    uploadBtn.disabled = true;
+    camBtn.disabled = true;
+    message('Processing and uploading photo…');
+    try {
+      const dataUrl = await compressImageToDataUrl(file);
+      await updateProfileFields({ photoDataUrl: dataUrl }, 'Profile photo updated.');
+    } catch (error) {
+      message(error?.message || 'Could not update photo. Try a PNG/JPEG under 10 MB.');
+    } finally {
+      uploadBtn.disabled = false;
+      camBtn.disabled = false;
+    }
+  };
+
+  resetPhotoBtn.onclick = async () => {
+    resetPhotoBtn.disabled = true;
+    try {
+      await updateProfileFields({ photoDataUrl: '' }, 'Restored your Google profile photo.');
+    } catch {
+      message('Could not restore Google photo right now.');
+    } finally {
+      resetPhotoBtn.disabled = false;
+    }
+  };
+
+  nameForm.onsubmit = async (event) => {
+    event.preventDefault();
+    const trimmed = nameInput.value.trim().slice(0, 120);
+    if (!trimmed) {
+      message('Display name cannot be empty.');
+      return;
+    }
+    saveNameBtn.disabled = true;
+    try {
+      await updateProfileFields({ displayName: trimmed }, 'Display name saved.');
+    } catch {
+      message('Could not save display name. Please retry.');
+    } finally {
+      saveNameBtn.disabled = false;
+    }
+  };
+
+  bookmark.onclick = () => {
+    save('bookmarks', location.pathname || 'home', {
+      title: document.title,
+      url: location.href,
+    });
+  };
+
+  window.AakashAccount = {
+    save,
+    async bestGuess(score) {
+      const numericScore = Number(score);
+      if (!auth?.currentUser || !Number.isFinite(numericScore) || numericScore < 1) return;
+      const uid = auth.currentUser.uid;
+      const path = `users/${uid}`;
+      const google = extractGoogleIdentity(auth.currentUser);
+      try {
+        await fs.runTransaction(db, async (tx) => {
+          const ref = fs.doc(db, 'users', uid);
+          const snap = await tx.get(ref);
+          if (!snap.exists()) {
+            tx.set(ref, {
+              uid,
+              displayName: google.name,
+              ...(google.photo ? { photoURL: google.photo } : {}),
+              bestGuessScore: numericScore,
+              createdAt: fs.serverTimestamp(),
+              updatedAt: fs.serverTimestamp(),
+            });
+            return;
+          }
+          const old = snap.data()?.bestGuessScore;
+          if (!old || numericScore < old) {
+            tx.update(ref, {
+              bestGuessScore: numericScore,
+              updatedAt: fs.serverTimestamp(),
+            });
+          }
+        });
+      } catch (error) {
+        console.error('Best guess sync failed:', error);
+        message('Score is saved locally; cloud sync is unavailable.');
+        handleFirestoreError(error, OperationType.WRITE, path);
+      }
+    },
+    async list(collection) {
+      if (!auth?.currentUser) return [];
+      if (!['testAttempts', 'bookmarks', 'orders'].includes(collection)) return [];
+      const uid = auth.currentUser.uid;
+      const path = `users/${uid}/${collection}`;
+      try {
+        const q = fs.query(
+          fs.collection(db, 'users', uid, collection),
+          fs.where('uid', '==', uid)
+        );
+        const snap = await fs.getDocs(q);
+        return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      } catch (error) {
+        handleFirestoreError(error, OperationType.LIST, path);
+      }
+    },
+    async syncLocal() {
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith('tclab.result.')) {
+          try {
+            const result = JSON.parse(localStorage.getItem(key));
+            await save('testAttempts', `${result.testId || 'test'}-${result.at || 'latest'}`, result);
+          } catch {}
+        }
+      }
+      const score = Number(localStorage.getItem('bestScore'));
+      if (score > 0) await this.bestGuess(score);
+    },
+  };
+
+  saved.onclick = async () => {
+    if (!auth?.currentUser) {
+      message('Sign in to view your saved data.');
+      return;
+    }
+    try {
+      const dialog = document.createElement('dialog');
+      dialog.className = 'account-records';
+      dialog.setAttribute('aria-label', 'Your saved data');
+
+      const recordsHead = document.createElement('div');
+      recordsHead.className = 'account-records-head';
+      const recordsTitle = document.createElement('h2');
+      recordsTitle.textContent = 'My saved data';
+      const closeBtn = document.createElement('button');
+      closeBtn.type = 'button';
+      closeBtn.className = 'account-close';
+      closeBtn.textContent = '×';
+      closeBtn.setAttribute('aria-label', 'Close saved data');
+      closeBtn.onclick = () => dialog.close();
+      recordsHead.append(recordsTitle, closeBtn);
+      dialog.append(recordsHead);
+
+      for (const name of ['bookmarks', 'testAttempts', 'orders']) {
+        const h = document.createElement('h3');
+        h.textContent = { bookmarks: 'Bookmarks', testAttempts: 'Test history', orders: 'Order history' }[name];
+        dialog.append(h);
+        const items = await window.AakashAccount.list(name);
+        if (!items.length) {
+          const empty = document.createElement('p');
+          empty.className = 'empty-row';
+          empty.textContent = 'Nothing saved yet.';
+          dialog.append(empty);
+          continue;
+        }
+        for (const item of items) {
+          const p = document.createElement('p');
+          p.textContent = item.title || item.id;
+          if (
+            name === 'bookmarks' &&
+            typeof item.url === 'string' &&
+            (item.url.startsWith('/') ||
+              item.url.startsWith(location.origin) ||
+              item.url.startsWith('https://aakash9972sn.github.io/'))
+          ) {
+            const a = document.createElement('a');
+            a.href = item.url;
+            a.textContent = p.textContent;
+            p.replaceChildren(a);
+          }
+          dialog.append(p);
+        }
+      }
+      document.body.append(dialog);
+      dialog.addEventListener('close', () => dialog.remove());
+      dialog.showModal();
+    } catch (err) {
+      console.error('Failed to load saved data:', err);
+      message('Saved data could not be loaded. Please retry.');
+    }
+  };
+
+  // Restore existing session automatically if user previously signed in
+  try {
+    if (localStorage.getItem('aakash.cloud.enabled')) {
+      init().catch(() => message('Cloud connection unavailable. You can continue locally.'));
+    }
+  } catch {}
 })();

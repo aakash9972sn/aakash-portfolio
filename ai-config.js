@@ -1,13 +1,31 @@
 window.AAKASH_AI = {
-  endpoint: 'https://ais-pre-wdyrf6yb4psuwizvqpn4hw-374223411049.asia-northeast1.run.app',
-  app: 'portfolio', title: 'Aakash portfolio guide',
-  intro: 'Explore the projects, understand the electronics or find a good place to start.',
-  suggestions: ['Which project should I explore first?', 'Explain the two RFID projects', 'What skills are demonstrated here?'],
+  endpoint: (window.AAKASH_BACKEND_BASE || '') + '/api/ai/chat/stream',
+  app: 'portfolio',
+  title: 'Aakash AI Guide',
+  intro: 'Ask about my DTU ECE projects, circuit notes, or where to start.',
+  suggestions: [
+    'Which project should I explore first?',
+    'Explain the two RFID projects',
+    'What skills are demonstrated here?',
+  ],
   context: () => ({
     page: document.title,
     summary: document.querySelector('meta[name="description"]')?.content || '',
-    introduction: document.querySelector('.hero-description, .lead-paragraph')?.textContent.trim().slice(0,1500) || '',
-    projects: (window.portfolioEntries || []).map(({id,title,category,description,tags,href}) => ({id,title,category,description,tags,href})),
-    technicalNotes: [...document.querySelectorAll('.code-walkthrough p, .guide-steps p, #architecture p')].slice(0,10).map(p=>p.textContent.trim().slice(0,550))
-  })
+    introduction:
+      document
+        .querySelector('.hero-description, .lead-paragraph, .hero-description-prose, .report-lede')
+        ?.textContent.trim()
+        .slice(0, 600) || '',
+    projects: (window.portfolioEntries || []).map(({ id, title, category, description, tags, href }) => ({
+      id,
+      title,
+      category,
+      description: String(description || '').slice(0, 140),
+      tags,
+      href,
+    })),
+    technicalNotes: [...document.querySelectorAll('.code-walkthrough p, .guide-steps p, #architecture p, .about-prose p')]
+      .slice(0, 5)
+      .map((p) => p.textContent.trim().slice(0, 260)),
+  }),
 };

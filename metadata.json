@@ -1,0 +1,8 @@
+{
+  "name": "AAKASH — DTU ECE Portfolio",
+  "description": "Portfolio of AAKASH, B.Tech Electronics & Communication Engineering student at Delhi Technological University (2024–2028), featuring embedded systems projects, workshop notes, Firebase account sync, and a fast Gemini AI portfolio assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

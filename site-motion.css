@@ -1,16 +1,19 @@
 /* Motion is an enhancement: content stays visible without JavaScript. */
 :root { --motion-ease: cubic-bezier(.22, 1, .36, 1); }
 
+/* Restrained reading progress hairline */
 .reading-progress {
   position: fixed;
   z-index: 100;
   inset: 0 0 auto;
   height: 2px;
   pointer-events: none;
-  background: linear-gradient(90deg, #c2e7cd, #9fc8f0, #e3c98f);
+  background: linear-gradient(90deg, #c2e7cd, #8bbfe6);
   transform: scaleX(0);
   transform-origin: left;
+  opacity: 0.85;
 }
+
 .site-home .header {
   position: sticky;
   top: 0;
@@ -22,525 +25,139 @@
   position: absolute;
   z-index: -1;
   inset: 0 calc(-1 * var(--header-gutter, 48px));
-  background: #121c18f2;
-  box-shadow: 0 12px 35px #0000;
+  background: rgba(18, 28, 24, 0.92);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0);
   opacity: 1;
   pointer-events: none;
-  backdrop-filter: blur(18px);
-  transition: opacity .35s ease, box-shadow .35s ease;
+  backdrop-filter: blur(14px);
+  transition: opacity .3s ease, box-shadow .3s ease;
 }
-.site-home .header.is-scrolled::before { opacity: 1; box-shadow: 0 12px 35px #0003; }
+.site-home .header.is-scrolled::before { opacity: 1; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25); }
 .motion-enhanced .site-home .header:not(.is-scrolled)::before { opacity: 0; }
-.site-home section[id], .site-home .collection-card[id] { scroll-margin-top: 120px; }
+.site-home section[id], .site-home .collection-card[id] { scroll-margin-top: 112px; }
+
 .site-home .header nav a { position: relative; }
 .site-home .header nav a::after {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -7px;
+  bottom: -6px;
   height: 1px;
   background: #c2e7cd;
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform .35s var(--motion-ease);
+  transition: transform .28s var(--motion-ease);
 }
 .site-home .header nav a:is(:hover, :focus-visible, [aria-current="location"])::after { transform: scaleX(1); }
-.site-home .header nav a[aria-current="location"] { color: #e1eedf; }
-.site-home .hero { isolation: isolate; }
+.site-home .header nav a[aria-current="location"] { color: #e8f3ec; }
+
+.site-home .hero { position: relative; isolation: isolate; }
 .site-home .hero::before { right: 0; pointer-events: none; }
+.site-home #hero-title .fx-line { display: block; overflow: hidden; padding-bottom: .14em; margin-bottom: -.14em; }
+.site-home #hero-title .fx-line-inner { display: block; }
 
 @media (prefers-reduced-motion: no-preference) {
   @view-transition { navigation: auto; }
-  ::view-transition { background: #151b19; }
-  ::view-transition-group(root) { animation-duration: .42s; }
-  ::view-transition-old(root) { animation: fx-vt-out .3s var(--motion-ease) both; }
-  ::view-transition-new(root) { animation: fx-vt-in .42s var(--motion-ease) both; }
+  ::view-transition { background: #121c18; }
+  ::view-transition-group(root) { animation-duration: .35s; }
+  ::view-transition-old(root) { animation: fx-vt-out .25s var(--motion-ease) both; }
+  ::view-transition-new(root) { animation: fx-vt-in .35s var(--motion-ease) both; }
   @keyframes fx-vt-out { to { opacity: 0; } }
-  @keyframes fx-vt-in {
-    from { opacity: 0; transform: scale(1.012); }
-  }
-  /* The observer handles newly filtered cards as well as the initial collection. */
+  @keyframes fx-vt-in { from { opacity: 0; transform: translateY(6px); } }
+
   .motion-enhanced .collection-card { animation: none; }
-  .motion-enhanced .site-home .hero::before { animation: ambient-arrival 1.8s var(--motion-ease) both; }
-  @keyframes ambient-arrival {
-    from { opacity: 0; transform: translateY(20px) scale(.94); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+
+  .site-home #hero-title.fx-split .fx-line-inner {
+    animation: fx-line-rise .78s var(--motion-ease) both;
+    animation-delay: calc(var(--fx-i, 0) * 90ms + 80ms);
   }
-  .site-home .portrait-card img { transition: transform .8s var(--motion-ease), filter .4s ease; }
-  .site-home .portrait-card:hover img { transform: scale(1.025); }
+  @keyframes fx-line-rise {
+    from { transform: translate3d(0, 108%, 0); }
+    to { transform: translate3d(0, 0, 0); }
+  }
+
+  .site-home .portrait-card img { transition: transform .65s var(--motion-ease); }
+  .site-home .portrait-card:hover img { transform: scale(1.02); }
+
   :is(.button, .report-download, .download-btn, .btn-primary-mint, .btn-secondary-dark) {
-    position: relative;
-    overflow: hidden;
-    isolation: isolate;
-    transition: transform .35s var(--motion-ease), box-shadow .35s ease, background .25s ease;
+    transition: transform .22s var(--motion-ease), box-shadow .22s ease, background-color .2s ease, border-color .2s ease;
   }
-  :is(.button, .report-download, .download-btn, .btn-primary-mint, .btn-secondary-dark)::after {
-    content: '';
-    position: absolute;
-    inset: -50% -30%;
-    pointer-events: none;
-    background: linear-gradient(110deg, transparent 40%, #ffffff30 50%, transparent 60%);
-    transform: translateX(-110%);
-    transition: transform .75s var(--motion-ease);
-  }
-  :is(.button, .report-download, .download-btn, .btn-primary-mint, .btn-secondary-dark):is(:hover, :focus-visible)::after { transform: translateX(110%); }
-  :is(.button, .report-download):hover { transform: translateY(-3px); box-shadow: 0 9px 24px #0003; }
-  :is(.button, .report-download):active { transform: translateY(0) scale(.98); }
-  :is(.button, .hero-secondary, .next-card) .icon { transition: transform .35s var(--motion-ease); }
+  :is(.button, .report-download):hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); }
+  :is(.button, .report-download):active { transform: translateY(0) scale(.985); }
+
+  :is(.button, .hero-secondary, .next-card) .icon { transition: transform .24s var(--motion-ease); }
   :is(.button, .hero-secondary):hover .icon { transform: translate(2px, -2px); }
-  .next-card:hover > .icon { transform: translateX(5px); }
-  .collection-filters button, .example-options button { transition: background .25s, color .25s, border-color .25s, transform .25s var(--motion-ease); }
-  .collection-filters button:active, .example-options button:active { transform: scale(.96); }
-  .site-home .collection-card { transition: transform .45s var(--motion-ease), box-shadow .4s ease, border-color .4s ease; }
-  .site-home .collection-card:is(:hover, :focus-within) { transform: translateY(-7px); border-color: #7da99c; box-shadow: 0 22px 42px #0005; }
+  .next-card:hover > .icon { transform: translateX(4px); }
+
+  .collection-filters button, .example-options button {
+    transition: background-color .2s ease, color .2s ease, border-color .2s ease, transform .18s var(--motion-ease);
+  }
+  .collection-filters button:active, .example-options button:active { transform: scale(.97); }
+
+  /* Crisp hover spotlight on cards without heavy 3D distortion */
   .entry-art::after {
     content: '';
     position: absolute;
     inset: 0;
     z-index: 2;
     pointer-events: none;
-    background: radial-gradient(260px circle at var(--spot-x, 50%) var(--spot-y, 40%), #d9f3e222, transparent 70%);
+    background: radial-gradient(240px circle at var(--spot-x, 50%) var(--spot-y, 40%), rgba(217, 243, 226, 0.14), transparent 70%);
     opacity: 0;
-    transition: opacity .4s ease;
+    transition: opacity .35s ease;
   }
   .collection-card:is(:hover, :focus-within) .entry-art::after { opacity: 1; }
-  .entry-art .circuit-art, .entry-art .rfid-art { transition: opacity .5s ease, transform .7s var(--motion-ease); }
-  .entry-link:hover .circuit-art { transform: translateX(-10px); }
-  .entry-link:hover .rfid-art { transform: translateY(-4px); opacity: .8; }
-  :is(.card-grid article, .takeaway-brick, .concept-box-card, .module-clean-card, .download-card) { transition: border-color .35s ease, box-shadow .35s ease; }
-  :is(.card-grid article, .takeaway-brick, .concept-box-card, .module-clean-card, .download-card):hover { border-color: #74948b; box-shadow: 0 12px 28px #0002; }
+  .entry-art .circuit-art, .entry-art .rfid-art { transition: opacity .35s ease, transform .45s var(--motion-ease); }
+  .entry-link:hover .circuit-art { transform: translateX(-8px); }
+  .entry-link:hover .rfid-art { transform: translateY(-3px); opacity: .82; }
+
+  :is(.card-grid article, .takeaway-brick, .concept-box-card, .module-clean-card, .download-card) {
+    transition: border-color .25s ease, box-shadow .25s ease, transform .25s var(--motion-ease);
+  }
+  :is(.card-grid article, .takeaway-brick, .concept-box-card, .module-clean-card, .download-card):hover {
+    border-color: #6a8d83;
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.2);
+  }
+
   .workflow-stage-panel { transition: opacity .18s ease; }
-  .site-home .header nav.is-open { animation: menu-arrival .25s var(--motion-ease); transform-origin: top; }
+  .site-home .header nav.is-open { animation: menu-arrival .2s var(--motion-ease); transform-origin: top; }
   @keyframes menu-arrival {
     from { opacity: 0; transform: translateY(-6px); }
     to { opacity: 1; transform: translateY(0); }
   }
-}
 
-@media (hover: hover) and (pointer: fine) and (min-width: 900px) and (prefers-reduced-motion: no-preference) {
-  .site-home .portrait-card.motion-depth, .hero-visual.motion-depth, .poster-exhibition-card.motion-depth {
-    transform: translate3d(0, var(--fx-parallax, 0px), 0) perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
-    transition: transform .45s var(--motion-ease), box-shadow .45s ease;
-  }
-}
-@media (max-width: 1050px) {
-  .site-home .header { --header-gutter: 30px; }
-}
-@media (max-width: 760px) {
-  .site-home .header { --header-gutter: 20px; }
-  .site-home .header nav a::after { left: 14px; right: auto; width: 24px; bottom: 7px; }
-  .site-home section[id], .site-home .collection-card[id] { scroll-margin-top: 100px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  @view-transition { navigation: none; }
-  .reading-progress { display: none; }
-  .motion-depth { transform: none !important; }
-  ::view-transition-group(root), ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
-}
-
-/* ---------------------------------------------------------------------------
-   Effects layer — measurement-free enhancement on top of the motion system.
-   Ambient aurora light, a masked hero headline, magnetic primary controls,
-   scroll parallax and self-drawing circuitry. Everything here is decorative
-   and is dropped entirely when the visitor asks for reduced motion.
---------------------------------------------------------------------------- */
-@property --fx-glow-a { syntax: '<number>'; inherits: true; initial-value: 0; }
-
-.site-home .hero {
-  position: relative;
-  --fx-glow-x: 66%;
-  --fx-glow-y: 28%;
-  --fx-glow-a: 0;
-  transition: --fx-glow-a .5s ease;
-}
-.site-home .about { position: relative; isolation: isolate; }
-.site-home #hero-title .fx-line { display: block; overflow: hidden; padding-bottom: .15em; margin-bottom: -.15em; }
-.site-home #hero-title .fx-line-inner { display: block; }
-
-@media (prefers-reduced-motion: no-preference) {
-  .site-home .hero::after,
-  .site-home .about::after {
+  /* Subtle pointer glow in hero background */
+  .site-home .hero::after {
     content: '';
     position: absolute;
     z-index: -1;
     inset: -10% 0;
     pointer-events: none;
     background:
-      radial-gradient(36% 44% at 16% 26%, #63e6be1f, transparent 68%),
-      radial-gradient(40% 48% at 84% 18%, #3b82f626, transparent 70%),
-      radial-gradient(44% 46% at 66% 86%, #c2e7cd1a, transparent 72%);
-    animation: fx-aurora 28s var(--motion-ease) infinite;
-    will-change: transform;
+      radial-gradient(360px circle at var(--fx-glow-x, 66%) var(--fx-glow-y, 28%), rgba(186, 246, 218, var(--fx-glow-a, 0)), transparent 64%),
+      radial-gradient(36% 44% at 18% 24%, rgba(99, 230, 190, 0.08), transparent 68%),
+      radial-gradient(40% 48% at 84% 18%, rgba(59, 130, 246, 0.1), transparent 70%);
   }
-  .site-home .hero::after {
-    background:
-      radial-gradient(340px circle at var(--fx-glow-x) var(--fx-glow-y), rgb(186 246 218 / var(--fx-glow-a, 0)), transparent 62%),
-      radial-gradient(36% 44% at 16% 26%, #63e6be1f, transparent 68%),
-      radial-gradient(40% 48% at 84% 18%, #3b82f626, transparent 70%),
-      radial-gradient(44% 46% at 66% 86%, #c2e7cd1a, transparent 72%);
-  }
-  .site-home .about::after {
-    inset: -16% 0;
-    background:
-      radial-gradient(42% 56% at 88% 26%, #3b82f61f, transparent 70%),
-      radial-gradient(38% 52% at 6% 80%, #c2e7cd17, transparent 70%);
-    animation-duration: 34s;
-    animation-direction: reverse;
-  }
-  @keyframes fx-aurora {
-    0% { transform: translate3d(0, 0, 0) scale(1); }
-    33% { transform: translate3d(-2.4%, 1.8%, 0) scale(1.07); }
-    66% { transform: translate3d(2.4%, -1.4%, 0) scale(.95); }
-    100% { transform: translate3d(0, 0, 0) scale(1); }
-  }
-  .site-home #hero-title.fx-split .fx-line-inner {
-    animation: fx-line-rise .92s var(--motion-ease) both;
-    animation-delay: calc(var(--fx-i, 0) * 110ms + 130ms);
-  }
-  @keyframes fx-line-rise {
-    from { transform: translate3d(0, 112%, 0); }
-    to { transform: translate3d(0, 0, 0); }
-  }
-  .site-home .collection-heading h2 em,
-  .site-home .section-heading h2 span {
-    background-size: 220% 100%;
-    animation: fx-shimmer 8s linear infinite;
-  }
-  @keyframes fx-shimmer {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 200% 50%; }
-  }
-}
 
-@media (hover: hover) and (pointer: fine) and (min-width: 900px) and (prefers-reduced-motion: no-preference) {
-  .site-home .hero:hover { --fx-glow-a: 1; }
+  /* Subtle magnetic nudge on primary CTAs */
   .fx-magnet {
     translate: var(--fx-mag-x, 0px) var(--fx-mag-y, 0px);
-    transition: translate .35s var(--motion-ease), transform .35s var(--motion-ease), box-shadow .35s ease, background .25s ease, color .25s ease, border-color .25s ease;
+    transition: translate .28s var(--motion-ease), transform .24s var(--motion-ease), box-shadow .24s ease, background-color .2s ease, color .2s ease, border-color .2s ease;
   }
-  .fx-magnet:is(:hover, :focus-visible) {
-    transition: translate .1s linear, transform .35s var(--motion-ease), box-shadow .35s ease, background .25s ease, color .25s ease, border-color .25s ease;
+
+  /* Soft surface tilt reserved for primary hero showcases */
+  @media (hover: hover) and (pointer: fine) and (min-width: 900px) {
+    .site-home .hero:hover { --fx-glow-a: 0.14; }
+    .site-home .portrait-card.motion-depth,
+    .hero-visual.motion-depth,
+    .poster-exhibition-card.motion-depth {
+      transform: translate3d(0, var(--fx-parallax, 0px), 0) perspective(1100px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+      transition: transform .4s var(--motion-ease), box-shadow .4s ease;
+    }
+    .site-home .about-stamp { transform: translate3d(0, var(--fx-parallax, 0px), 0) rotate(-8deg); }
   }
-  .site-home .about-stamp { transform: translate3d(0, var(--fx-parallax, 0px), 0) rotate(-8deg); }
-}
 
-/* ---------------------------------------------------------------------------
-   Power layer — the loud, high-impact work: textured depth over every surface,
-   an animated section grid, a rotating halo behind the portrait, a gradient
-   headline, neon card framing with glare and tilt, a running toolkit marquee,
-   an intro curtain and a custom pointer. Purely decorative: the JavaScript
-   builds each piece and tears it down again when motion is not welcome.
---------------------------------------------------------------------------- */
-@property --fx-border-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
-
-/* 1. Depth texture: a soft vignette plus fine grain, so the flat panels read
-   as physical surfaces instead of solid fills. */
-:is(.site-home, .report-page, .case-study-page)::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 5;
-  pointer-events: none;
-  background: radial-gradient(140% 120% at 50% 30%, transparent 62%, #00000059 100%);
-}
-:is(.site-home, .report-page, .case-study-page)::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 6;
-  pointer-events: none;
-  opacity: .05;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E");
-  background-size: 160px 160px;
-}
-
-/* 2. A slowly panning grid behind the dark sections on every page family. */
-.site-home .work-section,
-.site-home .education-section,
-.report-page .report-section:not(.paper),
-.case-study-page .editorial-section.dark-theme { position: relative; isolation: isolate; }
-.site-home .work-section > .wrap,
-.site-home .education-section > .wrap,
-.report-page .report-section:not(.paper) > .wrap,
-.case-study-page .editorial-section.dark-theme > .wrap { position: relative; z-index: 1; }
-.site-home .work-section::before,
-.site-home .education-section::before,
-.report-page .report-section:not(.paper)::before,
-.case-study-page .editorial-section.dark-theme::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(#7fb2ff12 1px, transparent 1px),
-    linear-gradient(90deg, #7fb2ff12 1px, transparent 1px);
-  background-size: 68px 68px;
-  -webkit-mask-image: radial-gradient(95% 75% at 50% 0%, #000, transparent 80%);
-  mask-image: radial-gradient(95% 75% at 50% 0%, #000, transparent 80%);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .site-home .work-section::before,
-  .site-home .education-section::before,
-  .report-page .report-section:not(.paper)::before,
-  .case-study-page .editorial-section.dark-theme::before { animation: fx-grid-pan 34s linear infinite; }
-  @keyframes fx-grid-pan { to { background-position: 68px 68px, 68px 68px; } }
-}
-
-/* 3. The particle field that the script paints inside the hero. */
-:is(.site-home .hero, .report-page .report-hero, .case-study-page .hero-section) { position: relative; isolation: isolate; }
-:is(.site-home .hero, .report-page .report-hero, .case-study-page .hero-section) .fx-canvas {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-/* 4. A breathing halo so the hero artwork sits in its own light. The portrait
-   card clips its own children, so the glow is cast with a box-shadow instead. */
-.site-home .hero .portrait-card,
-.report-page .hero-visual,
-.case-study-page .poster-exhibition-card { position: relative; }
-@media (prefers-reduced-motion: no-preference) {
-  :is(.site-home .hero .portrait-card, .report-page .hero-visual, .case-study-page .poster-exhibition-card) { animation: fx-halo 11s ease-in-out infinite; }
-  @keyframes fx-halo {
-    0%, 100% { box-shadow: 0 26px 60px #00000059, 0 0 0 #63e6be00; }
-    50% { box-shadow: 0 26px 60px #00000059, 0 0 42px 3px #63e6be8c, 0 0 96px 16px #8ee7ff2e; }
-  }
-}
-
-/* 5. Headlines carry a slow, living gradient. */
-@supports ((-webkit-background-clip: text) or (background-clip: text)) {
-  .site-home #hero-title em,
-  .report-page .report-hero h1 em,
-  .case-study-page .hero-section h1 em {
-    background-image: linear-gradient(100deg, #c6dfbd 0%, #8ee7ff 25%, #bda9ff 48%, #63e6be 72%, #c6dfbd 100%);
-    background-size: 320% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
-    text-shadow: none;
-  }
-  .site-home .collection-heading h2 em,
-  .site-home .section-heading h2 span,
-  .case-study-page .section-heading-text span,
-  .case-study-page .section-lead-header h2 em:not(:has(math)) {
-    background-image: linear-gradient(100deg, #a8c8e1 0%, #63e6be 30%, #bda9ff 55%, #a8c8e1 100%);
-    background-size: 260% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
-    text-shadow: none;
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .site-home #hero-title em,
-    .report-page .report-hero h1 em,
-    .case-study-page .hero-section h1 em,
-    .site-home .collection-heading h2 em,
-    .site-home .section-heading h2 span,
-    .case-study-page .section-heading-text span,
-    .case-study-page .section-lead-header h2 em:not(:has(math)) { animation: fx-headline 12s linear infinite; }
-    @keyframes fx-headline { to { background-position: 300% 50%; } }
-  }
-}
-
-/* 6. Cards the script marks with .fx-tilt get a neon frame, a travelling glare
-   and a 3D tilt. The marker keeps every page family on one set of rules. */
-.fx-tilt { position: relative; isolation: isolate; }
-.fx-tilt::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  padding: 1px;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0;
-  background: conic-gradient(from var(--fx-border-a, 0deg), #63e6be, #3b82f6, #c2e7cd, #8ee7ff, #63e6be);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  transition: opacity .45s ease;
-}
-.fx-tilt::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0;
-  background: radial-gradient(300px circle at var(--fx-glare-x, 50%) var(--fx-glare-y, 50%), #ffffff30, transparent 62%);
-  transition: opacity .4s ease;
-}
-@media (prefers-reduced-motion: no-preference) {
-  :is(.site-home, .report-page, .case-study-page) .fx-tilt:is(:hover, :focus-within)::before { opacity: 1; animation: fx-border-spin 5s linear infinite; }
-  @keyframes fx-border-spin { to { --fx-border-a: 360deg; } }
-  :is(.site-home, .report-page, .case-study-page) .fx-tilt:is(:hover, :focus-within)::after { opacity: 1; }
-}
-@media (hover: hover) and (pointer: fine) and (min-width: 900px) and (prefers-reduced-motion: no-preference) {
-  .fx-tilt { transition: transform .5s var(--motion-ease), box-shadow .45s ease, border-color .45s ease; }
-  :is(.site-home, .report-page, .case-study-page) .fx-tilt:is(:hover, :focus-within) {
-    transform: perspective(900px) rotateX(var(--fx-tilt-x, 0deg)) rotateY(var(--fx-tilt-y, 0deg)) translateY(-6px);
-    border-color: #63e6be6b;
-    box-shadow: 0 26px 60px #00000073, 0 0 26px #63e6be26;
-  }
-}
-
-/* 7. The toolkit runs as a marquee between the hero and the work archive. */
-.fx-marquee {
-  position: relative;
-  overflow: hidden;
-  padding: 18px 0;
-  border-top: 1px solid #29394b;
-  border-bottom: 1px solid #29394b;
-  background: linear-gradient(90deg, #101d2d, #0f2b2a 50%, #101d2d);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
-}
-.fx-marquee-track { display: flex; width: max-content; }
-.fx-marquee-track > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 23px;
-  padding-right: 23px;
-  font: 500 12px/1 var(--mono);
-  letter-spacing: 2.4px;
-  text-transform: uppercase;
-  color: #9db6ab;
-  white-space: nowrap;
-}
-.fx-marquee-track > span::after {
-  content: '';
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #63e6be;
-  opacity: .75;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .fx-marquee-track { animation: fx-marquee 44s linear infinite; }
-  .fx-marquee:hover .fx-marquee-track { animation-play-state: paused; }
-  @keyframes fx-marquee { to { transform: translate3d(-50%, 0, 0); } }
-}
-
-/* 8. The intro curtain. It hides itself even if the script never runs again. */
-.fx-intro {
-  position: fixed;
-  inset: 0;
-  z-index: 300;
-  display: grid;
-  place-items: center;
-  background: radial-gradient(65% 65% at 50% 45%, #16241d, #0a1310 78%);
-  animation: fx-intro-out .65s var(--motion-ease) 1.15s both;
-}
-.fx-intro-inner { display: grid; gap: 16px; justify-items: center; }
-.fx-intro-mark { font: 500 clamp(30px, 6vw, 56px)/1 var(--display); letter-spacing: -2.5px; color: #eaf3ec; }
-.fx-intro-bar { display: block; width: min(210px, 46vw); height: 2px; background: #1d2f26; overflow: hidden; }
-.fx-intro-bar i { display: block; height: 100%; transform-origin: left; background: linear-gradient(90deg, #63e6be, #8ee7ff); animation: fx-intro-load 1.05s var(--motion-ease) both; }
-@keyframes fx-intro-load { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@keyframes fx-intro-out { to { opacity: 0; visibility: hidden; } }
-
-/* 9. The custom pointer: a precise dot with a ring that trails it. */
-.fx-cursor-dot,
-.fx-cursor-ring {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 150;
-  border-radius: 50%;
-  pointer-events: none;
-  opacity: 0;
-}
-.fx-cursor-dot {
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  background: #c2e7cd;
-  transition: opacity .2s ease;
-}
-.fx-cursor-ring {
-  width: 36px;
-  height: 36px;
-  margin: -18px 0 0 -18px;
-  border: 1px solid #c2e7cdad;
-  transition: width .3s var(--motion-ease), height .3s var(--motion-ease), margin .3s var(--motion-ease),
-    background .3s ease, border-color .3s ease, opacity .2s ease;
-}
-.fx-cursor-ring.is-hover { width: 64px; height: 64px; margin: -32px 0 0 -32px; background: #c2e7cd1a; border-color: #c2e7cd70; }
-.fx-cursor-ring.is-down { width: 26px; height: 26px; margin: -13px 0 0 -13px; background: #c2e7cd2e; }
-/* Keep the native pointer above browser top-layer dialogs and shadow dialogs.
-   The trailing ring is decorative; it must never replace the system pointer. */
-.fx-cursor-dot { display: none; }
-
-@media (max-width: 760px) {
-  .site-home::before { background: radial-gradient(150% 110% at 50% 30%, transparent 60%, #00000059 100%); }
-  @media (prefers-reduced-motion: no-preference) {
-    .site-home .hero .portrait-card { animation: none; box-shadow: 0 22px 50px #00000059; }
-  }
-}
-
-/* ---------------------------------------------------------------------------
-   Ultra-pro layer — one consistent finish for every control and component on
-   all three page families, so no page reads as untouched default markup.
-   Filled controls gain a shine sweep, a lift and a glow; chips, badges and spec
-   cells answer the pointer; the structural furniture (tables, formulas,
-   callouts, code blocks, diagrams) picks up accent rails; section labels gain a
-   leading rule. Decorative only: no layout is touched, and the whole layer is
-   dropped when the visitor prefers reduced motion.
---------------------------------------------------------------------------- */
-
-/* 10. Filled controls — shine sweep, lift, glow and a crisp press. Cards that
-   the script makes magnetic keep their own translate, so only the finish is
-   shared here. */
-@media (prefers-reduced-motion: no-preference) {
-  :is(.ribbon-btn, .enlarge-btn, .poster-action-btn, .bode-btn, .subnav-cta, .github-nav,
-      .back-btn, .footer-return-link, .example-options button, .workflow-pill,
-      .collection-filters button) {
-    position: relative;
-    overflow: hidden;
-    isolation: isolate;
-    transition: translate .35s var(--motion-ease), box-shadow .35s ease, color .25s ease,
-      border-color .25s ease, background .25s ease;
-  }
-  :is(.ribbon-btn, .enlarge-btn, .poster-action-btn, .bode-btn, .subnav-cta, .github-nav,
-      .back-btn, .footer-return-link, .example-options button, .workflow-pill,
-      .collection-filters button)::after {
-    content: '';
-    position: absolute;
-    inset: -70% -40%;
-    pointer-events: none;
-    background: linear-gradient(110deg, transparent 42%, #ffffff2e 50%, transparent 58%);
-    transform: translateX(-115%);
-    transition: transform .8s var(--motion-ease);
-  }
-  :is(.ribbon-btn, .enlarge-btn, .poster-action-btn, .bode-btn, .subnav-cta, .github-nav,
-      .back-btn, .footer-return-link, .example-options button, .workflow-pill,
-      .collection-filters button):is(:hover, :focus-visible)::after { transform: translateX(115%); }
-  :is(.ribbon-btn, .enlarge-btn, .poster-action-btn, .bode-btn, .subnav-cta, .github-nav,
-      .back-btn, .footer-return-link, .example-options button, .workflow-pill,
-      .collection-filters button):not(.fx-magnet):is(:hover, :focus-visible) {
-    translate: 0 -2px;
-    box-shadow: 0 10px 26px #0000004d, 0 0 0 1px #63e6be2e inset;
-  }
-  :is(.ribbon-btn, .enlarge-btn, .poster-action-btn, .bode-btn, .subnav-cta, .github-nav,
-      .back-btn, .footer-return-link, .example-options button, .workflow-pill,
-      .collection-filters button):active { translate: 0 0; }
-
-  /* The lightbox closes are already absolutely positioned, so they take the
-     glow without the framing that would move them. */
-  :is(.lightbox-dismiss-btn, .lightbox-close-btn) { transition: background .3s ease, color .3s ease, filter .3s ease; }
-  :is(.lightbox-dismiss-btn, .lightbox-close-btn):is(:hover, :focus-visible) { filter: brightness(1.3); }
-  .lightbox-dismiss-btn:hover { background: #ffffff47; }
-  .lightbox-close-btn:hover { color: #63e6be; }
-
-  /* 11. Text links grow an accent underline from the left and nudge their icon. */
+  /* Clean text link underline reveal */
   :is(.back-link, .text-link, .footer-nav-links a, .reference-list a, .work-footer a,
       .footer a:not(.wordmark), .case-footer a:not(.wordmark),
       .report-page .section-body :is(p, li) a, .case-study-page .section-body :is(p, li) a) {
@@ -548,511 +165,131 @@
     background-repeat: no-repeat;
     background-position: 0 100%;
     background-size: 0 1px;
-    transition: background-size .35s var(--motion-ease), color .25s ease;
+    transition: background-size .28s var(--motion-ease), color .2s ease;
   }
   :is(.back-link, .text-link, .footer-nav-links a, .reference-list a, .work-footer a,
       .footer a:not(.wordmark), .case-footer a:not(.wordmark),
       .report-page .section-body :is(p, li) a, .case-study-page .section-body :is(p, li) a):is(:hover, :focus-visible) {
     background-size: 100% 1px;
   }
-  .back-link .icon { transition: transform .35s var(--motion-ease); }
+  .back-link .icon { transition: transform .25s var(--motion-ease); }
   .back-link:is(:hover, :focus-visible) .icon { transform: translateX(-3px); }
 
-  /* 12. Chips, pills, badges and spec cells answer the pointer. */
-  :is(.pill, .badge, .tag-chip, .sub-chip, .art-chip, .doc-type-badge, .stage-num-badge,
-      .stage-phase-label, .lineage-badge, .compare-tag, .verified-credential-badge,
-      .header-tag, .report-tag, .hero-dates-tag, .eyebrow-pill, .module-index-tag,
-      .pillar-num-tag, .concept-idx, .card-number, .idx, .spec-cell, .spec-grid div,
-      .figure-label) {
-    transition: translate .3s var(--motion-ease), filter .3s ease, box-shadow .3s ease,
-      background .3s ease;
-  }
-  :is(.pill, .badge, .tag-chip, .sub-chip, .art-chip, .doc-type-badge, .stage-num-badge,
-      .stage-phase-label, .lineage-badge, .compare-tag, .verified-credential-badge,
-      .header-tag, .report-tag, .hero-dates-tag, .eyebrow-pill, .module-index-tag,
-      .pillar-num-tag, .concept-idx, .card-number, .idx, .spec-cell, .spec-grid div,
-      .figure-label):is(:hover, :focus-within) {
-    translate: 0 -2px;
-    filter: brightness(1.14);
-  }
-
-  /* 13. Tables — the row under the pointer lifts out with an accent rail. */
-  :is(.report-page, .case-study-page) .table-wrap { transition: border-color .3s ease, box-shadow .35s ease; }
-  :is(.report-page, .case-study-page) .table-wrap:hover {
-    border-color: #63e6be4d;
-    box-shadow: 0 16px 40px #00000040;
-  }
-  :is(.report-page, .case-study-page) tbody td { transition: box-shadow .25s ease; }
-  :is(.report-page, .case-study-page) tbody tr { transition: background .25s ease; }
-  :is(.report-page, .case-study-page) tbody tr:hover { background: #ffffff0a; }
-  :is(.report-page, .case-study-page) tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 #63e6be; }
-  :is(.report-page, .case-study-page) thead th { background-image: linear-gradient(#63e6be14, transparent); }
-
-  /* 14. Structural panels warm up under the pointer. */
+  /* Subtle structural panel elevation */
+  :is(.report-page, .case-study-page) tbody tr { transition: background-color .18s ease; }
+  :is(.report-page, .case-study-page) tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+  :is(.report-page, .case-study-page) tbody tr:hover td:first-child { box-shadow: inset 2px 0 0 var(--accent, #c2e7cd); }
   :is(.formula, .callout, .code-details, .example-shell, .diagram, .resource-card, .status-note) {
-    transition: box-shadow .35s ease, translate .35s var(--motion-ease);
+    transition: border-color .25s ease, box-shadow .25s ease;
   }
-  :is(.formula, .callout, .code-details, .example-shell, .diagram, .resource-card, .status-note):hover {
-    translate: 0 -2px;
-    box-shadow: 0 16px 38px #00000047, 0 0 0 1px #63e6be24 inset;
-  }
-  .diagram .node { transition: border-color .3s ease, box-shadow .3s ease, translate .35s var(--motion-ease); }
-  .diagram .node:hover {
-    border-color: #63e6be8c;
-    translate: 0 -2px;
-    box-shadow: 0 10px 24px #00000059, 0 0 0 1px #63e6be33 inset;
-  }
+  .diagram .node { transition: border-color .25s ease, transform .25s var(--motion-ease); }
+  .diagram .node:hover { border-color: var(--accent, #c2e7cd); transform: translateY(-2px); }
 }
 
-/* 15. Section labels carry a leading rule so every block opens the same way. */
+/* Restraint architectural toolkit ribbon between Hero & Work */
+.fx-marquee {
+  position: relative;
+  overflow: hidden;
+  padding: 15px 0;
+  border-top: 1px solid #223246;
+  border-bottom: 1px solid #223246;
+  background: #0d1726;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.fx-marquee-track { display: flex; width: max-content; }
+.fx-marquee-track > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 22px;
+  padding-right: 22px;
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #93a9be;
+  white-space: nowrap;
+}
+.fx-marquee-track > span::after {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: #537596;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .fx-marquee-track { animation: fx-marquee 48s linear infinite; }
+  .fx-marquee:hover .fx-marquee-track { animation-play-state: paused; }
+  @keyframes fx-marquee { to { transform: translate3d(-50%, 0, 0); } }
+}
+
+/* Clean hairline dividers & card details */
 :is(.section-index, .section-label)::before {
   content: '';
   display: inline-block;
-  width: 15px;
+  width: 14px;
   height: 1px;
   margin-right: 8px;
   vertical-align: middle;
   background: currentColor;
-  opacity: .6;
+  opacity: .55;
 }
 
-/* 16. Navigation states glow: the reading bar, the report sub-nav and the case
-   study sub-nav all light up where the reader currently is. The glows are
-   painted inside each control because both sub-navs scroll horizontally. */
-.reading-progress { box-shadow: 0 0 14px #63e6be99, 0 0 30px #8ee7ff3d; }
-.report-subnav a { transition: color .25s ease, border-color .25s ease, background .35s ease; }
-.report-subnav a:is(:hover, :focus-visible, [aria-current="location"]) {
-  background-image: radial-gradient(75% 90% at 50% 100%,
-    color-mix(in srgb, var(--accent) 26%, transparent), transparent 72%);
-}
-.subnav-links a { transition: color .2s ease, background .2s ease, box-shadow .3s ease; }
-.subnav-links a:is(.active, [aria-current]) { box-shadow: inset 0 0 0 1px #ffffff2e; }
-
-/* ---------------------------------------------------------------------------
-   Projects refinement — a second pass over the project work itself: the cards
-   in the portfolio collection and the interior of the two project reports.
-   Hairlines carry the accent, the illustration panels breathe, metrics and
-   labels get their own light, and the reading furniture (tables, flows,
-   callouts, disclosures) answers the pointer. Layout and copy are untouched.
---------------------------------------------------------------------------- */
-
-/* 17. Project cards — the artwork opens with an accent hairline, the
-   illustration drifts a little deeper, and the copy column picks up the small
-   details: a live category marker, tag chips that lift, an action that lights. */
 .entry-art::before {
   content: '';
   position: absolute;
   inset: 0 0 auto;
   height: 2px;
   pointer-events: none;
-  background: linear-gradient(90deg, transparent, currentColor 20%, currentColor 80%, transparent);
-  opacity: .45;
-  transform: scaleX(.28);
+  background: linear-gradient(90deg, transparent, currentColor 25%, currentColor 75%, transparent);
+  opacity: .35;
+  transform: scaleX(.24);
   transform-origin: left;
-  transition: transform .7s var(--motion-ease), opacity .45s ease;
+  transition: transform .5s var(--motion-ease), opacity .35s ease;
 }
-.entry-link:is(:hover, :focus-visible) .entry-art::before { opacity: .95; transform: scaleX(1); }
-
+.entry-link:is(:hover, :focus-visible) .entry-art::before { opacity: .85; transform: scaleX(1); }
 .entry-art .circuit-art,
 .entry-art .rfid-art,
 .entry-art .attendance-art {
-  transition: opacity .35s ease, transform .5s var(--motion-ease), scale .5s var(--motion-ease);
+  transition: opacity .3s ease, transform .4s var(--motion-ease), scale .4s var(--motion-ease);
 }
-.entry-link:is(:hover, :focus-visible) .entry-art :is(.circuit-art, .rfid-art, .attendance-art) { scale: 1.035; }
+.entry-link:is(:hover, :focus-visible) .entry-art :is(.circuit-art, .rfid-art, .attendance-art) { scale: 1.025; }
 
-.entry-meta > :first-child::before {
-  content: '';
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  margin-right: 7px;
-  border-radius: 50%;
-  vertical-align: middle;
-  background: var(--mint, #c2e7cd);
-  box-shadow: 0 0 9px #c2e7cd99;
-}
-.entry-body h4 { transition: color .3s ease; }
-.entry-link:is(:hover, :focus-visible) .entry-body h4 { color: #e9f3ff; }
-.entry-tags li { transition: translate .28s var(--motion-ease), box-shadow .28s ease; }
-.entry-tags li:hover { translate: 0 -2px; box-shadow: inset 0 0 0 1px #c2e7cd59, 0 6px 14px -8px #00000073; }
-.entry-action > span { transition: background .3s ease, box-shadow .35s ease, color .3s ease; }
-.entry-link:is(:hover, :focus-visible) .entry-action > span {
-  box-shadow: 0 0 0 4px #c2e7cd1f, 0 10px 20px -8px #00000073;
-}
-
-/* 18. Project report hero — a themed bloom behind the copy, a live status
-   marker, a signal lamp in the visual topline and a gradient rim on the
-   illustration frame. */
-.report-page .report-hero::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  inset: -12% -8% -22% 24%;
-  pointer-events: none;
-  background: radial-gradient(ellipse at 62% 24%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 64%);
-}
-.report-page .project-status strong::before {
-  content: '';
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-right: 8px;
-  border-radius: 50%;
-  vertical-align: middle;
-  background: var(--accent);
-  box-shadow: 0 0 10px var(--accent);
-}
-.report-page .visual-topline .signal::before {
-  content: '';
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-right: 8px;
-  border-radius: 50%;
-  vertical-align: middle;
-  background: var(--accent);
-  box-shadow: 0 0 10px var(--accent);
-}
-.report-page .hero-visual::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  padding: 1px;
-  border-radius: inherit;
-  pointer-events: none;
-  background: conic-gradient(from 220deg,
-    color-mix(in srgb, var(--accent) 60%, transparent), transparent 34%, transparent 68%, #ffffff38);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .report-page .project-status strong::before { animation: fx-status 2.8s ease-in-out infinite; }
-  @keyframes fx-status { 50% { opacity: .3; } }
-}
-
-/* 19. Numbers get their own light: the headline metric is set in a metal
-   gradient, the demo metrics use tabular figures, and every specification
-   cell draws an accent rule when it is read. */
-.report-page .visual-result strong {
-  background: linear-gradient(100deg, var(--accent) 12%, #ffffff 50%, var(--accent) 88%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--accent) 42%, transparent));
-}
-.report-page .demo-metrics dd {
-  font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 28px color-mix(in srgb, var(--accent) 32%, transparent);
-}
-.report-page .spec-grid { position: relative; }
-.report-page .spec-grid::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: -1px;
-  width: min(240px, 42%);
-  height: 1px;
-  background: linear-gradient(90deg, var(--accent), transparent);
-}
-.report-page .spec-grid div { position: relative; }
-.report-page .spec-grid div::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -2px;
-  height: 1px;
-  background: var(--accent);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform .5s var(--motion-ease);
-}
-.report-page .spec-grid div:hover::after { transform: scaleX(1); }
-
-/* 20. Reading furniture — the section header carries a rail, table captions a
-   diamond, flow steps, callouts, disclosures and reference rows all answer the
-   pointer with the theme accent rather than a generic one. */
-.report-page .section-grid > header { position: relative; }
-.report-page .section-grid > header::before {
-  content: '';
-  position: absolute;
-  left: -30px;
-  top: 2px;
-  bottom: 6px;
-  width: 1px;
-  background: linear-gradient(180deg, var(--accent), transparent 76%);
-  opacity: .4;
-}
-@media (max-width: 880px) {
-  .report-page .section-grid > header::before { display: none; }
-}
-.report-page caption::before {
-  content: '';
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-right: 10px;
-  vertical-align: middle;
-  background: var(--accent);
-  border-radius: 1px;
-  transform: rotate(45deg);
-}
-.report-page .flow li { transition: border-top-color .35s ease, translate .35s var(--motion-ease); }
-.report-page .flow li:hover { border-top-color: var(--accent); translate: 0 -2px; }
-.report-page .flow li strong { transition: color .3s ease; }
-.report-page .flow li:hover strong { color: #ffffff; }
-.report-page .callout { transition: box-shadow .4s ease, translate .4s var(--motion-ease); }
-.report-page .callout:hover {
-  translate: 0 -2px;
-  box-shadow: 0 14px 34px #00000047, -2px 0 24px -8px var(--accent);
-}
 .report-page .code-details summary {
   display: flex;
   align-items: center;
   list-style: none;
-  transition: background .3s ease, color .25s ease;
+  transition: background-color .2s ease, color .2s ease;
 }
 .report-page .code-details summary::-webkit-details-marker { display: none; }
 .report-page .code-details summary::after {
   content: '';
   margin-left: auto;
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   flex: 0 0 auto;
   border-right: 1.5px solid currentColor;
   border-bottom: 1.5px solid currentColor;
   transform: rotate(45deg) translate(-2px, -2px);
-  transition: transform .35s var(--motion-ease);
+  transition: transform .28s var(--motion-ease);
 }
 .report-page .code-details[open] summary::after { transform: rotate(-135deg) translate(-2px, -2px); }
-.report-page .code-details summary:hover { background: #1e2c26; }
-.report-page .reference-list a .icon { transition: transform .35s var(--motion-ease), color .3s ease; }
-.report-page .reference-list a:is(:hover, :focus-visible) .icon { transform: translate(3px, -3px); color: var(--accent); }
-.report-page .next-card > .icon { transition: transform .45s var(--motion-ease), filter .4s ease; }
-.report-page .next-card:is(:hover, :focus-visible) > .icon { transform: translateX(7px); filter: drop-shadow(0 0 12px var(--accent)); }
+.report-page .code-details summary:hover { background: #1c2923; }
 
-/* 21. Small parts: the level pill keeps a halo, the chosen example button is
-   lit rather than merely filled, and status badges ring on hover. */
-.report-page .pill.level {
-  box-shadow: 0 0 20px -6px var(--accent),
-    inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
-}
-.report-page .example-options button[aria-pressed="true"] {
-  box-shadow: 0 8px 20px -8px var(--accent), inset 0 0 0 1px #ffffff3d;
-}
-.report-page .badge { transition: box-shadow .3s ease; }
-.report-page .badge:hover { box-shadow: 0 0 0 3px #86734f26; }
-.report-page .badge.ok:hover { box-shadow: 0 0 0 3px #4b755926; }
-
-/* 22. The two workshops get the same hand: the hero strip keeps a rail, the
-   live lamps glow, the showcase frames take an accent rim and every quiet list
-   answers the pointer with the colour that belongs to that page. */
 .case-study-page { --project-accent: var(--cyan, var(--mint)); --project-accent-deep: var(--cyan-dark, #3b7454); }
-
-.case-study-page .eyebrow-pill i {
-  width: 7px;
-  height: 7px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 10px currentColor;
-}
-.case-study-page .spec-strip-grid { position: relative; }
-.case-study-page .spec-strip-grid::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 2px;
-  border-radius: 12px 12px 0 0;
-  pointer-events: none;
-  background: linear-gradient(90deg, var(--project-accent), transparent 78%);
-  opacity: .75;
-}
-.case-study-page .spec-cell { transition: translate .3s var(--motion-ease); }
-.case-study-page .spec-cell:hover { translate: 4px 0; }
-.case-study-page .spec-cell .val { text-shadow: 0 0 22px color-mix(in srgb, var(--project-accent) 32%, transparent); }
-
-.case-study-page :is(.poster-media-wrap, .poster-frame)::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0;
-  background: linear-gradient(115deg, transparent 42%, #ffffff2e 50%, transparent 58%);
-  transition: opacity .45s ease;
-}
-.case-study-page :is(.poster-media-wrap, .poster-frame):hover::after { opacity: 1; }
-
-.case-study-page :is(.cert-visual-frame, .notes-stage-frame, .bode-chart-canvas-wrap)::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  padding: 1px;
-  border-radius: inherit;
-  pointer-events: none;
-  background: conic-gradient(from 200deg,
-    color-mix(in srgb, var(--project-accent) 65%, transparent), transparent 32%, transparent 66%, #ffffff33);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-}
-
-.case-study-page :is(.stage-check-items, .feature-bullets) li { transition: color .3s ease, padding-left .35s var(--motion-ease); }
-.case-study-page :is(.stage-check-items, .feature-bullets) li:hover { color: #ffffff; padding-left: 4px; }
-.case-study-page :is(.stage-check-items, .feature-bullets) li::before {
-  text-shadow: 0 0 12px color-mix(in srgb, var(--project-accent) 60%, transparent);
-}
-.case-study-page .checklist-items li { transition: color .3s ease; }
-.case-study-page .checklist-items li:hover { color: #ffffff; }
-.case-study-page .checklist-items li::before { box-shadow: 0 0 16px -4px var(--project-accent); }
-.case-study-page .objective-list-box ol li::marker { color: var(--project-accent); }
-.case-study-page .pillar-outcome-footer { transition: box-shadow .4s ease; }
-.case-study-page .pillar-spec-card:hover .pillar-outcome-footer { box-shadow: -4px 0 24px -8px var(--project-accent); }
-
-.case-study-page :is(.bjt-interactive-card, .low-entropy-box, .notes-gallery-wrap) { position: relative; }
-.case-study-page :is(.bjt-interactive-card, .low-entropy-box, .notes-gallery-wrap)::before {
-  content: '';
-  position: absolute;
-  left: 28px;
-  top: -1px;
-  width: 180px;
-  height: 2px;
-  border-radius: 2px;
-  pointer-events: none;
-  background: linear-gradient(90deg, var(--project-accent), transparent);
-  opacity: .6;
-}
-.case-study-page .res-box { transition: border-color .3s ease, translate .3s var(--motion-ease); }
-.case-study-page .res-box:hover { border-color: var(--project-accent); translate: 0 -2px; }
-.case-study-page .res-box .value {
-  font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 18px color-mix(in srgb, var(--project-accent) 38%, transparent);
-}
+.case-study-page .res-box .value,
 .case-study-page .equation-number { font-variant-numeric: tabular-nums; }
-.case-study-page .thumb-item.active { box-shadow: inset 3px 0 0 var(--project-accent); }
 
-.case-study-page .person-card { transition: box-shadow .4s ease, translate .4s var(--motion-ease); }
-.case-study-page .person-card:hover {
-  translate: 0 -2px;
-  box-shadow: 0 12px 30px #00000059, -3px 0 22px -8px var(--project-accent);
+@media (max-width: 1050px) {
+  .site-home .header { --header-gutter: 30px; }
 }
-.case-study-page .architectural-diagram-box { position: relative; }
-.case-study-page .architectural-diagram-box::before {
-  content: '';
-  position: absolute;
-  left: 32px;
-  top: -1px;
-  width: 160px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--project-accent-deep), transparent);
+@media (max-width: 760px) {
+  .site-home .header { --header-gutter: 20px; }
+  .site-home .header nav a::after { left: 14px; right: auto; width: 24px; bottom: 7px; }
+  .site-home section[id], .site-home .collection-card[id] { scroll-margin-top: 96px; }
 }
-.case-study-page .official-links-ribbon { position: relative; }
-.case-study-page .official-links-ribbon::before {
-  content: '';
-  position: absolute;
-  left: 28px;
-  right: 28px;
-  bottom: -1px;
-  height: 1px;
-  background: linear-gradient(90deg, var(--project-accent), transparent 70%);
-  opacity: .45;
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  .reading-progress { display: none; }
+  .motion-depth { transform: none !important; }
+  ::view-transition-group(root), ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
 }
-.case-study-page .quote-symbol {
-  background: linear-gradient(155deg, var(--project-accent), #ffffff73);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 24px color-mix(in srgb, var(--project-accent) 45%, transparent));
-}
-.case-study-page .footer-nav-links a { position: relative; }
-.case-study-page .footer-nav-links a::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -4px;
-  height: 1px;
-  background: var(--project-accent);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform .35s var(--motion-ease);
-}
-.case-study-page .footer-nav-links a:is(:hover, :focus-visible)::after { transform: scaleX(1); }
-@media (prefers-reduced-motion: no-preference) {
-  .case-study-page .eyebrow-pill i { animation: fx-status 3.2s ease-in-out infinite; }
-}
-
-/* 23. Two closing strokes inside the reports: the diagram nodes lift off the
-   page and the formulas keep a rail of their own. */
-.report-page .diagram .node { transition: border-color .35s ease, box-shadow .35s ease, translate .35s var(--motion-ease); }
-.report-page .diagram .node:hover { translate: 0 -3px; border-color: var(--accent); box-shadow: 0 12px 26px #00000047; }
-.report-page .diagram .node.core:hover { box-shadow: 0 12px 26px #00000047, inset 0 0 0 1px var(--accent); }
-.report-page .check-list li::marker { color: var(--accent); }
-.report-page .formula { border-left: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); }
-
-/* 24. The ambience — one soft light that lives on all three page families. On a
-   fine pointer it trails the cursor; elsewhere it drifts on its own. Either way
-   it borrows its colour from how far the reader has travelled: the very same
-   mint → sky → amber ramp as the progress rail, so the light of the page moves
-   with the page. Decorative, never intercepts a pointer, gone for reduced
-   motion. */
-.fx-ambience {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: min(880px, 92vmin);
-  aspect-ratio: 1;
-  z-index: 7;
-  border-radius: 50%;
-  pointer-events: none;
-  translate: -50% -50%;
-  opacity: 0;
-  mix-blend-mode: screen;
-  background: radial-gradient(circle at 50% 50%,
-    rgb(var(--fx-amb-rgb, 194 231 205) / .5) 0,
-    rgb(var(--fx-amb-rgb, 194 231 205) / .16) 36%,
-    transparent 70%);
-  transition: opacity 1.1s ease;
-  will-change: transform;
-}
-.fx-ambience.is-ready { opacity: .42; }
-@media (prefers-reduced-motion: no-preference) {
-  .fx-ambience:not(.is-live) { animation: fx-ambience-drift 34s ease-in-out infinite alternate; }
-  @keyframes fx-ambience-drift {
-    from { transform: translate3d(-11vw, -7vh, 0) scale(.94); }
-    to { transform: translate3d(11vw, 8vh, 0) scale(1.08); }
-  }
-}
-@media (max-width: 900px), (prefers-reduced-motion: reduce) {
-  .fx-ambience { display: none; }
-}
-
-/* 25. The two grand portraits answer the pointer with a soft foil sheen lit on
-   the same spot the motion system already measures, so the hero artwork reads
-   as an object catching the light instead of a flat crop. */
-.site-home .portrait-card { --sheen-tint: #c2e7cd; }
-.case-study-page .poster-exhibition-card { --sheen-tint: var(--project-accent, #c2e7cd); }
-.site-home .portrait-card,
-.case-study-page .poster-exhibition-card { position: relative; }
-.site-home .portrait-card::after,
-.case-study-page .poster-exhibition-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  border-radius: inherit;
-  opacity: 0;
-  mix-blend-mode: soft-light;
-  background:
-    radial-gradient(340px circle at var(--spot-x, 46%) var(--spot-y, 30%),
-      #ffffffb3 0, var(--sheen-tint, #c2e7cd) 34%, transparent 72%),
-    linear-gradient(118deg, transparent 40%, #38bdf82e 48%, #e3c98f2e 56%, transparent 66%);
-  transition: opacity .5s ease;
-}
-.site-home .portrait-card:is(:hover, :focus-within)::after,
-.case-study-page .poster-exhibition-card:is(:hover, :focus-within)::after { opacity: 1; }
