@@ -5,60 +5,163 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Test Centre — Practice tests for NEET, GATE &amp; CUET | AAKASH</title>
   <meta name="description" content="A free practice-test centre: subject-wise tests and previous-year papers for NEET, GATE, CUET PG and CUCET with timers, a question palette, marking scheme, saved progress and answer review.">
-  <meta name="theme-color" content="#0b1120">
+  <meta name="theme-color" content="#FAF9F4">
   <meta property="og:title" content="Test Centre — Practice tests for NEET, GATE &amp; CUET">
   <meta property="og:description" content="Subject-wise practice tests with timers, a question palette, saved progress and answer review.">
   <meta property="og:type" content="website">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261121-studio1">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="../theme-sync.js?v=20261121-t1"></script>
+  <link rel="stylesheet" href="styles.css?v=20261121-syl1">
 </head>
 <body>
 
-  <header class="topbar wrap">
-    <a class="brand" href="#/">
-      <span class="brand-mark" aria-hidden="true">A</span>
-      <span>Test Centre<small>Practice · NEET, GATE &amp; CUET</small></span>
-    </a>
-    <nav class="top-links" aria-label="Secondary">
-      <a href="../index.html">Portfolio</a>
-      <a href="https://github.com/aakash9972sn" target="_blank" rel="noopener noreferrer">GitHub</a>
-    </nav>
+  <header class="topbar">
+    <div class="topbar-inner wrap">
+      <a class="brand" href="#/">
+        <span class="brand-mark" aria-hidden="true">TC</span>
+        <span>Test Centre<small>PRACTICE · NEET, GATE &amp; CUET PG</small></span>
+      </a>
+
+      <nav class="workspace-nav" id="workspace-nav" aria-label="Workspace sections">
+        <button type="button" class="ws-tab is-active" data-view="all" aria-pressed="true">Overview</button>
+        <button type="button" class="ws-tab" data-view="tests" aria-pressed="false">Practice Tests</button>
+        <button type="button" class="ws-tab" id="nav-pyp-btn" data-view="pyp" aria-pressed="false" hidden>275 PYPs</button>
+        <button type="button" class="ws-tab" data-view="ai" aria-pressed="false">AI Generator</button>
+      </nav>
+
+      <div class="top-links">
+        <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Switch color theme" title="Toggle light or dark theme">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+          </svg>
+        </button>
+        <a href="../index.html">Portfolio</a>
+        <a href="https://github.com/aakash9972sn" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </div>
   </header>
 
   <!-- ============================== HOME ============================== -->
   <main id="screen-home" class="screen" hidden>
-    <section class="hero wrap">
-      <span class="hero-eyebrow">Practice test centre</span>
-      <h1>Train like it <em>counts.</em></h1>
-      <p class="hero-lede">Subject-wise practice tests with a live timer, a question palette, exam marking, saved progress and answer review. Pick an exam, choose a subject and begin — your attempt resumes right where you stopped.</p>
-      <div id="home-stats" aria-label="Site summary"></div>
-    </section>
-
-    <div class="wrap">
-      <section class="pyp-library" aria-labelledby="pyp-title">
-        <div class="pyp-heading"><div><span class="hero-eyebrow">Previous-year papers</span><h2 id="pyp-title">275 questions. Three complete papers.</h2></div><span class="pyp-count">2021 — 2025</span></div>
-        <p>Practise the supplied papers in their original question order. Each paper includes a timer, saved progress and answer-key review.</p>
-        <div class="pyp-links">
-          <a href="#/t/cuet-pg-life-sciences-2025"><span>CUET PG · 2025</span><b>Life Sciences</b><small>75 questions · 90 minutes</small><i aria-hidden="true">↗</i></a>
-          <a href="#/t/cuet-pg-zoology-2022"><span>CUET PG · 2022</span><b>Zoology</b><small>100 questions · 120 minutes</small><i aria-hidden="true">↗</i></a>
-          <a href="#/t/cucet-life-sciences-2021"><span>CUCET · 2021</span><b>Life Sciences</b><small>100 questions · 120 minutes</small><i aria-hidden="true">↗</i></a>
+    <div class="wrap home-shell">
+      <section class="tc-exam-gate" aria-label="Choose your target exam">
+        <div class="tc-exam-gate-copy">
+          <span class="tc-exam-gate-kicker">STEP 1 · SELECT EXAM STREAM</span>
+          <strong>Pick your exam first — everything else adapts cleanly</strong>
         </div>
-        <details class="pyp-source"><summary>Source &amp; scoring notes</summary><p>Imported from your 275-question CSV. Three source-flagged questions (2025 Q38, 2022 Q78 and 2021 Q62) remain available for review but do not affect marks, accuracy or maximum score. Each paper uses +4 for correct answers and −1 for wrong answers. This is a practice score, not an official result. Detailed explanations and original question images were not included in the CSV; any supplied image descriptions are retained.</p><p>Exam references: <a href="https://exams.nta.ac.in/CUET-PG/images/ib-of-cuet-pg-2025.pdf" target="_blank" rel="noopener">CUET PG 2025 bulletin</a> · <a href="https://cuj.ac.in/file/admission/CUET-22/CUET%20PG%20Information%20Bulletin%202022.pdf" target="_blank" rel="noopener">CUET PG 2022 bulletin</a> · <a href="https://www.nta.ac.in/Download/Notice/Notice_20210816112158.pdf" target="_blank" rel="noopener">CUCET 2021 notice</a></p></details>
+        <div class="tc-exam-gate-btns" id="exam-track-bar" role="tablist" aria-label="Target exam track">
+          <button type="button" class="tc-track-btn is-active" data-track="gate" role="tab" aria-selected="true">
+            <span class="tc-track-code">GATE EC</span>
+            <small>ECE · 10 subjects</small>
+          </button>
+          <button type="button" class="tc-track-btn" data-track="neet" role="tab" aria-selected="false">
+            <span class="tc-track-code">NEET UG</span>
+            <small>Bio · Physics · Chem</small>
+          </button>
+          <button type="button" class="tc-track-btn" data-track="cuet-pg" role="tab" aria-selected="false">
+            <span class="tc-track-code">CUET PG</span>
+            <small>Life Sci · Zoology · PYPs</small>
+          </button>
+        </div>
       </section>
-      <section id="ai-generator" class="ai-generator" aria-label="AI test generator"></section>
-      <div id="resume-banner" hidden></div>
 
-      <div class="filters">
-        <div id="exam-tabs" role="group" aria-label="Exams"></div>
-        <div id="subject-chips" aria-label="Subjects"></div>
-        <label class="search"><input id="search" type="search" placeholder="Search tests…" aria-label="Search tests"></label>
+      <section class="hero" aria-labelledby="hero-headline">
+        <div class="hero-copy">
+          <span class="hero-eyebrow" id="hero-eyebrow">PRACTICE PORTAL · GATE EC</span>
+          <h1 id="hero-headline">Train like it <em>counts.</em></h1>
+          <p class="hero-lede" id="hero-lede">Subject-wise practice tests with a live timer, question palette, exam marking, saved progress, and instant solution review.</p>
+          <div id="home-stats" aria-label="Site summary"></div>
+        </div>
+        <div class="hero-cta-card">
+          <span class="hero-cta-kicker">SYLLABUS-DRIVEN GEMINI AI</span>
+          <strong>Custom MCQ Sets</strong>
+          <small id="hero-cta-sub">Pick an official syllabus unit and question count — ready in seconds.</small>
+          <button type="button" class="btn-gold" id="jump-ai-gen">Open AI generator <span aria-hidden="true">→</span></button>
+        </div>
+      </section>
+
+      <div class="tc-workbench">
+        <aside class="tc-rail" aria-label="Filters and test progress">
+          <div class="tc-rail-head">
+            <h2>Test workbench</h2>
+            <p id="rail-sub">GATE ECE Track</p>
+          </div>
+
+          <div class="tc-meter" id="tc-meter" aria-label="Preparation progress">
+            <div class="tc-meter-top">
+              <div class="tc-meter-num"><b id="tc-meter-count">0</b><span> / <span id="tc-meter-total">0</span> sets</span></div>
+              <span class="tc-meter-badge" id="tc-meter-badge">READY</span>
+            </div>
+            <div class="tc-meter-bars" id="tc-meter-bars" aria-hidden="true"></div>
+            <div class="tc-meter-foot">
+              <span id="tc-meter-inprog">0 in progress</span>
+              <span id="tc-meter-qs">0 total Qs</span>
+            </div>
+          </div>
+
+          <div class="tc-rail-group">
+            <span class="tc-rail-label">ACTIVE EXAM</span>
+            <div id="exam-tabs" role="group" aria-label="Exams"></div>
+          </div>
+
+          <div class="tc-rail-group">
+            <span class="tc-rail-label">SUBJECT FILTER</span>
+            <div id="subject-chips" aria-label="Subjects"></div>
+          </div>
+        </aside>
+
+        <div class="tc-main">
+          <div class="tc-search-bar">
+            <label class="search">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input id="search" type="search" placeholder="Search tests by subject or paper title…" aria-label="Search tests">
+            </label>
+            <div class="tc-view-pills" role="group" aria-label="Quick view">
+              <button type="button" class="ws-pill is-active" data-view="all">All</button>
+              <button type="button" class="ws-pill" data-view="tests">Tests</button>
+              <button type="button" class="ws-pill" id="pill-pyp-btn" data-view="pyp" hidden>PYPs (3)</button>
+              <button type="button" class="ws-pill" data-view="ai">AI Sets</button>
+            </div>
+          </div>
+
+          <div id="resume-banner" hidden></div>
+
+          <section id="ai-generator" class="ai-generator" aria-label="AI test generator"></section>
+
+          <section class="pyp-library" id="pyp-library" aria-labelledby="pyp-title" hidden>
+            <div class="pyp-heading">
+              <div>
+                <span class="section-kicker">PREVIOUS-YEAR ARCHIVE</span>
+                <h2 id="pyp-title">275 questions. Three complete papers.</h2>
+              </div>
+              <span class="pyp-count">2021 — 2025</span>
+            </div>
+            <p>Practise official previous-year papers in original question order with live timers, saved progress, and answer-key review.</p>
+            <div class="pyp-links">
+              <a href="#/t/cuet-pg-life-sciences-2025"><span>CUET PG · 2025</span><b>Life Sciences</b><small>75 questions · 90 min</small><i aria-hidden="true">↗</i></a>
+              <a href="#/t/cuet-pg-zoology-2022"><span>CUET PG · 2022</span><b>Zoology</b><small>100 questions · 120 min</small><i aria-hidden="true">↗</i></a>
+              <a href="#/t/cucet-life-sciences-2021"><span>CUCET · 2021</span><b>Life Sciences</b><small>100 questions · 120 min</small><i aria-hidden="true">↗</i></a>
+            </div>
+            <details class="pyp-source">
+              <summary>Source &amp; scoring notes</summary>
+              <p>Imported from the 275-question CSV. Three source-flagged questions (2025 Q38, 2022 Q78 and 2021 Q62) remain available for review without affecting marks or accuracy (+4 / −1 scheme).</p>
+              <p>References: <a href="https://exams.nta.ac.in/CUET-PG/images/ib-of-cuet-pg-2025.pdf" target="_blank" rel="noopener">CUET PG 2025</a> · <a href="https://cuj.ac.in/file/admission/CUET-22/CUET%20PG%20Information%20Bulletin%202022.pdf" target="_blank" rel="noopener">CUET PG 2022</a> · <a href="https://www.nta.ac.in/Download/Notice/Notice_20210816112158.pdf" target="_blank" rel="noopener">CUCET 2021</a></p>
+            </details>
+          </section>
+
+          <section id="tests-catalog" aria-label="Practice test catalog">
+            <div class="catalog-head">
+              <span class="section-kicker" id="catalog-kicker">SUBJECT CATALOG</span>
+              <h3 id="catalog-heading">Available test modules</h3>
+            </div>
+            <div id="test-grid"></div>
+            <p id="home-empty" hidden>No tests match your search or filter. Try another term or reset filters.</p>
+          </section>
+        </div>
       </div>
-
-      <div id="test-grid"></div>
-      <p id="home-empty" hidden>No tests match your search. Try a different term or reset the filters.</p>
     </div>
   </main>
 
@@ -110,7 +213,7 @@
           </div>
           <div class="palette-grid" id="palette-grid"></div>
           <div class="palette-footer">
-            <div class="palette-summary"><span>Tip: keys 1–4 select, M marks</span></div>
+            <div class="palette-summary"><span>Keys 1–4 select · M marks</span></div>
             <button type="button" id="btn-submit">Submit test</button>
           </div>
         </aside>
@@ -132,16 +235,15 @@
   <div id="modal" hidden></div>
 
   <script src="data.js"></script>
-  <script src="pyp-data.js?v=20261121-studio1"></script>
-  <script src="test-core.js?v=20261121-studio1"></script>
-  <script src="../backend-config.js?v=20261121-sitefix1"></script>
-<script src="hosted-ai.js?v=20261121-sitefix1"></script>
-  <script src="../firebase-account.js?v=20261121-authdomain2" defer></script>
-  <script src="ai-config.js?v=20261121-sitefix1"></script>
-  <script src="ai-coach.js?v=20261121-studio1"></script>
-  <script src="ai-generator.js?v=20261121-studio1"></script>
-  <script src="app.js?v=20261121-studio1"></script>
-  <script src="../ai-assistant.js?v=20261121-sitefix1" defer></script>
-<script src="../command-palette.js?v=20261121-1" defer></script>
+  <script src="pyp-data.js?v=20261121-syl1"></script>
+  <script src="syllabus-data.js?v=20261121-syl1"></script>
+  <script src="test-core.js?v=20261120-pyp1"></script>
+  <script src="hosted-ai.js?v=20261121-syl1"></script>
+  <script src="../firebase-account.js?v=20261120-account3" defer></script>
+  <script src="ai-config.js?v=20261120-fix1"></script>
+  <script src="ai-coach.js?v=20261120-pyp1"></script>
+  <script src="ai-generator.js?v=20261121-syl1"></script>
+  <script src="app.js?v=20261121-syl1"></script>
+  <script src="../ai-assistant.js?v=20261121-t2" defer></script>
 </body>
 </html>

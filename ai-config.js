@@ -1,7 +1,7 @@
 window.AAKASH_AI = {
   endpoint: /(^|\.)github\.io$/i.test(location.hostname)
-    ? 'https://aakash-portfolio-g3fb.onrender.com/api/ai/chat/stream'
-    : '/api/ai/chat/stream',
+    ? 'https://aakash-portfolio-g3fb.onrender.com/api/ai/chat'
+    : '/api/ai/chat',
   app: 'portfolio',
   title: 'Aakash AI Guide',
   intro: 'Ask about my DTU ECE projects, circuit notes, or where to start.',

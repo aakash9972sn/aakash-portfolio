@@ -92,65 +92,163 @@
   }
 
   /* ------------------------------------------------------------------- home */
-  let filterExam = 'all';
+  const EXAM_STORE_KEY = 'tclab.activeExam';
+  const TRACK_IDS = ['gate', 'neet', 'cuet-pg'];
+  const TRACK_META = {
+    gate: {
+      eyebrow: 'PRACTICE PORTAL · GATE 2027 ECE',
+      lede: 'Subject-wise GATE Electronics & Communication practice with live timer, +1/−0.33 marking, official syllabus AI sets, and solution review.',
+      ctaSub: 'Generate MCQs strictly from the official GATE 2027 EC syllabus.',
+      railSub: 'GATE 2027 ECE Track',
+      catalogHeading: 'GATE EC subject modules'
+    },
+    neet: {
+      eyebrow: 'PRACTICE PORTAL · NEET UG',
+      lede: 'Focused Physics, Chemistry & Biology practice tests with live timer, +4/−1 NTA marking, NCERT syllabus AI sets, and instant solutions.',
+      ctaSub: 'Generate MCQs strictly from official NTA NEET UG chapters.',
+      railSub: 'NEET UG Track',
+      catalogHeading: 'NEET UG subject modules'
+    },
+    'cuet-pg': {
+      eyebrow: 'PRACTICE PORTAL · CUET PG',
+      lede: 'CUET PG Life Sciences (SCQP17) & Zoology (SCQP28) practice — includes all 275 official PYPs and syllabus-driven Gemini AI mocks (+4/−1).',
+      ctaSub: 'Generate MCQs strictly from CUET PG SCQP17 & SCQP28 syllabi.',
+      railSub: 'CUET PG Track',
+      catalogHeading: 'CUET PG & PYP modules'
+    }
+  };
+  const savedExam = store.get(EXAM_STORE_KEY, 'gate');
+  let filterExam = TRACK_IDS.includes(savedExam) ? savedExam : 'gate';
   let filterSubject = 'all';
   let searchTerm = '';
+
+  const trackForExamId = (examId) => (examId === 'cucet' ? 'cuet-pg' : examId);
+  const matchesActiveTrack = (examId) => trackForExamId(examId) === filterExam;
+  const activeTrackTests = () => TESTS.filter((x) => matchesActiveTrack(x.exam.id));
 
   function progressOf(id) {
     const entry = findEntry(id);
     return entry ? Core.progress(store.get(PKEY(id), null), questionsOf(entry.test), entry.test.duration * 60) : null;
   }
 
-  function showHome() {
-    stopTimer();
-    run = null;
-    setScreen('home');
+  function renderTrackFocus() {
+    const meta = TRACK_META[filterExam] || TRACK_META.gate;
+    $$('#exam-track-bar .tc-track-btn').forEach((btn) => {
+      const on = btn.dataset.track === filterExam;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-selected', String(on));
+    });
+    if ($('#hero-eyebrow')) $('#hero-eyebrow').textContent = meta.eyebrow;
+    if ($('#hero-lede')) $('#hero-lede').textContent = meta.lede;
+    if ($('#hero-cta-sub')) $('#hero-cta-sub').textContent = meta.ctaSub;
+    if ($('#rail-sub')) $('#rail-sub').textContent = meta.railSub;
+    if ($('#catalog-heading')) $('#catalog-heading').textContent = meta.catalogHeading;
+    const isCuet = filterExam === 'cuet-pg';
+    $$('[data-view="pyp"]').forEach((btn) => { btn.hidden = !isCuet; });
+    if (!isCuet && workspaceView === 'pyp') workspaceView = 'all';
+    setWorkspaceView(workspaceView);
+  }
+
+  function selectExamTrack(trackId, fromGenerator) {
+    if (!TRACK_IDS.includes(trackId)) return;
+    filterExam = trackId;
+    filterSubject = 'all';
+    store.set(EXAM_STORE_KEY, filterExam);
+    renderTrackFocus();
     renderExamTabs();
     renderSubjectChips();
     renderResume();
     renderCards();
     renderHomeStats();
-    if (generator) generator.mount(EXAMS, registerGenerated, () => {
-      renderResume();
-      renderCards();
-      renderHomeStats();
-    });
+    if (!fromGenerator && generator && typeof generator.setExam === 'function') {
+      generator.setExam(filterExam);
+    }
+  }
+
+  function showHome() {
+    stopTimer();
+    run = null;
+    setScreen('home');
+    renderTrackFocus();
+    renderExamTabs();
+    renderSubjectChips();
+    renderResume();
+    renderCards();
+    renderHomeStats();
+    if (generator) {
+      generator.mount(
+        EXAMS,
+        registerGenerated,
+        () => {
+          renderResume();
+          renderCards();
+          renderHomeStats();
+        },
+        {
+          activeExam: filterExam,
+          onExamChange: (examId) => selectExamTrack(examId, true)
+        }
+      );
+      if (typeof generator.setExam === 'function') generator.setExam(filterExam);
+    }
   }
 
   function renderHomeStats() {
-    const inProgress = TESTS.filter((x) => progressOf(x.test.id)).length;
-    const attempted = TESTS.filter((x) => store.get(BKEY(x.test.id), null)).length;
-    const subjectCount = EXAMS.reduce((n, e) => n + e.subjects.length, 0);
-    const questions = new Set(TESTS.flatMap(x => questionsOf(x.test).map(q => JSON.stringify([q.q, q.o])))).size;
+    const scopedTests = activeTrackTests();
+    const scopedExams = EXAMS.filter((e) => matchesActiveTrack(e.id));
+    const inProgress = scopedTests.filter((x) => progressOf(x.test.id)).length;
+    const attempted = scopedTests.filter((x) => store.get(BKEY(x.test.id), null)).length;
+    const subjectCount = scopedExams.reduce((n, e) => n + e.subjects.length, 0);
+    const questions = new Set(scopedTests.flatMap((x) => questionsOf(x.test).map((q) => JSON.stringify([q.q, q.o])))).size;
     const stats = [
-      { v: TESTS.length, l: 'Tests' },
+      { v: scopedTests.length, l: 'Tests' },
       { v: subjectCount, l: 'Subjects' },
       { v: questions, l: 'Questions' },
       { v: attempted, l: 'Attempted' },
       { v: inProgress, l: 'In progress' }
     ];
     $('#home-stats').innerHTML = stats.map((s) => '<div class="stat"><b>' + s.v + '</b><span>' + esc(s.l) + '</span></div>').join('');
+
+    const meterCount = $('#tc-meter-count');
+    const meterTotal = $('#tc-meter-total');
+    const meterBadge = $('#tc-meter-badge');
+    const meterBars = $('#tc-meter-bars');
+    const meterInprog = $('#tc-meter-inprog');
+    const meterQs = $('#tc-meter-qs');
+    if (meterCount && meterTotal && meterBars) {
+      meterCount.textContent = String(attempted);
+      meterTotal.textContent = String(scopedTests.length);
+      if (meterBadge) {
+        meterBadge.textContent = attempted >= 3 ? '✓ ON TRACK' : (inProgress ? 'IN PROGRESS' : 'READY TO START');
+      }
+      if (meterInprog) meterInprog.textContent = inProgress + ' in progress';
+      if (meterQs) meterQs.textContent = questions + ' total Qs';
+      const totalBars = 20;
+      const doneBars = scopedTests.length ? Math.round((attempted / scopedTests.length) * totalBars) : 0;
+      const progBars = scopedTests.length ? Math.min(totalBars - doneBars, Math.ceil((inProgress / scopedTests.length) * totalBars)) : 0;
+      let barsHtml = '';
+      for (let i = 0; i < totalBars; i++) {
+        const cls = i < doneBars ? 'is-filled' : (i < doneBars + progBars ? 'is-active' : '');
+        barsHtml += '<i class="' + cls + '"></i>';
+      }
+      meterBars.innerHTML = barsHtml;
+    }
   }
 
   function renderExamTabs() {
-    const tabs = [{ id: 'all', name: 'All exams' }].concat(EXAMS.map((e) => ({ id: e.id, name: e.name })));
+    const tabs = TRACK_IDS.map((id) => EXAMS.find((e) => e.id === id)).filter(Boolean);
     $('#exam-tabs').innerHTML = tabs.map((t) => {
       const active = t.id === filterExam ? ' is-active' : '';
-      const exam = EXAMS.find((e) => e.id === t.id);
-      const style = exam ? ' style="--tab-accent:' + exam.accent + '"' : '';
+      const style = ' style="--tab-accent:' + t.accent + '"';
       return '<button type="button" class="tab' + active + '" aria-pressed="' + (t.id === filterExam) + '" data-exam="' + esc(t.id) + '"' + style + '>' + esc(t.name) + '</button>';
     }).join('');
     $$('#exam-tabs .tab').forEach((btn) => btn.addEventListener('click', () => {
-      filterExam = btn.dataset.exam;
-      filterSubject = 'all';
-      renderExamTabs();
-      renderSubjectChips();
-      renderCards();
+      selectExamTrack(btn.dataset.exam, false);
     }));
   }
 
   function subjectsForFilter() {
-    const exams = filterExam === 'all' ? EXAMS : EXAMS.filter((e) => e.id === filterExam);
+    const exams = EXAMS.filter((e) => matchesActiveTrack(e.id));
     const out = [];
     exams.forEach((e) => e.subjects.forEach((s) => out.push({ id: s.id, name: s.name, exam: e })));
     return out;
@@ -158,7 +256,10 @@
 
   function renderSubjectChips() {
     const subs = subjectsForFilter();
-    const chips = [{ id: 'all', name: 'All subjects' }].concat(subs.map(s => ({ ...s, name: subs.filter(other => other.name === s.name).length > 1 ? s.name + ' · ' + s.exam.name : s.name })));
+    const chips = [{ id: 'all', name: 'All subjects' }].concat(subs.map((s) => ({
+      ...s,
+      name: subs.filter((other) => other.name === s.name).length > 1 ? s.name + ' · ' + s.exam.name : s.name
+    })));
     $('#subject-chips').innerHTML = chips.map((s) => {
       const active = s.id === filterSubject ? ' is-active' : '';
       return '<button type="button" class="chip' + active + '" data-subject="' + esc(s.id) + '">' + esc(s.name) + '</button>';
@@ -171,7 +272,7 @@
   }
 
   function renderResume() {
-    const items = TESTS.map((x) => ({ x: x, p: progressOf(x.test.id) })).filter((o) => o.p && o.p.responses);
+    const items = activeTrackTests().map((x) => ({ x: x, p: progressOf(x.test.id) })).filter((o) => o.p && o.p.responses);
     const banner = $('#resume-banner');
     if (!items.length) { banner.hidden = true; banner.innerHTML = ''; return; }
     banner.hidden = false;
@@ -190,7 +291,7 @@
   function visibleTests() {
     const term = searchTerm.trim().toLowerCase();
     return TESTS.filter((x) => {
-      if (filterExam !== 'all' && x.exam.id !== filterExam) return false;
+      if (!matchesActiveTrack(x.exam.id)) return false;
       if (filterSubject !== 'all' && x.subject.id !== filterSubject) return false;
       if (!term) return true;
       const hay = (x.test.title + ' ' + x.subject.name + ' ' + x.exam.name + ' ' + (x.test.level || '')).toLowerCase();
@@ -211,16 +312,23 @@
         ev.preventDefault();
         if (el.hasAttribute('data-delete-ai')) {
           ev.stopPropagation();
-          if (!window.confirm('Delete this AI-generated test and its saved result?')) return;
-          if (!generator || !generator.removeSaved(id)) { window.alert('Could not delete this test.'); return; }
-          const index = TESTS.findIndex((entry) => entry.test.id === id);
-          if (index >= 0) TESTS.splice(index, 1);
-          store.del(PKEY(id));
-          store.del(BKEY(id));
-          store.del(RKEY(id));
-          renderCards();
-          renderResume();
-          renderHomeStats();
+          modal({
+            title: 'Delete saved AI test?',
+            body: '<p>This removes the AI-generated test and any saved result from this browser.</p>',
+            confirm: 'Delete test',
+            cancel: 'Keep',
+            onConfirm: () => {
+              if (!generator || !generator.removeSaved(id)) return;
+              const index = TESTS.findIndex((entry) => entry.test.id === id);
+              if (index >= 0) TESTS.splice(index, 1);
+              store.del(PKEY(id));
+              store.del(BKEY(id));
+              store.del(RKEY(id));
+              renderCards();
+              renderResume();
+              renderHomeStats();
+            }
+          });
           return;
         }
         go('#/t/' + id);
@@ -258,6 +366,12 @@
 
   /* ------------------------------------------------------------ test runner */
   function openTest(entry) {
+    const mappedTrack = trackForExamId(entry.exam.id);
+    if (TRACK_IDS.includes(mappedTrack) && mappedTrack !== filterExam) {
+      filterExam = mappedTrack;
+      filterSubject = 'all';
+      store.set(EXAM_STORE_KEY, filterExam);
+    }
     const test = entry.test;
     const questions = questionsOf(test);
     let prog = progressOf(test.id);
@@ -685,9 +799,46 @@
     $('#modal-cancel').focus();
   }
 
+  /* ------------------------------------------------------------------- workspace & theme */
+  let workspaceView = 'all';
+  function setWorkspaceView(view) {
+    const allowPyp = filterExam === 'cuet-pg';
+    workspaceView = ['all', 'tests', 'ai'].includes(view) || (view === 'pyp' && allowPyp) ? view : 'all';
+    $$('[data-view]').forEach((btn) => {
+      const on = btn.dataset.view === workspaceView;
+      btn.classList.toggle('is-active', on);
+      if (btn.hasAttribute('aria-pressed')) btn.setAttribute('aria-pressed', String(on));
+    });
+    const aiSec = $('#ai-generator');
+    const pypSec = $('.pyp-library');
+    const catSec = $('#tests-catalog');
+    if (aiSec) aiSec.hidden = !(workspaceView === 'all' || workspaceView === 'ai');
+    if (pypSec) pypSec.hidden = !(allowPyp && (workspaceView === 'all' || workspaceView === 'pyp'));
+    if (catSec) catSec.hidden = !(workspaceView === 'all' || workspaceView === 'tests');
+  }
+
   /* ------------------------------------------------------------------- wire */
   function wire() {
-    $('#search').addEventListener('input', (e) => { searchTerm = e.target.value; renderCards(); });
+    $$('#exam-track-bar .tc-track-btn').forEach((btn) => btn.addEventListener('click', () => {
+      if ($('#screen-home').hidden) go('#/');
+      selectExamTrack(btn.dataset.track, false);
+    }));
+    $$('[data-view]').forEach((btn) => btn.addEventListener('click', () => {
+      if ($('#screen-home').hidden) go('#/');
+      setWorkspaceView(btn.dataset.view);
+    }));
+    $('#jump-ai-gen')?.addEventListener('click', () => {
+      setWorkspaceView('ai');
+      $('#ai-generator')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    $('#search').addEventListener('input', (e) => {
+      searchTerm = e.target.value;
+      if (workspaceView !== 'all' && workspaceView !== 'tests' && searchTerm.trim()) {
+        setWorkspaceView('tests');
+      }
+      renderCards();
+    });
     $('#btn-prev').addEventListener('click', prevQuestion);
     $('#btn-next').addEventListener('click', () => { saveProgress(); nextQuestion(); });
     $('#btn-clear').addEventListener('click', clearResponse);

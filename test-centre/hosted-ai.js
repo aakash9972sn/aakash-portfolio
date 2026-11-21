@@ -1,9 +1,8 @@
-/* Test Centre transport for the configured server-side Gemini API. */
+/* Same-origin AI transport for Test Centre, backed by server-side Gemini API. */
 (() => {
   'use strict';
 
-  const base = window.AakashBackend?.configured() ? window.AakashBackend.origin() : '';
-  const apiURL = path => window.AakashBackend?.url(path) || path;
+  const base = '';
 
   async function parseJsonSafely(response, fallbackError) {
     const raw = await response.text();
@@ -26,10 +25,20 @@
   }
 
   async function post(path, body, signal) {
-    const url = apiURL(path);
-    let response;
-    try {
-      response = await fetch(url, {
+    const url = base + path;
+    let response = await fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+      body: JSON.stringify(body),
+      signal: signal || AbortSignal.timeout(60000),
+    });
+
+    const ct = (response.headers.get('content-type') || '').toLowerCase();
+    if (ct.includes('text/html') && response.ok) {
+      // Retry once with cache-busting query in case an auth/proxy edge served stale HTML
+      response = await fetch(url + '?_=' + Date.now(), {
         method: 'POST',
         credentials: 'same-origin',
         cache: 'no-store',
@@ -37,15 +46,8 @@
         body: JSON.stringify(body),
         signal: signal || AbortSignal.timeout(60000),
       });
-    } catch (error) {
-      if (['AbortError','TimeoutError'].includes(error?.name)) throw error;
-      throw new Error('Cannot connect to the Gemini server. Check Node deployment, AAKASH_BACKEND_ORIGIN and CORS.');
     }
-    const ct = (response.headers.get('content-type') || '').toLowerCase();
 
-    if (response.ok && ct.includes('text/html')) {
-      throw new Error('The AI endpoint returned HTML instead of Gemini data. Configure the actual Node server URL; retrying an HTML page will not fix the API.');
-    }
     if (!response.ok) {
       let msg = '';
       try {
@@ -68,10 +70,8 @@
     const response = await post('/api/ai/chat/stream', body, signal);
     const ct = (response.headers.get('content-type') || '').toLowerCase();
     if (ct.includes('text/html')) {
-      throw new Error('The AI server returned an HTML webpage, not a Gemini stream. Check its deployed API URL.');
+      throw new Error('Please refresh this page once and retry your question.');
     }
-    if (!ct.includes('text/event-stream'))
-      throw new Error('The AI server did not return a Gemini event stream.');
     if (!response.body) throw new Error('The AI stream is unavailable.');
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
@@ -145,6 +145,13 @@
         'neet-bio': 'Biology',
         'neet-phy': 'Physics',
         'neet-chem': 'Chemistry',
+        'cuet-life-sciences': 'Life Sciences (SCQP17)',
+        'cuet-zoology': 'Zoology (SCQP28)',
+      };
+      const examsMap = {
+        neet: 'NEET UG',
+        'cuet-pg': 'CUET PG',
+        gate: 'GATE ECE',
       };
       const difficultyMap = {
         Easy: 'Foundation',
@@ -155,12 +162,15 @@
       const response = await post(
         '/api/ai/study-mcq',
         {
-          exam: body.exam === 'neet' ? 'NEET UG' : 'GATE ECE',
+          exam: examsMap[body.exam] || 'GATE ECE',
           subject: subjects[body.subject] || body.subject,
           topic: body.topic || 'Important syllabus concepts',
+          unit: body.unit || '',
+          syllabusSpec: body.syllabusSpec || '',
           count: body.count,
           difficulty: difficultyMap[body.difficulty] || 'Exam Standard',
-          avoid: Array.isArray(body.avoid) ? body.avoid.slice(-20) : [],
+          avoid: Array.isArray(body.avoid) ? body.avoid.slice(-30) : [],
+          batchIndex: Number.isInteger(body.batchIndex) ? body.batchIndex : 0,
         },
         signal
       );
@@ -188,7 +198,7 @@
       {
         question: body.question || 'Review these completed test results and suggest a revision plan.',
         history: (body.history || []).filter((m) => ['user', 'assistant'].includes(m.role)).slice(-6),
-        pageContext: JSON.stringify(body.context || body.stats || {}),
+        pageContext: body.context || body.stats || {},
       },
       signal,
       onText
@@ -197,7 +207,7 @@
 
   async function transport(url, options = {}) {
     if (options.method === 'GET' || String(url).endsWith('/health')) {
-      const response = await fetch(apiURL('/api/health'), {
+      const response = await fetch('/api/health', {
         credentials: 'same-origin',
         cache: 'no-store',
         headers: { Accept: 'application/json' },

@@ -20,7 +20,7 @@ window.portfolioEntries = [
     category: 'Browser game', artwork: 'guess',
     description: 'A little logic, a little luck. Find the number with higher-or-lower hints and try to beat your best score.',
     tags: ['JavaScript', 'Game development'],
-    href: 'https://aakash9972sn.github.io/perfect_guess/', action: 'Play game'
+    href: 'perfect-guess/', action: 'Play game'
   },
   {
     id: 'biology-test', type: 'project', title: 'Test Centre — NEET & GATE',
@@ -32,9 +32,9 @@ window.portfolioEntries = [
   {
     id: 'blunder-pro-max', type: 'project', title: 'Blunder — Everyday Store',
     category: 'Grocery commerce', level: 'Full-stack build', artwork: 'shop',
-    description: 'A grocery storefront with search, saved items, delivery maps and an AI shopping helper. Its order backend supports COD, verified payments and automatic seller notifications; live checkout requires hosting and provider setup.',
-    tags: ['JavaScript', 'Node.js', 'SQLite'],
-    href: 'https://aakash9972sn.github.io/my-website/', action: 'Explore the store'
+    description: 'A grocery storefront with live search, saved items, interactive Google Maps delivery-zone picker (DTU hub), and a Gemini shopping assistant.',
+    tags: ['JavaScript', 'Google Maps', 'Gemini AI'],
+    href: 'blunder/', action: 'Explore the store'
   },
   {
     id: 'analog-workshop', type: 'workshop', title: 'Analog Circuit Analysis, Design & Testing',

@@ -1,8 +1,9 @@
-// Portfolio and Test Centre share the same configured Node Gemini backend.
-window.TEST_CENTRE_AI_ENDPOINT = '/api';
+// Same-origin Gemini backend routes (handled securely on server.js)
+window.TEST_CENTRE_AI_ENDPOINT = /(^|\.)github\.io$/i.test(location.hostname) ? 'https://aakash-portfolio-g3fb.onrender.com/api' : '/api';
 
 window.AAKASH_AI = {
-  endpoint: '/api/ai/chat/stream',  app: 'study',
+  endpoint: `${window.TEST_CENTRE_AI_ENDPOINT}/ai/chat/stream`,
+  app: 'study',
   title: 'Aakash Gemini',
   intro:
     'Your fast Gemini study companion. Ask GATE/NEET concepts, clear doubts, or plan your revision right here.',

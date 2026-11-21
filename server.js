@@ -1,11 +1,35 @@
 const express = require('express');
+const fs = require('fs');
 const path = require('path');
 const { GoogleGenAI, ThinkingLevel, Type } = require('@google/genai');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = '0.0.0.0';
-const MODEL_ID = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+const MODEL_ID = 'gemini-3.1-flash-lite';
+
+function getMapsApiKey() {
+  return String(
+    process.env.GOOGLE_MAPS_API_KEY ||
+      process.env.VITE_GOOGLE_MAPS_API_KEY ||
+      process.env.MAPS_API_KEY ||
+      ''
+  ).trim();
+}
+
+function getAllowedOrigins() {
+  const raw = String(
+    process.env.ALLOWED_ORIGINS || 'https://aakash9972sn.github.io,http://localhost:3000,http://127.0.0.1:3000'
+  );
+  return new Set(
+    raw
+      .split(',')
+      .map((s) => s.trim().replace(/\/+$/, ''))
+      .filter(Boolean)
+  );
+}
+
+const ALLOWED_ORIGINS = getAllowedOrigins();
 
 const PORTFOLIO_SYSTEM_INSTRUCTION = `You are the fast AI portfolio & study assistant for AAKASH, a B.Tech Electronics & Communication Engineering (ECE) student at Delhi Technological University (DTU, Class of 2028).
 Answer clearly, accurately, and concisely in English or Hindi/Hinglish matching the visitor's language.
@@ -17,7 +41,7 @@ Key portfolio details:
    - Smart ID Entry-Exit & Time Analytics (System design): Proposed ESP32-S3 N16R8 architecture with dual PN532 NFC readers on separate UARTs (entry vs exit), DS3231 battery-backed RTC over I2C, microSD local CSV logging over SPI, permanent Person IDs decoupled from replaceable NTAG213 cards, and session-based duration analytics that exclude unclosed/orphan scans and breaks.
    - Perfect Guess: Browser number-guessing game (1-1000) with best-score tracking.
    - Test Centre - NEET & GATE: Practice test web app for NEET, GATE ECE, and CUET with timers, marking, saved progress, solutions, and AI MCQ generation.
-   - Blunder - Everyday Store: Grocery storefront web project (Node.js/SQLite architecture).
+   - Blunder - Everyday Store: Grocery storefront web project with Google Maps delivery zone picker and Gemini shopping helper.
 2. Workshops & Learning:
    - Analog Circuit Analysis, Design & Testing (3-4 June 2026, Dept. of ECE, DTU): Design-Oriented Analysis (DOA), Low-Entropy Expressions, R. David Middlebrook's Extra Element Theorem (EET & DEET), BJT biasing stability with emitter degeneration (RE), and small-signal CE audio amplifier synthesis.
    - PCB Designing Bootcamp (13-14 February 2026, AICTE IDEA Lab, DTU): Schematic capture, component placement, routing, DRC, fabrication, assembly, and QA using EDWinXP.
@@ -26,7 +50,6 @@ Key portfolio details:
 Keep responses concise, helpful, and grounded in the published portfolio facts and current page context. Do not invent hardware test metrics that are not documented.`;
 
 function createGeminiClient() {
-  if (app.locals.aiFactory) return app.locals.aiFactory();
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     const err = new Error('GEMINI_API_KEY is not configured on the server.');
@@ -133,17 +156,20 @@ function normalizeMcqText(str) {
     .trim();
 }
 
-function sanitizeMcqList(rawList, fallbackTopic, expectedCount) {
+function sanitizeMcqList(rawList, fallbackTopic, expectedCount, allowPartial = false) {
   if (!Array.isArray(rawList)) return null;
   const cleaned = [];
+  const seen = new Set();
   for (const item of rawList) {
     if (!item || typeof item !== 'object') continue;
     const q = String(item.q || '').trim().slice(0, 880);
+    const normQ = normalizeMcqText(q);
+    if (!normQ || seen.has(normQ)) continue;
     const options = Array.isArray(item.options)
       ? item.options.slice(0, 4).map((opt) => String(opt || '').trim().slice(0, 240))
       : [];
     const answerIndex = Number(item.answerIndex);
-    const explanation = String(item.explanation || '').trim().slice(0, 1250);
+    const explanation = String(item.explanation || '').trim().slice(0, 600);
     const topic = String(item.topic || fallbackTopic || 'General').trim().slice(0, 95);
 
     const uniqueOptions = new Set(options.map(normalizeMcqText));
@@ -159,43 +185,224 @@ function sanitizeMcqList(rawList, fallbackTopic, expectedCount) {
       topic.length >= 2;
 
     if (!valid) continue;
+    seen.add(normQ);
     cleaned.push({ q, options, answerIndex, explanation, topic });
     if (cleaned.length === expectedCount) break;
   }
-  return cleaned.length === expectedCount ? cleaned : null;
+  if (cleaned.length === expectedCount) return cleaned;
+  if (allowPartial && cleaned.length >= Math.max(1, Math.ceil(expectedCount * 0.6))) return cleaned;
+  return null;
 }
 
-// Permit the existing GitHub Pages sites as well as this server's own frontend.
-const allowedOrigins = new Set((process.env.ALLOWED_ORIGINS || 'https://aakash9972sn.github.io').split(',').map(value => value.trim()).filter(Boolean));
-app.use('/api', (req, res, next) => {
-  const origin = req.get('Origin');
-  if (origin) {
-    let sameOrigin = false;
-    try { sameOrigin = new URL(origin).host === req.get('Host'); } catch {}
-    if (!sameOrigin && !allowedOrigins.has(origin)) return res.status(403).json({ error: 'Origin is not allowed.' });
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Vary', 'Origin');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  }
-  if (req.method === 'OPTIONS') return res.sendStatus(204);
-  next();
-});
+function extractAddressComponent(components, type) {
+  if (!Array.isArray(components)) return '';
+  const found = components.find((c) => Array.isArray(c.types) && c.types.includes(type));
+  return found ? String(found.long_name || '') : '';
+}
+
+function formatGeocodeResult(item) {
+  if (!item || !item.geometry?.location) return null;
+  const comps = item.address_components || [];
+  const subpremise = extractAddressComponent(comps, 'subpremise');
+  const streetNumber = extractAddressComponent(comps, 'street_number');
+  const route = extractAddressComponent(comps, 'route');
+  const sublocality2 = extractAddressComponent(comps, 'sublocality_level_2');
+  const sublocality1 = extractAddressComponent(comps, 'sublocality_level_1');
+  const city =
+    extractAddressComponent(comps, 'locality') ||
+    extractAddressComponent(comps, 'administrative_area_level_2') ||
+    'New Delhi';
+  const state = extractAddressComponent(comps, 'administrative_area_level_1') || 'Delhi';
+  const pincode = extractAddressComponent(comps, 'postal_code');
+  const line = [subpremise, streetNumber, route, sublocality2, sublocality1]
+    .filter(Boolean)
+    .join(', ');
+  return {
+    lat: Number(item.geometry.location.lat),
+    lng: Number(item.geometry.location.lng),
+    formattedAddress: String(item.formatted_address || ''),
+    placeId: String(item.place_id || ''),
+    addressLine: line || String(item.formatted_address || '').split(',').slice(0, 2).join(', ').trim(),
+    city,
+    state,
+    pincode: /^[1-9]\d{5}$/.test(pincode) ? pincode : '',
+  };
+}
 
 app.use('/api', (req, res, next) => {
   res.setHeader('Cache-Control', 'no-store');
-  next();
+  const origin = req.headers.origin;
+  if (origin) {
+    const cleanOrigin = String(origin).replace(/\/+$/, '');
+    if (
+      ALLOWED_ORIGINS.has('*') ||
+      ALLOWED_ORIGINS.has(cleanOrigin) ||
+      cleanOrigin.endsWith('.run.app')
+    ) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Vary', 'Origin');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
+    }
+  }
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+  return next();
 });
 app.use(express.json({ limit: '128kb' }));
 
 app.get('/api/health', (req, res) => {
   const configured = Boolean(process.env.GEMINI_API_KEY);
+  const mapsConfigured = Boolean(getMapsApiKey());
   res.json({
     ok: true,
-    provider: 'google-gemini',
     configured,
+    mapsConfigured,
     model: MODEL_ID,
   });
+});
+
+app.get('/api/maps/config', (req, res) => {
+  const apiKey = getMapsApiKey();
+  res.json({
+    configured: Boolean(apiKey),
+    apiKey,
+  });
+});
+
+app.post('/api/maps/search', async (req, res) => {
+  const apiKey = getMapsApiKey();
+  if (!apiKey) {
+    return res.status(503).json({ error: 'Google Maps API key is not configured on the server.' });
+  }
+  const query = String(req.body?.query || '').trim().slice(0, 180);
+  if (query.length < 3) {
+    return res.status(400).json({ error: 'Please enter at least 3 characters to search an address.' });
+  }
+  try {
+    const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
+    url.searchParams.set('address', query);
+    url.searchParams.set('components', 'country:IN');
+    url.searchParams.set('language', 'en');
+    url.searchParams.set('key', apiKey);
+    const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (response.status === 429) {
+      return res.status(429).json({
+        error: 'Google Maps Platform quota reached.',
+        status: 'RESOURCE_EXHAUSTED',
+      });
+    }
+    const data = await response.json();
+    if (data.status === 'OVER_QUERY_LIMIT') {
+      return res.status(429).json({
+        error: 'Google Maps Platform quota reached.',
+        status: 'RESOURCE_EXHAUSTED',
+      });
+    }
+    if (data.status === 'REQUEST_DENIED') {
+      return res.status(403).json({ error: data.error_message || 'Geocoding API request denied.' });
+    }
+    const results = Array.isArray(data.results)
+      ? data.results.slice(0, 5).map(formatGeocodeResult).filter(Boolean)
+      : [];
+    return res.json({ status: data.status || 'OK', results });
+  } catch (error) {
+    console.error('Maps search error:', error);
+    return res.status(502).json({ error: 'Could not reach Google Geocoding service.' });
+  }
+});
+
+app.post('/api/maps/reverse', async (req, res) => {
+  const apiKey = getMapsApiKey();
+  if (!apiKey) {
+    return res.status(503).json({ error: 'Google Maps API key is not configured on the server.' });
+  }
+  const lat = Number(req.body?.latitude ?? req.body?.lat);
+  const lng = Number(req.body?.longitude ?? req.body?.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+    return res.status(400).json({ error: 'Valid latitude and longitude coordinates are required.' });
+  }
+  try {
+    const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
+    url.searchParams.set('latlng', `${lat},${lng}`);
+    url.searchParams.set('language', 'en');
+    url.searchParams.set('key', apiKey);
+    const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (response.status === 429) {
+      return res.status(429).json({
+        error: 'Google Maps Platform quota reached.',
+        status: 'RESOURCE_EXHAUSTED',
+      });
+    }
+    const data = await response.json();
+    if (data.status === 'OVER_QUERY_LIMIT') {
+      return res.status(429).json({
+        error: 'Google Maps Platform quota reached.',
+        status: 'RESOURCE_EXHAUSTED',
+      });
+    }
+    if (data.status === 'REQUEST_DENIED') {
+      return res.status(403).json({ error: data.error_message || 'Geocoding API request denied.' });
+    }
+    const first = Array.isArray(data.results) && data.results[0] ? formatGeocodeResult(data.results[0]) : null;
+    return res.json({ status: data.status || 'OK', result: first });
+  } catch (error) {
+    console.error('Maps reverse geocode error:', error);
+    return res.status(502).json({ error: 'Could not reverse-geocode coordinates.' });
+  }
+});
+
+app.get('/api/store', (req, res) => {
+  try {
+    const storePath = path.join(__dirname, 'blunder', 'data', 'store.json');
+    const catalogPath = path.join(__dirname, 'blunder', 'data', 'catalog.json');
+    const store = JSON.parse(fs.readFileSync(storePath, 'utf8'));
+    const products = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+    res.json({
+      ...store,
+      products,
+      mapsAvailable: Boolean(getMapsApiKey()),
+      checkoutEnabled: false,
+      paymentMethods: ['cod'],
+      paymentMode: 'live',
+    });
+  } catch (error) {
+    console.error('Store config error:', error);
+    res.status(500).json({ error: 'Could not load Blunder store catalog.' });
+  }
+});
+
+app.post('/api/ai/shop-assistant', async (req, res) => {
+  const { question, history, context, cart } = req.body || {};
+  if (typeof question !== 'string' || question.trim().length < 2 || question.length > 700) {
+    return res.status(400).json({ error: 'Please enter a question between 2 and 700 characters.' });
+  }
+  try {
+    const ai = createGeminiClient();
+    const shopContext = {
+      ...(context && typeof context === 'object' ? context : {}),
+      cart: Array.isArray(cart) ? cart.slice(0, 20) : [],
+    };
+    const response = await generateWithRetry(ai, {
+      model: MODEL_ID,
+      contents: buildConversationContents(question, history, shopContext),
+      config: {
+        systemInstruction:
+          'You are the helpful grocery shopping assistant for BLUNDER, an everyday essentials storefront near DTU Delhi. Answer in crisp plain text (English or Hindi/Hinglish matching the customer). Suggest useful items, cooking pairings, pack sizes, and check delivery policies from the provided catalog context without inventing prices or unverified claims.',
+        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
+      },
+    });
+    const answer = (response.text || '').trim();
+    if (!answer) {
+      return res.status(502).json({ error: 'AI returned an empty response. Please retry.' });
+    }
+    return res.json({ answer });
+  } catch (error) {
+    console.error('Gemini shop-assistant error:', error);
+    const status = extractErrorStatus(error);
+    return res.status(status).json({ error: extractErrorMessage(error) });
+  }
 });
 
 app.post('/api/ai/chat/stream', async (req, res) => {
@@ -281,33 +488,48 @@ app.post('/api/ai/chat', async (req, res) => {
   }
 });
 
+const BATCH_ANGLES = [
+  'core definitions and fundamental principles',
+  'numerical problem solving and formula calculations',
+  'conceptual edge cases and common exam traps',
+  'practical circuit/experimental applications and comparisons',
+  'time/frequency domain or multi-step analytical reasoning',
+  'theorem conditions, units, and dimensional limits',
+  'system-level synthesis and parameter sensitivity',
+  'high-yield previous-year pattern variations',
+];
+
 app.post('/api/ai/study-mcq', async (req, res) => {
-  const { exam, subject, topic, count, difficulty, avoid } = req.body || {};
-  const targetCount = Math.min(10, Math.max(1, Number.parseInt(count, 10) || 2));
+  const { exam, subject, topic, unit, syllabusSpec, count, difficulty, avoid, batchIndex } = req.body || {};
+  const targetCount = Math.min(12, Math.max(1, Number.parseInt(count, 10) || 2));
   const examName = String(exam || 'GATE ECE').trim().slice(0, 60);
   const subjectName = String(subject || 'Signals and Systems').trim().slice(0, 80);
-  const topicName = String(topic || 'Important syllabus concepts').trim().slice(0, 100);
+  const unitName = String(unit || '').trim().slice(0, 120);
+  const syllabusText = String(syllabusSpec || '').trim().slice(0, 1400);
+  const topicName = String(topic || '').trim().slice(0, 100);
   const levelName = String(difficulty || 'Exam Standard').trim().slice(0, 40);
+  const batchNum = Number.isInteger(Number(batchIndex)) ? Math.max(0, Number(batchIndex)) : 0;
+  const angleHint = BATCH_ANGLES[batchNum % BATCH_ANGLES.length];
   const avoidList = Array.isArray(avoid)
     ? avoid
-        .slice(-15)
-        .map((q) => String(q || '').trim().slice(0, 120))
+        .slice(-30)
+        .map((q) => String(q || '').trim().slice(0, 85))
         .filter(Boolean)
     : [];
 
   const prompt = [
-    `Generate exactly ${targetCount} high-quality single-choice MCQs for ${examName}.`,
-    `Subject: ${subjectName}.`,
-    `Focus topic: ${topicName}.`,
-    `Difficulty: ${levelName}.`,
+    `Generate exactly ${targetCount} distinct single-choice MCQs strictly matching the official ${examName} exam level and syllabus.`,
+    `Subject: ${subjectName}. Difficulty: ${levelName}.`,
+    unitName ? `Target Syllabus Unit: ${unitName}.` : '',
+    syllabusText ? `OFFICIAL SYLLABUS TOPICS (generate ONLY from these topics, do not go out of syllabus):\n${syllabusText}` : '',
+    topicName && topicName !== 'Important syllabus concepts' ? `Additional Student Focus: ${topicName}.` : '',
+    `Batch variation #${batchNum + 1}: emphasize ${angleHint}.`,
     'Rules:',
-    '- Each question must have a clear standalone problem statement (15-800 characters, plain text/Unicode math symbols, no markdown code blocks).',
-    '- Each question must have exactly 4 distinct plausible options.',
-    '- Verify the calculation/fact carefully so answerIndex (0, 1, 2, or 3) points to the unequivocally single best option.',
-    '- Include a concise step-by-step explanation (20-800 characters) and short subtopic label.',
-    avoidList.length
-      ? `Avoid repeating or paraphrasing these previously seen questions:\n- ${avoidList.join('\n- ')}`
-      : '',
+    '- Strictly stay inside the stated exam pattern and official syllabus topics above.',
+    '- Standalone clear question (15-500 chars, plain text/Unicode math, no markdown).',
+    '- Exactly 4 distinct options and verified single best answerIndex (0-3).',
+    '- Crisp 1-2 sentence explanation (20-280 chars) and exact short syllabus unit/subtopic tag.',
+    avoidList.length ? `Do not repeat or paraphrase:\n- ${avoidList.join('\n- ')}` : '',
   ]
     .filter(Boolean)
     .join('\n');
@@ -322,7 +544,7 @@ app.post('/api/ai/study-mcq', async (req, res) => {
         contents: prompt,
         config: {
           systemInstruction:
-            'You are an expert GATE ECE and NEET UG exam question writer. Output strictly valid JSON matching the requested schema.',
+            'You are an expert Indian competitive exam paper setter for GATE ECE, NEET UG, and CUET PG (Life Sciences SCQP17 & Zoology SCQP28). Strictly follow the provided official syllabus unit and subtopic list—never ask out-of-syllabus questions. Output strictly valid JSON matching the schema with concise verified solutions.',
           thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
           responseMimeType: 'application/json',
           responseSchema: {
@@ -333,7 +555,7 @@ app.post('/api/ai/study-mcq', async (req, res) => {
                 items: {
                   type: Type.OBJECT,
                   properties: {
-                    q: { type: Type.STRING, description: 'Question statement in plain text (15-800 chars).' },
+                    q: { type: Type.STRING, description: 'Question statement (15-500 chars).' },
                     options: {
                       type: Type.ARRAY,
                       items: { type: Type.STRING },
@@ -341,10 +563,10 @@ app.post('/api/ai/study-mcq', async (req, res) => {
                     },
                     answerIndex: {
                       type: Type.INTEGER,
-                      description: 'Zero-based index (0, 1, 2, or 3) of the single correct option.',
+                      description: 'Zero-based index (0-3) of the correct option.',
                     },
-                    explanation: { type: Type.STRING, description: 'Concise solution explanation (20-800 chars).' },
-                    topic: { type: Type.STRING, description: 'Short subtopic name (3-80 chars).' },
+                    explanation: { type: Type.STRING, description: 'Concise 1-2 line solution (20-280 chars).' },
+                    topic: { type: Type.STRING, description: 'Short subtopic name (3-60 chars).' },
                   },
                   required: ['q', 'options', 'answerIndex', 'explanation', 'topic'],
                 },
@@ -357,7 +579,8 @@ app.post('/api/ai/study-mcq', async (req, res) => {
 
       try {
         const parsed = JSON.parse((response.text || '{}').trim());
-        validated = sanitizeMcqList(parsed.questions, topicName, targetCount);
+        const allowPartial = attempt === 1 && targetCount >= 5;
+        validated = sanitizeMcqList(parsed.questions, topicName || unitName || subjectName, targetCount, allowPartial);
         if (validated) break;
       } catch {}
     }
@@ -399,7 +622,7 @@ app.post('/api/ai/study-doubt', async (req, res) => {
       contents: prompt,
       config: {
         systemInstruction:
-          'You are a patient GATE & NEET subject tutor. Explain clearly in plain text (no markdown ** or ###). Verify whether the stored answer key is correct and highlight if any option has an error.',
+          'You are a patient GATE ECE, NEET UG & CUET PG subject tutor. Explain clearly in plain text (no markdown ** or ###). Verify whether the stored answer key is correct and highlight if any option has an error.',
         thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
       },
     });
@@ -413,31 +636,6 @@ app.post('/api/ai/study-doubt', async (req, res) => {
     const status = extractErrorStatus(error);
     return res.status(status).json({ error: extractErrorMessage(error) });
   }
-});
-
-app.use((req, res, next) => {
-  if (/^\/(?:node_modules|tests|server\.js|package(?:-lock)?\.json|bun\.lock|Dockerfile|firestore\.rules|firebase\.json)(?:\/|$)/.test(req.path)) return res.sendStatus(404);
-  next();
-});
-
-// Render hosts the private Gemini API, but the official portfolio lives on
-// GitHub Pages (already authorized for Google sign-in). Direct Render's
-// HTML page visitors to that canonical authorized website. Do not alter /api/*,
-// JSON configuration, scripts, styles, PDFs, or other assets.
-app.use((req, res, next) => {
-  const host = String(req.get('host') || '').split(':')[0].toLowerCase();
-  if (host !== 'aakash-portfolio-g3fb.onrender.com' ||
-      !['GET', 'HEAD'].includes(req.method) ||
-      req.path === '/api' || req.path.startsWith('/api/')) return next();
-  const isPage = req.path === '/' ||
-    req.path === '/index.html' ||
-    req.path === '/test-centre' ||
-    req.path === '/test-centre/' ||
-    /^\/workshops\/[^/]+\/?$/.test(req.path) ||
-    /\.html$/i.test(req.path);
-  if (!isPage) return next();
-  const suffix = req.originalUrl.startsWith('/') ? req.originalUrl : '/' + req.originalUrl;
-  return res.redirect(302, 'https://aakash9972sn.github.io/aakash-portfolio' + suffix);
 });
 
 app.use(
@@ -463,7 +661,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-if (require.main === module) {
-  app.listen(PORT, HOST, () => console.log(`Server listening on http://${HOST}:${PORT}`));
-}
-module.exports = app;
+app.listen(PORT, HOST, () => {
+  console.log(`Server listening on http://${HOST}:${PORT}`);
+});

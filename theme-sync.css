@@ -1,0 +1,430 @@
+/* ============================================================================
+   AAKASH Portfolio — Unified Theme Button & Cross-Page Light/Dark Overrides
+   ========================================================================== */
+
+.unified-theme-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(128, 145, 137, 0.35);
+  border-radius: 9px;
+  background: rgba(128, 145, 137, 0.12);
+  color: inherit;
+  font-family: var(--font, 'DM Sans', system-ui, sans-serif);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
+}
+
+.unified-theme-btn:hover {
+  border-color: var(--copper, var(--accent, var(--cyan, var(--mint, #C84B28))));
+  background: rgba(128, 145, 137, 0.22);
+  transform: translateY(-1px);
+}
+
+.unified-theme-btn .icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+/* Homepage header-actions theme button refinement */
+.studio-topbar .header-actions .theme-btn {
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm, 9px);
+}
+
+@media (max-width: 520px) {
+  .studio-topbar .header-actions #theme-label,
+  .studio-topbar .header-actions #pg-theme-label,
+  .unified-theme-btn [data-theme-label] {
+    display: none;
+  }
+  .studio-topbar .header-actions .theme-btn,
+  .unified-theme-btn {
+    padding: 0 10px;
+  }
+}
+
+/* ============================================================================
+   1. Blunder Store — Full Dark Mode Support
+   ========================================================================== */
+[data-theme="dark"] body:has(.site-header) {
+  --paper: #0C1510;
+  --ink: #EDF3EC;
+  --deep: #070E0A;
+  --muted: #A1B4A5;
+  --line: #24382B;
+  --lime: #D8F36A;
+  color-scheme: dark;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+[data-theme="dark"] .announcement {
+  background: #070E0A;
+  color: #DCE8D8;
+  border-bottom: 1px solid #1E3024;
+}
+
+[data-theme="dark"] .site-header {
+  background: rgba(12, 21, 16, 0.92);
+  border-bottom-color: #24382B;
+}
+
+[data-theme="dark"] .header-nav {
+  border-top-color: #1F3126;
+}
+
+[data-theme="dark"] .search {
+  background: #142219;
+  border-color: #2A4032;
+}
+
+[data-theme="dark"] .search input::placeholder {
+  color: #829687;
+}
+
+[data-theme="dark"] .icon-button:hover {
+  background: #1B2E22;
+}
+
+[data-theme="dark"] .bag-trigger {
+  background: #1C3124;
+  color: #F2F7F0;
+  border: 1px solid #304E3B;
+}
+
+[data-theme="dark"] .bag-trigger:hover {
+  background: #25412F;
+}
+
+[data-theme="dark"] .bag-trigger b {
+  background: var(--lime);
+  color: #132217;
+}
+
+[data-theme="dark"] .product-card,
+[data-theme="dark"] .category-card,
+[data-theme="dark"] .banner-card,
+[data-theme="dark"] .promise-card,
+[data-theme="dark"] .drawer,
+[data-theme="dark"] dialog {
+  background: #132018;
+  border-color: #263B2E;
+  color: var(--ink);
+  color-scheme: dark;
+}
+
+[data-theme="dark"] .blunder-theme-btn {
+  border: 1px solid #2A4032;
+  background: #142219;
+  color: #EDF3EC;
+}
+
+.blunder-theme-btn {
+  border: 1px solid #DCE1D3;
+  background: #F1F2EA;
+  color: var(--ink);
+}
+
+/* ============================================================================
+   2. Engineering Case Studies (RFID & Smart ID) — Crisp Light Mode Support
+   ========================================================================== */
+[data-theme="light"] body.report-page {
+  --ink: #F6F7F4;
+  --paper: #111815;
+  --muted: #4E5B55;
+  --card: #FFFFFF;
+  --rule: #D6DDD7;
+  --line: #D6DDD7;
+  color-scheme: light;
+  background: #F6F7F4;
+  color: #111815;
+}
+
+[data-theme="light"] body.report-page.theme-rfid {
+  --accent: #9E5E12;
+  --accent-soft: rgba(158, 94, 18, 0.1);
+}
+
+[data-theme="light"] body.report-page.theme-attendance {
+  --accent: #0E5A8A;
+  --accent-soft: rgba(14, 90, 138, 0.1);
+}
+
+[data-theme="light"] .report-page .unified-theme-btn {
+  background: #FFFFFF;
+  border-color: #C7D0C9;
+  color: #111815;
+}
+
+[data-theme="light"] .report-page .back-link {
+  color: #3A4741;
+}
+
+[data-theme="light"] .report-page .report-subnav {
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom-color: #D6DDD7;
+}
+
+[data-theme="light"] .report-page .report-subnav a {
+  color: #4E5B55;
+}
+
+[data-theme="light"] .report-page .pill {
+  color: #3E4C45;
+  border-color: #C6D0C8;
+}
+
+[data-theme="light"] .report-page .report-lede,
+[data-theme="light"] .report-page .project-status,
+[data-theme="light"] .report-page .section-intro,
+[data-theme="light"] .report-page .section-body,
+[data-theme="light"] .report-page .table-note,
+[data-theme="light"] .report-page .code-details summary span,
+[data-theme="light"] .report-page .reference-list a {
+  color: #414E47;
+}
+
+[data-theme="light"] .report-page .lead-paragraph,
+[data-theme="light"] .report-page .section-body strong,
+[data-theme="light"] .report-page .section-body h3,
+[data-theme="light"] .report-page .report-section h2,
+[data-theme="light"] .report-page .report-hero h1 {
+  color: #111815;
+}
+
+[data-theme="light"] .report-page .report-download {
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .report-page .spec-grid dt {
+  color: #5D6C64;
+}
+
+[data-theme="light"] .report-page .report-section.paper {
+  background: #ECEFE9;
+  --card: #FFFFFF;
+  --rule: #CBD4CC;
+  --muted: #4E5B55;
+  color: #111815;
+  border-top-color: #D6DDD7;
+  color-scheme: light;
+}
+
+[data-theme="light"] .report-page caption,
+[data-theme="light"] .report-page thead th {
+  color: #111815;
+}
+
+[data-theme="light"] .report-page .diagram .node {
+  background: #F6F7F4;
+  color: #4E5B55;
+  border-color: #C6D0C8;
+}
+
+[data-theme="light"] .report-page .diagram .node strong {
+  color: #111815;
+}
+
+[data-theme="light"] .report-page .diagram .node.core {
+  background: #FFFFFF;
+  border-color: var(--accent);
+}
+
+[data-theme="light"] .report-page .diagram figcaption,
+[data-theme="light"] .report-page .formula .formula-label {
+  color: #4E5B55;
+}
+
+[data-theme="light"] .report-page .hero-visual {
+  background: #141F1C;
+  color: #F4F7F5;
+}
+
+[data-theme="light"] .report-page .hero-visual figcaption,
+[data-theme="light"] .report-page .hero-visual .visual-topline,
+[data-theme="light"] .report-page .hero-visual .visual-result span {
+  color: #C2D0C8;
+}
+
+[data-theme="light"] .report-page pre,
+[data-theme="light"] .report-page pre code {
+  background: #111815;
+  color: #E7EFEA;
+}
+
+[data-theme="light"] .report-page :not(pre) > code {
+  background: #E7ECE8;
+  color: #111815;
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+
+[data-theme="light"] .report-page .next-card {
+  background: #FFFFFF;
+  border-color: #D6DDD7;
+}
+
+[data-theme="light"] .report-page .example-options button {
+  border-color: #B9C5BC;
+  color: #24332C;
+}
+
+[data-theme="light"] .report-page .example-options button[aria-pressed="true"] {
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .report-page .demo-metrics div {
+  border-top-color: #D6DDD7;
+}
+
+[data-theme="light"] .report-page .demo-metrics dt,
+[data-theme="light"] .report-page .demo-explanation {
+  color: #4E5B55;
+}
+
+[data-theme="light"] .report-page .project-photo {
+  background: #FFFFFF;
+  border-color: #D6DDD7;
+}
+
+[data-theme="light"] .report-page .project-photo figcaption {
+  color: #4E5B55;
+}
+
+[data-theme="light"] .report-page .project-photo figcaption strong {
+  color: #111815;
+}
+
+[data-theme="light"] .report-page .status-note {
+  color: #2B3831;
+}
+
+/* ============================================================================
+   3. Workshop Case Study Pages (Analog & PCB) — Crisp Light Mode Support
+   ========================================================================== */
+[data-theme="light"] body.case-study-page {
+  --ink: #F6F7F4;
+  --ink-card: #FFFFFF;
+  --ink-card-alt: #ECEFE9;
+  --ink-hover: #E3E7DF;
+  --paper: #111815;
+  --paper-card: #FFFFFF;
+  --paper-muted: #ECEFE9;
+  --muted: #4E5B55;
+  --muted-light: #35423C;
+  --muted-dark: #4E5B55;
+  --line: #D6DDD7;
+  --line-light: #D6DDD7;
+  --cyan: #0369A1;
+  --cyan-soft: rgba(3, 105, 161, 0.1);
+  --mint: #1E6B52;
+  --mint-soft: rgba(30, 107, 82, 0.1);
+  color-scheme: light;
+  background-color: #F6F7F4;
+  color: #111815;
+}
+
+[data-theme="light"] .case-study-page .unified-theme-btn {
+  background: #FFFFFF;
+  border-color: #C7D0C9;
+  color: #111815;
+}
+
+[data-theme="light"] .case-study-page .case-subnav {
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom-color: #D6DDD7;
+}
+
+[data-theme="light"] .case-study-page .subnav-cta,
+[data-theme="light"] .case-study-page .subnav-links a:hover,
+[data-theme="light"] .case-study-page .subnav-links a.active {
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .case-study-page .hero-content h1,
+[data-theme="light"] .case-study-page .poster-caption-strip div strong,
+[data-theme="light"] .case-study-page .section-lead-header h2 {
+  color: #111815;
+}
+
+[data-theme="light"] .case-study-page .poster-exhibition-card {
+  box-shadow: 0 12px 30px -16px rgba(15, 23, 21, 0.18);
+}
+
+[data-theme="light"] .case-study-page .editorial-section.dark-theme,
+[data-theme="light"] .case-study-page .editorial-section.card-theme {
+  background: #ECEFE9;
+  color: #111815;
+}
+
+[data-theme="light"] .case-study-page .editorial-section.paper-theme {
+  background: #FFFFFF !important;
+  color: #111815 !important;
+  border-top-color: #D6DDD7;
+  color-scheme: light;
+}
+
+[data-theme="light"] .case-study-page .paper-theme .section-lead-header h2,
+[data-theme="light"] .case-study-page .paper-theme .prose-block p strong,
+[data-theme="light"] .case-study-page .paper-theme .white-panel h3,
+[data-theme="light"] .case-study-page .paper-theme .element-pill-card h4,
+[data-theme="light"] .case-study-page .paper-theme .concept-box-card h4,
+[data-theme="light"] .case-study-page .paper-theme .lineage-card h3,
+[data-theme="light"] .case-study-page .paper-theme .eet-math-card h3 {
+  color: #111815;
+}
+
+[data-theme="light"] .case-study-page .paper-theme .lead-subtitle,
+[data-theme="light"] .case-study-page .paper-theme .section-lead-text,
+[data-theme="light"] .case-study-page .paper-theme .prose-block p,
+[data-theme="light"] .case-study-page .paper-theme .white-panel p,
+[data-theme="light"] .case-study-page .paper-theme .concept-box-card p,
+[data-theme="light"] .case-study-page .paper-theme .lineage-contributions,
+[data-theme="light"] .case-study-page .paper-theme .eet-math-card p,
+[data-theme="light"] .case-study-page .paper-theme .element-pill-card p {
+  color: #414E47;
+}
+
+[data-theme="light"] .case-study-page .paper-theme .white-panel,
+[data-theme="light"] .case-study-page .paper-theme .element-pill-card,
+[data-theme="light"] .case-study-page .paper-theme .concept-box-card {
+  background: #F6F7F4;
+  border-color: #D6DDD7;
+  box-shadow: none;
+}
+
+[data-theme="light"] .case-study-page .paper-theme .lineage-quote,
+[data-theme="light"] .case-study-page .paper-theme .eet-formula-box {
+  background: #ECEFE9;
+  color: #111815;
+}
+
+[data-theme="light"] .case-study-page .paper-theme .app-pill,
+[data-theme="light"] .case-study-page .paper-theme .concept-idx {
+  background: rgba(30, 107, 82, 0.12);
+  color: #1E6B52;
+}
+
+[data-theme="light"] .case-study-page .case-footer .wordmark {
+  color: #111815 !important;
+}
+
+[data-theme="light"] .case-study-page .btn-primary-mint {
+  background: #1E6B52;
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .case-study-page .hero-subtitle-text {
+  color: #2B3831;
+}

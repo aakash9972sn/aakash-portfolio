@@ -1,0 +1,29 @@
+{
+  "name": "BLUNDER",
+  "legalName": "",
+  "supportEmail": "sdhanpal778@gmail.com",
+  "businessAddress": "",
+  "currency": "INR",
+  "catalogApproved": false,
+  "codEnabled": true,
+  "codMax": 200000,
+  "shipping": {
+    "standard": 2000,
+    "freeAbove": 19900,
+    "pincodes": [],
+    "estimate": "Delivery availability is checked using your PIN code. The store confirms the delivery window before dispatch."
+  },
+  "coupons": [],
+  "policies": {
+    "shipping": "Delivery is available only to PIN codes accepted at checkout. Review your address and the delivery charge before confirming. The store receives saved orders automatically and confirms the delivery window before dispatch. A one-hour delivery service is not guaranteed. Cash on Delivery is collected when an accepted order is delivered.",
+    "returns": "Received a damaged, incorrect or missing item? Contact the store using your order reference and a photo where relevant, and we will review a replacement or refund. Please report issues with fresh or chilled food on delivery, and other items within 7 days. Do not send perishable items back without instructions. This policy does not restrict your rights under applicable consumer law.",
+    "privacy": "Your basket and saved product IDs are kept in your browser. A selected delivery address and map pin are kept only in this tab. Map tiles, address autocomplete, and reverse geocoding use Google Maps Platform (Maps JavaScript API, Places API, and Geocoding API). GPS is requested only after you choose Use my location, and you can clear your selected location anytime. Contact sdhanpal778@gmail.com about your personal data. The optional AI shopping helper sends your question and public product catalogue information to Google Gemini via the configured backend; it does not send private personal details.",
+    "terms": "Confirming checkout submits an order to the store. A saved COD order awaits store confirmation before dispatch and is payable on delivery. Online orders are paid only after payment verification by the server. Prices are in Indian rupees and delivery charges appear before confirmation. Product photos are representative; packaging and produce may vary. Seller notifications are handled automatically by the order service; customers do not need to open WhatsApp or email to send their order. If checkout is unavailable, no new order is created. Contact sdhanpal778@gmail.com for questions. No affiliation with product brands is implied."
+  },
+  "supportPhone": "+919910113972",
+  "sellerNotifications": {
+    "email": "sdhanpal778@gmail.com",
+    "sms": "+919910113972",
+    "whatsapp": "+919910113972"
+  }
+}

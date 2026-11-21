@@ -1,7 +1,3 @@
-# Current deployment
-
-The public portfolio website is **https://aakash9972sn.github.io/aakash-portfolio/**. Frontend AI now reports whether a real Gemini Node backend is connected. GitHub Pages alone does not run `server.js`; see [DEPLOYMENT.md](DEPLOYMENT.md) for safe private-key setup. The old preview URL returned HTML instead of an AI API response and was removed from the default configuration.
-
 # AAKASH — portfolio
 A static portfolio for a DTU Electronics & Communication Engineering student (2024–2028).
 Live: https://aakash9972sn.github.io/aakash-portfolio/
@@ -44,7 +40,7 @@ For a project use `type: 'project'`, a playable/live website in `href`, and an a
 - `workshops/`: existing alternate routes retained.
 - `assets/`: portrait and workshop material.
 
-Use `npm ci` and `npm start` to preview the complete app, including API routes. A static file server previews visual assets only. Collection data uses a regular script so it works without fetching a JSON file. Workshop equations are native MathML; the source TeX is retained in each annotation. Fonts are served locally, so the presentation does not depend on Google Fonts or a CDN.
+No build step, package installation or backend is needed. To preview locally, run `python3 -m http.server 8000` from the repository root. Collection data uses a regular script so it works without fetching a JSON file. Workshop equations are native MathML; the source TeX is retained in each annotation. Fonts are served locally, so the presentation does not depend on Google Fonts or a CDN.
 
 Run the attendance calculation tests with `node --test tests/attendance.test.cjs`. They cover multiple visits, month boundaries, timezone offsets, missing scans, repeated entries, rejected credentials, independent people and custom reporting windows. Browser verification should also cover search/filter/reset, the mobile menu, all four attendance examples, workshop calculators, note galleries and modal focus restoration.
 
@@ -56,8 +52,8 @@ The pages distinguish circuit and software design from physical validation. No m
 
 Local fonts use the SIL Open Font License. License files are in `assets/fonts/`. DM Sans and JetBrains Mono are sourced from Fontsource variable packages version 5.3.0; Manrope is included as a Latin variable font. Conceptual project diagrams are inline SVG illustrations, not hardware photographs.
 
-## Publish the complete app
-Deploy this repository as a Node service using the instructions in [DEPLOYMENT.md](DEPLOYMENT.md). GitHub Pages can preview static pages, but AI routes require a separate backend (the supplied hosted URL is selected automatically on GitHub Pages). A commit to `main` updates the source; it deploys a running service only when hosting is connected to that repository.
+## Publish with GitHub Pages
+Commit the changed files to this repository’s `main` branch. GitHub Pages deploys from `main` at the repository root. Wait for the Pages deployment to succeed.
 
 ## Content & accessibility
 The two workshop entries are dated 13–14 February 2026 (PCB) and 3–4 June 2026 (analog). Existing detailed workshop material is retained. Project artwork is a CSS illustration, not a screenshot. Live project websites are linked directly.
@@ -73,4 +69,14 @@ The RFID and Smart ID pages show source code directly with Copy and Download con
 
 ## AI portfolio guide
 
-The portfolio uses `/api/ai/chat/stream`; the integrated Test Centre uses the same backend for chat, MCQs and doubt explanations. `backend-config.js` selects the supplied hosted service on GitHub Pages and same-origin routes on Node hosting. Credentials remain in server environment variables. See [DEPLOYMENT.md](DEPLOYMENT.md) for exact hosting and Firebase requirements.
+The Ask AI panel is available on the home page and project/workshop pages. It uses
+the public project registry and selected published technical notes; it does not
+read demo attendance records or browser storage. Questions and public context go
+to the Cloudflare endpoint in `ai-config.js` only when the visitor asks. Responses
+are displayed as plain text and chat history is kept in memory.
+
+The shared Worker at `aakash9972sn/newTest/worker/src/index.js` requires deployment
+of its version 2 `assistant` action. This workspace cannot deploy it without the
+owner's Cloudflare login. The endpoint URL being configured does not prove live
+service availability. See that repository's `AI-SETUP.md` for exact dashboard/CLI
+steps. Core navigation continues to work when AI is unavailable.

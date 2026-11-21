@@ -4139,7 +4139,7 @@
     "name": "CUET PG",
     "accent": "#8b7cf8",
     "accent2": "#b9afff",
-    "aiSupported": false,
+    "aiSupported": true,
     "subjects": [
       {
         "id": "cuet-life-sciences",

@@ -3,14 +3,6 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script>
-    try {
-      document.documentElement.dataset.portfolioTheme =
-        localStorage.getItem('aakash.portfolio.theme') === 'dark' ? 'dark' : 'light';
-    } catch (_) {
-      document.documentElement.dataset.portfolioTheme = 'light';
-    }
-  </script>
   <meta name="theme-color" content="#F6F7F4">
   <meta name="description" content="AAKASH — B.Tech Electronics & Communication Engineering student at Delhi Technological University, 2024–2028. Explore my projects, workshops, and learning journey.">
   <meta property="og:title" content="AAKASH — DTU ECE Student · Projects &amp; Learning">
@@ -18,91 +10,463 @@
   <meta property="og:type" content="website">
   <title>AAKASH — DTU ECE Student · Projects &amp; Learning</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20261121-studio1">
-  <link rel="stylesheet" href="collection.css?v=20261121-studio1">
-  <script src="portfolio-data.js?v=20261121-studio1" defer></script>
-  <script src="script.js?v=20261121-studio1" defer></script>
-  <script src="studio-extras.js?v=20261121-zip1" defer></script>
-  <link rel="stylesheet" href="site-polish.css?v=20261121-studio1">
-  <link rel="stylesheet" href="site-motion.css?v=20261121-studio1">
-  <script src="site-motion.js?v=20261121-studio1" defer></script>
-  <link rel="stylesheet" href="project-gallery.css?v=20261121-studio1">
-  <link rel="stylesheet" href="studio-extras.css?v=20261121-zip1">
-  <link rel="stylesheet" href="studio-light-theme.css?v=20261121-light1">
-  <link rel="stylesheet" href="studio-google-refresh.css?v=20261121-google2">
+  <script src="theme-sync.js?v=20261121-t1"></script>
+  <link rel="stylesheet" href="home-studio.css?v=20261121-atelier4">
+  <script src="portfolio-data.js?v=20261121-pg1" defer></script>
+  <script src="script.js?v=20261121-t1" defer></script>
 </head>
 <body class="site-home">
   <a class="skip-link" href="#main">Skip to content</a>
-  <header class="header wrap">
-    <a class="wordmark" href="#home" aria-label="AAKASH, home">AAKASH<span class="brand-dot" aria-hidden="true"></span></a>
-    <button class="menu-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="main-navigation">Menu <span aria-hidden="true">☰</span></button>
-    <nav id="main-navigation" aria-label="Main navigation"><a href="#work">Work &amp; learning</a><a href="#about">About</a><a href="#education">Education</a><a href="#contact">Contact <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></nav>
-    <a class="github-nav" href="https://github.com/aakash9972sn" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></span></a>
+
+  <header class="studio-topbar">
+    <div class="wrap header-bar">
+      <a class="wordmark" href="#home" aria-label="AAKASH, home">AAKASH</a>
+
+      <nav id="main-navigation" aria-label="Main navigation">
+        <a href="#work">Showcase</a>
+        <a href="#workshops">Workshops</a>
+        <a href="#about">About</a>
+        <a href="#education">Education</a>
+        <a href="#contact">Contact</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="menu-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="main-navigation">
+          Menu
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <button type="button" id="home-theme-toggle" class="theme-btn" aria-label="Switch to dark theme" title="Switch to dark theme">
+          <svg class="icon theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <span id="theme-label">Dark</span>
+        </button>
+        <a class="github-nav" href="https://github.com/aakash9972sn" target="_blank" rel="noopener noreferrer">
+          GitHub
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg>
+        </a>
+      </div>
+    </div>
   </header>
-  <main id="main">
-    <section class="hero wrap" id="home" aria-labelledby="hero-title">
-      <div class="hero-top"><span class="eyebrow"><i></i> ELECTRONICS &amp; COMMUNICATION / DTU</span><span class="edition">SELECTED WORK / 2026</span></div>
-      <div class="hero-layout">
-        <div class="intro"><p class="hello">Hi, I'm AAKASH <span aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M12 1v22M1 12h22M4.2 4.2l15.6 15.6m0-15.6L4.2 19.8"/></svg></span></p><h1 id="hero-title">From RF coupling<br>to <em>full-stack web.</em></h1><p class="hero-description">I’m an Electronics &amp; Communication Engineering student at DTU, building across layers—from 13.56 MHz RFID hardware and analog circuits to useful web apps and AI study tools.</p><div class="hero-cta-row"><a class="button light" href="#work">Explore my work <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a><a class="hero-secondary" href="test-centre/">Explore Test Centre</a><a class="hero-secondary" href="#about">A little about me <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></div></div>
-        <figure class="hero-art portrait-card"><img src="assets/aakash.jpg" alt="Portrait of AAKASH" width="683" height="576" fetchpriority="high"><figcaption><div><strong>AAKASH</strong><span>DTU · ELECTRONICS &amp; COMMUNICATION</span></div><span class="portrait-year">CLASS<br>OF ’28 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></span></figcaption></figure>
+
+  <main id="main" class="wrap studio-main">
+    <section class="hero-atelier" id="home" aria-labelledby="hero-title">
+      <div class="hero-editorial">
+        <div>
+          <p class="hero-kicker">B.Tech ECE · Delhi Technological University · 2024–2028</p>
+          <h1 id="hero-title">From RF coupling to <em>full-stack web.</em></h1>
+          <p class="hero-description">Hi, I’m Aakash. I design across layers—from 13.56 MHz contactless hardware and analog amplifier stages up to responsive browser apps and AI-assisted study tools.</p>
+          <div class="hero-cta-row">
+            <a class="btn-primary" href="#work">
+              Explore showcase
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14m-7-7 7 7 7-7"/></svg>
+            </a>
+            <a class="btn-secondary" href="test-centre/">
+              Test Centre
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg>
+            </a>
+            <a class="btn-secondary" href="blunder/">
+              Blunder Store
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="hero-metrics" aria-label="Engineering summary">
+          <button type="button" class="hero-metric-btn" data-snap-filter="project">
+            <div class="hero-metric-top">
+              <span class="stat-num">05</span>
+              <span class="stat-arrow" aria-hidden="true">↗</span>
+            </div>
+            <span class="stat-title">Projects &amp; Web Apps</span>
+            <span class="stat-desc">Embedded · JS · Maps</span>
+          </button>
+          <button type="button" class="hero-metric-btn" data-snap-filter="workshop">
+            <div class="hero-metric-top">
+              <span class="stat-num">02</span>
+              <span class="stat-arrow" aria-hidden="true">↗</span>
+            </div>
+            <span class="stat-title">DTU Lab Workshops</span>
+            <span class="stat-desc">Analog DOA &amp; PCB Layout</span>
+          </button>
+          <button type="button" class="hero-metric-btn" data-snap-dossier="education">
+            <div class="hero-metric-top">
+              <span class="stat-num">2028</span>
+              <span class="stat-arrow" aria-hidden="true">↗</span>
+            </div>
+            <span class="stat-title">DTU B.Tech ECE</span>
+            <span class="stat-desc">New Delhi · Academic Track</span>
+          </button>
+        </div>
       </div>
-      <div class="hero-bottom"><div class="hero-disciplines"><span><i aria-hidden="true"></i> EMBEDDED SYSTEMS</span><span><i aria-hidden="true"></i> WEB DEVELOPMENT</span><span><i aria-hidden="true"></i> ALWAYS LEARNING</span></div><a href="#work">SCROLL TO DISCOVER <span aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14m-7-7 7 7 7-7"/></svg></span></a></div>
+
+      <aside class="silicon-spotlight" aria-label="Profile and live featured build">
+        <div class="spotlight-top">
+          <figure class="portrait-box">
+            <img src="assets/aakash.jpg" alt="Portrait of Aakash" width="683" height="576" fetchpriority="high">
+          </figure>
+          <div class="portrait-caption">
+            <div>
+              <span class="portrait-id-kicker">Engineering Portfolio</span>
+              <h2>Aakash</h2>
+              <p>Electronics, firmware &amp; web interfaces built and documented cleanly.</p>
+            </div>
+            <div class="portrait-meta-line">
+              <span>New Delhi · DTU</span>
+              <span>CLASS OF ’28</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="spotlight-dock">
+          <div class="spotlight-tabs">
+            <span class="spotlight-label">Featured Build</span>
+            <div class="spot-pills" role="tablist" aria-label="Spotlight preview">
+              <button type="button" class="spot-btn" role="tab" aria-selected="true" data-spot="rfid">01 RFID</button>
+              <button type="button" class="spot-btn" role="tab" aria-selected="false" data-spot="tests">02 Test App</button>
+              <button type="button" class="spot-btn" role="tab" aria-selected="false" data-spot="maps">03 Maps</button>
+            </div>
+          </div>
+          <div class="spotlight-card" id="spotlight-display">
+            <div>
+              <h3 id="spot-title">RFID Card Detection System</h3>
+              <p id="spot-desc">Arduino UNO + MFRC522 13.56 MHz SPI reader &amp; reference bench</p>
+            </div>
+            <a class="spotlight-go" id="spot-link" href="rfid-card-detection.html">
+              Inspect <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+      </aside>
     </section>
-        <section class="work-section" id="work" aria-labelledby="work-title"><div class="wrap">
-      <div class="section-heading collection-heading">
-        <div><p class="eyebrow">01 / A GROWING COLLECTION</p><h2 id="work-title">Work &amp; <em>learning.</em></h2></div>
-        <p>From contactless identification to the web.<br>Projects, experiments and notes from the lab.</p>
+
+    <div class="discipline-ribbon" aria-label="Engineering focus areas">
+      <span><strong>Focus Areas</strong></span>
+      <span>13.56 MHz RFID &amp; NFC</span>
+      <span aria-hidden="true">·</span>
+      <span>ESP32-S3 &amp; SPI / I2C / UART</span>
+      <span aria-hidden="true">·</span>
+      <span>Analog DOA &amp; BJT Stages</span>
+      <span aria-hidden="true">·</span>
+      <span>EDWinXP PCB Layout</span>
+      <span aria-hidden="true">·</span>
+      <span>Full-Stack JS, Maps &amp; Gemini</span>
+    </div>
+
+    <section class="work-studio" id="work" aria-labelledby="work-title">
+      <div class="studio-header-row">
+        <div>
+          <span class="section-kicker">Selected Work &amp; Lab Notes</span>
+          <h2 id="work-title">Engineering showcase</h2>
+        </div>
+
+        <div class="topic-filters" role="group" aria-label="Quick topic focus">
+          <button type="button" class="topic-chip" data-topic="Arduino UNO">Embedded / RFID</button>
+          <button type="button" class="topic-chip" data-topic="JavaScript">JavaScript / AI</button>
+          <button type="button" class="topic-chip" data-topic="Google Maps">Maps &amp; Store</button>
+          <button type="button" class="topic-chip" data-topic="DOA">Analog / PCB</button>
+        </div>
       </div>
-      <div class="collection-toolbar">
-        <div class="collection-filters" role="group" aria-label="Filter work and learning">
+
+      <div class="studio-toolbar">
+        <div class="collection-filters" role="group" aria-label="Filter category">
           <button type="button" data-filter="all" aria-pressed="true">All <span>7</span></button>
           <button type="button" data-filter="project" aria-pressed="false">Projects <span>5</span></button>
           <button type="button" data-filter="workshop" aria-pressed="false">Workshops <span>2</span></button>
         </div>
-        <div class="collection-search">
-          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="1.5"/></svg>
-          <label class="sr-only" for="work-search">Search projects and workshops</label>
-          <input id="work-search" type="search" placeholder="Search topics, tools, or titles…" autocomplete="off">
-          <button id="clear-search" type="button" aria-label="Clear search" hidden>×</button>
+
+        <div class="toolbar-right">
+          <div class="collection-search">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+            <label class="sr-only" for="work-search">Search projects and workshops</label>
+            <input id="work-search" type="search" placeholder="Search tools, chips, or titles…" autocomplete="off">
+            <button id="clear-search" type="button" aria-label="Clear search" hidden>×</button>
+          </div>
+
+          <div class="segmented-toggle" role="group" aria-label="Layout view">
+            <button type="button" data-layout="grid" aria-pressed="true">Bento</button>
+            <button type="button" data-layout="compact" aria-pressed="false">Index</button>
+          </div>
         </div>
       </div>
-      <p id="results-status" class="results-status" role="status" aria-live="polite"></p>
+
+      <div class="results-bar">
+        <p id="results-status" class="results-status" role="status" aria-live="polite"></p>
+      </div>
+
       <section class="work-collection" data-collection="project" aria-labelledby="projects-title">
-        <div class="collection-title"><h3 id="projects-title">Projects <span class="collection-count">05</span></h3><p>Hardware concepts. Working web experiments.</p></div>
+        <div class="collection-title">
+          <h3 id="projects-title">Projects <span class="collection-count">05</span></h3>
+          <p>Hardware systems &amp; live browser builds</p>
+        </div>
         <div class="collection-grid projects-grid"></div>
       </section>
+
       <section class="work-collection" id="workshops" data-collection="workshop" aria-labelledby="workshops-title">
-        <div class="collection-title"><h3 id="workshops-title">Workshops &amp; learning <span class="collection-count">02</span></h3><p>Notes from the lab and beyond. Latest first.</p></div>
+        <div class="collection-title">
+          <h3 id="workshops-title">Workshops &amp; learning <span class="collection-count">02</span></h3>
+          <p>Notes from the DTU lab and beyond · latest first</p>
+        </div>
         <div class="collection-grid workshops-grid"></div>
       </section>
-      <div id="empty-results" class="empty-results" hidden><span aria-hidden="true">⌕</span><h3>No matches yet.</h3><p>Try another topic or explore the full collection.</p><button id="reset-filters" class="button dark" type="button">Show everything <span aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></span></button></div>
-      <noscript><p>Explore my projects and workshop notes:</p><ul>
-        <li><a href="https://aakash9972sn.github.io/perfect_guess/">Play Perfect Guess</a></li>
-        <li><a href="https://aakash9972sn.github.io/newTest/">Try Biology Test</a></li>
-        <li><a href="https://aakash9972sn.github.io/my-website/">Open Blunder Pro Max</a></li>
-        <li><a href="rfid-card-detection.html">RFID Card Detection System — foundation project</a></li>
-        <li><a href="smart-id-attendance.html">Smart ID Entry–Exit &amp; Time Analytics — system design</a></li>
-        <li><a href="analog-circuit-analysis-design.html">Analog Circuit Analysis, Design &amp; Testing</a></li>
-        <li><a href="pcb-designing-bootcamp.html">PCB Designing Bootcamp</a></li>
-      </ul></noscript>
-      <div class="work-footer"><span>Always learning. Always making room for the next idea.</span><a class="text-link" href="#contact">Let's connect <span aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></span></a></div>
-    </div></section>
-    <section class="about wrap" id="about" aria-labelledby="about-title"><div class="about-label"><p class="eyebrow">02 / A LITTLE ABOUT ME</p><div class="about-stamp" aria-hidden="true">a<span class="brand-dot" aria-hidden="true"></span></div></div><div class="about-copy"><h2 id="about-title">Hi, I'm AAKASH.<br><span>Engineering student.<br>Curious builder.</span></h2><p>I’m pursuing Electronics &amp; Communication Engineering at Delhi Technological University, class of 2028. I enjoy understanding how a system works—from the signal at a sensor to the interface someone uses.</p><p>This space brings together my embedded-system designs, JavaScript projects and workshop notes. Each is a way to connect what I learn in the classroom with a concrete problem, a design decision or an experiment.</p><div class="toolkit"><span>MY TECHNICAL TOOLKIT</span><ul aria-label="Technologies and EDA tools"><li>HTML</li><li>CSS</li><li>JavaScript</li><li>EDWinXP</li><li>PCB Design</li><li>Analog Circuits</li><li>DOA (Middlebrook)</li><li>Arduino</li><li>ESP32</li><li>RFID / NFC</li><li>GitHub</li></ul></div></div></section>
-    <section class="education-section" id="education" aria-labelledby="education-title"><div class="wrap"><div class="section-heading"><div><p class="eyebrow">03 / MY JOURNEY SO FAR</p><h2 id="education-title">Learning, always<span>.</span></h2></div><p>From school in New Delhi<br>to engineering at DTU.</p></div><ol class="education-list"><li><span class="education-period">2024 — 2028</span><div><span class="education-level">B.TECH · PURSUING</span><h3>Delhi Technological University</h3><p>Electronics &amp; Communication Engineering</p></div><span class="education-badge">Current</span></li><li><span class="education-period">CBSE · 2021 &amp; 2023</span><div><span class="education-level">SECONDARY &amp; SENIOR SECONDARY</span><h3>Govt. Boys Sr. Sec. School No. 1</h3><p>Rajouri Garden Extension, New Delhi 110027</p><div class="school-milestones"><div><span>CLASS X · 2021</span><p>Secondary School Examination</p></div><div><span>CLASS XII · 2023</span><p>Senior School Certificate Examination</p><p class="school-subjects">Physics · Chemistry · Mathematics · Engineering Graphics</p></div></div></div></li><li><span class="education-period">PRIMARY SCHOOL</span><div><span class="education-level">THE BEGINNING</span><h3>MCD Primary School</h3><p>M Block, Raghubir Nagar, Tagore Garden, New Delhi 110027</p></div></li></ol></div></section>
-    <section class="contact-section" id="contact" aria-labelledby="contact-title"><div class="wrap"><div class="contact-top"><p class="eyebrow">04 / KEEP IN TOUCH</p><span aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M12 1v22M1 12h22M4.2 4.2l15.6 15.6m0-15.6L4.2 19.8"/></svg></span></div><h2 id="contact-title">Good things start<br>with a <em>hello.</em></h2><div class="contact-bottom"><p>Explore what I'm building,<br>or find me over on GitHub.</p><a class="button dark" href="https://github.com/aakash9972sn" target="_blank" rel="noopener noreferrer">Find me on GitHub <span aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></span></a></div></div></section>
+
+      <div id="empty-results" class="empty-results" hidden>
+        <h3>No matching builds or notes.</h3>
+        <p>Clear your keyword or switch back to see all 7 entries.</p>
+        <button id="reset-filters" class="btn-primary" type="button">Show all 7 items</button>
+      </div>
+
+      <noscript>
+        <p>Explore my projects and workshop notes:</p>
+        <ul>
+          <li><a href="perfect-guess/">Play Perfect Guess</a></li>
+          <li><a href="test-centre/">Open Test Centre</a></li>
+          <li><a href="blunder/">Open Blunder Everyday Store</a></li>
+          <li><a href="rfid-card-detection.html">RFID Card Detection System — foundation project</a></li>
+          <li><a href="smart-id-attendance.html">Smart ID Entry–Exit &amp; Time Analytics — system design</a></li>
+          <li><a href="analog-circuit-analysis-design.html">Analog Circuit Analysis, Design &amp; Testing</a></li>
+          <li><a href="pcb-designing-bootcamp.html">PCB Designing Bootcamp</a></li>
+        </ul>
+      </noscript>
+    </section>
+
+    <section class="dossier-section" id="dossier" aria-labelledby="dossier-heading">
+      <div id="about" class="sr-only" tabindex="-1">About section anchor</div>
+      <div id="education" class="sr-only" tabindex="-1">Education section anchor</div>
+
+      <div class="dossier-head">
+        <div>
+          <span class="dossier-kicker">Engineering Dossier</span>
+          <h2 id="dossier-heading">Profile, toolkit &amp; academic track</h2>
+        </div>
+
+        <div class="dossier-tabs" role="tablist" aria-label="Engineering dossier sections">
+          <button type="button" class="dossier-tab" role="tab" id="tab-about" aria-selected="true" aria-controls="panel-about" data-dossier-panel="about">About &amp; Toolkit</button>
+          <button type="button" class="dossier-tab" role="tab" id="tab-education" aria-selected="false" aria-controls="panel-education" data-dossier-panel="education">Education Track</button>
+        </div>
+      </div>
+
+      <div class="dossier-body">
+        <div id="panel-about" role="tabpanel" aria-labelledby="tab-about">
+          <div class="dossier-about-grid">
+            <div class="about-copy">
+              <p class="about-lead">Engineering student and curious builder at Delhi Technological University, Class of 2028.</p>
+              <p>I’m pursuing a B.Tech in Electronics &amp; Communication Engineering at DTU. I enjoy understanding how a complete system behaves—from electromagnetic coupling at a sensor or analog amplifier biasing down to the browser interface someone actually uses.</p>
+              <p>This workspace brings together my embedded-system builds, JavaScript web apps, and intensive DTU workshop notes. Each entry documents concrete design decisions, schematic trade-offs, and working code.</p>
+            </div>
+
+            <div class="toolkit-panel">
+              <h3>Technical Toolkit &amp; EDA Stack</h3>
+              <div class="toolkit-groups">
+                <div class="toolkit-row">
+                  <strong>Embedded &amp; Hardware</strong>
+                  <span>Arduino UNO · ESP32-S3 · MFRC522 · PN532 NFC · SPI / I2C / UART · DS3231 RTC</span>
+                </div>
+                <div class="toolkit-row">
+                  <strong>Circuits &amp; PCB Design</strong>
+                  <span>Analog Circuits · Middlebrook DOA &amp; EET · BJT Amplifiers · EDWinXP · PCB Layout &amp; DRC</span>
+                </div>
+                <div class="toolkit-row">
+                  <strong>Web, Maps &amp; Cloud</strong>
+                  <span>HTML · CSS · JavaScript · Node.js / Express · Google Maps Platform · Firebase · Gemini API · GitHub</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="panel-education" role="tabpanel" aria-labelledby="tab-education" hidden>
+          <ol class="education-list">
+            <li>
+              <span class="education-period">2024 — 2028</span>
+              <div>
+                <span class="education-level">B.TECH · PURSUING</span>
+                <h3>Delhi Technological University</h3>
+                <p>Electronics &amp; Communication Engineering · New Delhi</p>
+              </div>
+              <span class="education-status">Current</span>
+            </li>
+            <li>
+              <span class="education-period">CBSE · 2021 &amp; 2023</span>
+              <div>
+                <span class="education-level">SECONDARY &amp; SENIOR SECONDARY</span>
+                <h3>Govt. Boys Sr. Sec. School No. 1</h3>
+                <p>Rajouri Garden Extension, New Delhi 110027</p>
+                <div class="school-milestones">
+                  <div>
+                    <span>CLASS X · 2021</span>
+                    <p>Secondary School Examination</p>
+                  </div>
+                  <div>
+                    <span>CLASS XII · 2023</span>
+                    <p>Senior School Certificate Examination · Physics, Chemistry, Mathematics &amp; Engineering Graphics</p>
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <span class="education-period">PRIMARY SCHOOL</span>
+              <div>
+                <span class="education-level">THE BEGINNING</span>
+                <h3>MCD Primary School</h3>
+                <p>M Block, Raghubir Nagar, Tagore Garden, New Delhi 110027</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact-strip" id="contact" aria-labelledby="contact-title">
+      <div>
+        <p class="hero-kicker">Keep in touch</p>
+        <h2 id="contact-title">Good things start with a <em>hello.</em></h2>
+        <p>Explore my repositories, hardware case studies, or try the live web tools.</p>
+      </div>
+      <div class="contact-actions">
+        <a class="btn-primary" href="https://github.com/aakash9972sn" target="_blank" rel="noopener noreferrer">
+          Find me on GitHub
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg>
+        </a>
+        <a class="btn-ghost-dark" href="test-centre/">Test Centre</a>
+        <a class="btn-ghost-dark" href="blunder/">Blunder Store</a>
+      </div>
+    </section>
   </main>
-  <footer class="wrap footer"><a class="wordmark" href="#home">AAKASH<span class="brand-dot" aria-hidden="true"></span></a><span>© <span id="year">2026</span> AAKASH</span><a href="#home">BACK TO TOP <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></footer>
-<template id="artwork-guess"><span class="preview-label">INTERACTIVE GAME</span><div class="guess-window"><div class="window-top"><span>● ● ●</span><span>perfect_guess</span><span><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></span></div><div class="guess-content"><span class="tiny-label">A LITTLE LOGIC. A LITTLE LUCK.</span><strong>What's your<br>best guess?</strong><div class="number-row"><span>0</span><span>4</span><span>2</span></div><div class="guess-footer"><span>1 — 1000</span><span>Higher or lower? <b><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></b></span></div></div></div><span class="visual-open" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></span></template>
-<template id="artwork-quiz"><span class="preview-label">LEARNING, MADE INTERACTIVE</span><div class="quiz-window"><div class="quiz-top"><span class="quiz-mark">b.</span><span>BIOLOGY TEST</span><span>60:00</span></div><div class="quiz-body"><span class="tiny-label">TEST YOUR KNOWLEDGE</span><strong>Small questions.<br>Big discoveries.</strong><div class="quiz-answer"><span>A</span> Explore a topic <span>○</span></div><div class="quiz-answer selected"><span>B</span> Put knowledge into practice <span>✓</span></div><div class="quiz-answer"><span>C</span> Review and learn <span>○</span></div></div></div><span class="visual-open" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></span></template>
-<template id="artwork-shop"><span class="preview-label">GROCERIES / EVERYDAY ESSENTIALS</span><div class="shop-window"><div class="shop-nav"><b>BLUNDER<span class="brand-dot" aria-hidden="true"></span></b><span>COLLECTION / 001</span><span>☰</span></div><div class="shop-body"><div><span class="tiny-label">THE EVERYDAY STORE</span><strong>Little prices.<br>Big <em>everyday.</em></strong></div><div class="shop-graphic" aria-hidden="true"><div class="bag"><span>B.</span></div><span class="shop-sticker">FRESH<br>FINDS <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></span></div></div></div><span class="visual-open" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></span></template>
-<template id="artwork-analog"><span class="art-kicker">FIELD NOTES / ANALOG</span><svg class="circuit-art" viewBox="0 0 500 200" fill="none"><path d="M0 100H85l8-14 14 28 14-28 14 28 14-28 8 14h65m0 0V50m0 100V100m-10-50h20m-20 100h20m-10-50h60m0-50v100l80-50-80-50zm80 50H500" stroke="currentColor" stroke-width="2"/><path d="M352 100v65H245V122" stroke="currentColor" stroke-width="1" opacity=".45"/><circle cx="352" cy="100" r="5" fill="currentColor"/><circle cx="85" cy="100" r="4" fill="currentColor"/></svg><div class="workshop-art-caption"><strong>From equations<br>to <em>understanding.</em></strong><span class="art-chip">DOA · EET</span></div></template>
-<template id="artwork-pcb"><span class="art-kicker">FIELD NOTES / HARDWARE</span><svg class="circuit-art" viewBox="0 0 500 200" fill="none"><rect x="190" y="40" width="100" height="100" rx="6" stroke="currentColor" stroke-width="2"/><rect x="207" y="57" width="66" height="66" rx="3" stroke="currentColor" opacity=".5"/><path d="M210 40V10H100M230 40V0M250 40V15H370M190 60H135L110 85H0M190 80H155L110 125H40M190 100H160v60H0M210 140v60M240 140v30h110v30M270 140v15h180M290 60h70l40-40h100M290 90h110l45 45h55M290 120h50l35 35h125" stroke="currentColor" stroke-width="2"/><g fill="currentColor"><circle cx="100" cy="10" r="4"/><circle cx="370" cy="15" r="4"/><circle cx="40" cy="125" r="4"/><circle cx="450" cy="155" r="4"/></g></svg><div class="workshop-art-caption"><strong>A circuit.<br>A board. <em>A beginning.</em></strong><span class="art-chip">EDWinXP</span></div></template>
-<template id="artwork-rfid"><div class="source-image-preview"><img src="assets/projects/rfid-reference-setup.jpg" alt="" width="1024" height="718" loading="lazy"><span class="source-preview-tag">01 / RFID CARD DETECTION</span><div class="source-preview-caption"><small>REFERENCE IMAGE FROM THE REPORT</small><strong>A card. A reader.<br>A clear response.</strong></div></div></template>
-<template id="artwork-attendance"><div class="source-image-preview"><div class="source-preview-pair"><img src="assets/projects/pn532-reader.jpg" alt="" width="800" height="800" loading="lazy"><img src="assets/projects/ds3231-rtc.jpg" alt="" width="1024" height="1024" loading="lazy"></div><span class="source-preview-tag">02 / SMART ID &amp; TIME ANALYTICS</span><div class="source-preview-caption"><small>COMPONENT REFERENCES FROM THE REPORT</small><strong>Every visit.<br>Time, accounted for.</strong></div></div></template>
-<script src="firebase-account.js?v=20261121-authdomain2" defer></script>
-<script src="backend-config.js?v=20261121-sitefix1"></script>
-<script src="ai-config.js?v=20261121-sitefix1" defer></script>
-<script src="ai-assistant.js?v=20261121-sitefix1" defer></script>
-<script src="command-palette.js?v=20261121-1" defer></script>
+
+  <footer class="wrap footer">
+    <div class="footer-left">
+      <a class="wordmark" href="#home">AAKASH</a>
+      <span>© <span id="year">2026</span> Aakash · DTU ECE, New Delhi</span>
+    </div>
+    <a class="footer-top-link" href="#home">
+      Back to top
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
+    </a>
+  </footer>
+
+  <!-- Architectural Card Preview Templates -->
+  <template id="artwork-guess">
+    <div class="plate-frame">
+      <div class="plate-head">
+        <span>Perfect Guess · Logic</span>
+        <strong>1 — 1000</strong>
+      </div>
+      <div class="plate-guess-digits" aria-hidden="true">
+        <span>0</span><span>4</span><span>2</span>
+      </div>
+      <div class="plate-guess-meter" aria-hidden="true"><i></i></div>
+      <div class="plate-guess-foot">
+        <span>Binary Hint Loop</span>
+        <span>Best Score Sync</span>
+      </div>
+    </div>
+  </template>
+
+  <template id="artwork-quiz">
+    <div class="plate-frame">
+      <div class="plate-head">
+        <span>Test Centre · Practice</span>
+        <strong>275+ PYPs · AI</strong>
+      </div>
+      <div class="plate-quiz-mock">
+        <div class="plate-quiz-row"><span>A · Chapter syllabus drills</span><span>01</span></div>
+        <div class="plate-quiz-row is-selected"><span>B · Timed NEET, GATE &amp; CUET</span><span>✓</span></div>
+        <div class="plate-quiz-row"><span>C · Gemini 10–100 Q sets</span><span>03</span></div>
+      </div>
+      <div class="plate-quiz-foot">
+        <span>Palette + Timer</span>
+        <span>Doubt Tutor</span>
+      </div>
+    </div>
+  </template>
+
+  <template id="artwork-shop">
+    <div class="plate-frame">
+      <div class="plate-head">
+        <span>Blunder · Everyday Store</span>
+        <strong>DTU 6 km Zone</strong>
+      </div>
+      <div class="plate-shop-body">
+        <div>
+          <strong>Little prices.<br>Big everyday.</strong>
+          <small>12 catalog items · Live cart</small>
+        </div>
+        <div class="plate-map-card">
+          <span class="plate-map-pin">● DTU Campus Pin</span>
+          <span>Google Maps Hub</span>
+          <span>Places Search API</span>
+          <span>Gemini Helper</span>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="artwork-analog">
+    <div class="workshop-plate">
+      <svg class="circuit-art" viewBox="0 0 500 200" fill="none" aria-hidden="true">
+        <path d="M0 100H85l8-14 14 28 14-28 14 28 14-28 8 14h65m0 0V50m0 100V100m-10-50h20m-20 100h20m-10-50h60m0-50v100l80-50-80-50zm80 50H500" stroke="currentColor" stroke-width="2"/>
+        <circle cx="352" cy="100" r="5" fill="currentColor"/>
+      </svg>
+      <div class="workshop-plate-top">
+        <span class="art-kicker">DTU ECE · Workshop</span>
+        <span class="art-chip">DOA · EET</span>
+      </div>
+      <div class="workshop-thumb-stage">
+        <img class="workshop-thumb" src="assets/analog-workshop-brochure.png" alt="" width="600" height="464" loading="lazy" referrerpolicy="no-referrer">
+        <img class="workshop-thumb-back" src="assets/analog-notes-cover.png" alt="" width="600" height="800" loading="lazy" referrerpolicy="no-referrer">
+      </div>
+      <div class="workshop-art-caption">
+        <strong>From equations to <em>understanding.</em></strong>
+      </div>
+    </div>
+  </template>
+
+  <template id="artwork-pcb">
+    <div class="workshop-plate">
+      <svg class="circuit-art" viewBox="0 0 500 200" fill="none" aria-hidden="true">
+        <rect x="190" y="40" width="100" height="100" rx="6" stroke="currentColor" stroke-width="2"/>
+        <path d="M210 40V10H100M250 40V15H370M190 60H135L110 85H0M190 100H160v60H0M290 60h70l40-40h100M290 120h50l35 35h125" stroke="currentColor" stroke-width="2"/>
+      </svg>
+      <div class="workshop-plate-top">
+        <span class="art-kicker">AICTE IDEA Lab</span>
+        <span class="art-chip">EDWinXP</span>
+      </div>
+      <div class="workshop-thumb-stage">
+        <img class="workshop-thumb" src="assets/pcb-bootcamp-poster.jpg" alt="" width="450" height="540" loading="lazy" referrerpolicy="no-referrer">
+        <img class="workshop-thumb-back" src="assets/pcb-certificate-aakash.png" alt="" width="700" height="495" loading="lazy" referrerpolicy="no-referrer">
+      </div>
+      <div class="workshop-art-caption">
+        <strong>A circuit. A board. <em>A beginning.</em></strong>
+      </div>
+    </div>
+  </template>
+
+  <template id="artwork-rfid">
+    <div class="source-image-preview">
+      <img src="assets/projects/rfid-reference-setup.jpg" alt="" width="1024" height="718" loading="lazy" referrerpolicy="no-referrer">
+      <span class="source-preview-tag">01 · RFID Hardware</span>
+      <div class="source-preview-caption">
+        <small>Reference Bench Setup</small>
+        <strong>A card. A reader. A clear response.</strong>
+      </div>
+    </div>
+  </template>
+
+  <template id="artwork-attendance">
+    <div class="source-image-preview">
+      <div class="source-preview-pair">
+        <img src="assets/projects/pn532-reader.jpg" alt="" width="800" height="800" loading="lazy" referrerpolicy="no-referrer">
+        <img src="assets/projects/ds3231-rtc.jpg" alt="" width="1024" height="1024" loading="lazy" referrerpolicy="no-referrer">
+      </div>
+      <span class="source-preview-tag">02 · Smart ID Architecture</span>
+      <div class="source-preview-caption">
+        <small>PN532 NFC + DS3231 RTC</small>
+        <strong>Every visit. Time, accounted for.</strong>
+      </div>
+    </div>
+  </template>
+
+  <script src="firebase-account.js?v=20261121-pg1" defer></script>
+  <script src="ai-config.js?v=20261120-fast1" defer></script>
+  <script src="ai-assistant.js?v=20261121-t2" defer></script>
 </body>
 </html>

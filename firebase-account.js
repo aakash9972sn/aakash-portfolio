@@ -17,17 +17,17 @@
   let au;
   let initPromise;
   let configCache;
-  let unsubscribeAuth = null;
   let currentProfile = {
     displayName: '',
     photoURL: '',
     photoDataUrl: '',
+    bestGuessScore: null,
   };
 
   const assetBase = new URL('.', document.currentScript?.src || location.href);
   const sheet = document.createElement('link');
   sheet.rel = 'stylesheet';
-  sheet.href = new URL('firebase-account.css?v=20261121-studio1', assetBase).href;
+  sheet.href = new URL('firebase-account.css?v=20261120-account2', assetBase).href;
   document.head.append(sheet);
 
   const SVG = {
@@ -274,15 +274,25 @@
   }
 
   function handleFirestoreError(error, operationType, path) {
-    // Never print account email, tokens or raw private documents to console.
-    const code = String(error?.code || 'firestore/unavailable');
-    console.warn('Cloud sync operation failed:', operationType, path, code);
-    if (code.includes('permission-denied')) {
-      message('Google sign-in succeeded, but Firebase database security rules denied cloud saving. Your local data is safe.');
-    } else {
-      message('Cloud sync is temporarily unavailable. Your local progress is safe.');
-    }
-    throw new Error('Cloud ' + operationType + ' failed (' + code + ')');
+    const errInfo = {
+      error: error instanceof Error ? error.message : String(error),
+      authInfo: {
+        userId: auth?.currentUser?.uid ?? null,
+        email: auth?.currentUser?.email ?? null,
+        emailVerified: auth?.currentUser?.emailVerified ?? null,
+        isAnonymous: auth?.currentUser?.isAnonymous ?? null,
+        tenantId: auth?.currentUser?.tenantId ?? null,
+        providerInfo:
+          auth?.currentUser?.providerData?.map((provider) => ({
+            providerId: provider.providerId,
+            email: provider.email,
+          })) || [],
+      },
+      operationType,
+      path,
+    };
+    console.error('Firestore Error:', JSON.stringify(errInfo));
+    throw new Error(JSON.stringify(errInfo));
   }
 
   async function loadConfig() {
@@ -302,6 +312,15 @@
     throw new Error('Could not load firebase-applet-config.json');
   }
 
+  async function testConnection() {
+    try {
+      await fs.getDocFromServer(fs.doc(db, 'test', 'connection'));
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('the client is offline')) {
+        console.error('Please check your Firebase configuration.');
+      }
+    }
+  }
 
   function extractGoogleIdentity(user) {
     if (!user) return { name: '', photo: '', email: '' };
@@ -368,8 +387,11 @@
       if (!status.textContent || status.textContent.startsWith('Progress stays')) {
         message(`Signed in as ${effectiveName}`);
       }
+      window.dispatchEvent(new CustomEvent('aakash:account-state', {
+        detail: { signedIn: true, profile: { ...currentProfile, displayName: effectiveName } },
+      }));
     } else {
-      currentProfile = { displayName: '', photoURL: '', photoDataUrl: '' };
+      currentProfile = { displayName: '', photoURL: '', photoDataUrl: '', bestGuessScore: null };
       launch.dataset.signedIn = 'false';
       launchLabel.textContent = 'Sign in';
       launch.setAttribute('aria-label', 'Sign in to account');
@@ -381,6 +403,9 @@
       signedOutView.hidden = false;
       loginText.textContent = 'Continue with Google';
       message('Progress stays on this device until you sign in.');
+      window.dispatchEvent(new CustomEvent('aakash:account-state', {
+        detail: { signedIn: false, profile: null },
+      }));
     }
   }
 
@@ -413,6 +438,7 @@
         displayName: google.name,
         photoURL: google.photo,
         photoDataUrl: '',
+        bestGuessScore: null,
       };
       renderIdentityUI(user);
       return currentProfile;
@@ -437,10 +463,23 @@
       }
     }
 
+    const cloudBest = Number.isInteger(existing.bestGuessScore) && existing.bestGuessScore >= 1
+      ? existing.bestGuessScore
+      : null;
+    if (cloudBest) {
+      try {
+        const localBest = Number(localStorage.getItem('bestScore'));
+        if (!Number.isFinite(localBest) || localBest < 1 || cloudBest < localBest) {
+          localStorage.setItem('bestScore', String(cloudBest));
+        }
+      } catch {}
+    }
+
     currentProfile = {
       displayName: String(existing.displayName || updates.displayName || google.name || '').slice(0, 120),
       photoURL: String(updates.photoURL || existing.photoURL || google.photo || '').slice(0, 1000),
       photoDataUrl: String(existing.photoDataUrl || '').slice(0, 150000),
+      bestGuessScore: cloudBest,
     };
     renderIdentityUI(user);
     return currentProfile;
@@ -521,14 +560,7 @@
       au = a;
       fs = f;
 
-      // Other widgets can initialize a different default Firebase app.
-      // Never sign in using credentials for a different Firebase project.
-      const existing = app.getApps().find(instance =>
-        instance.options?.projectId === config.projectId &&
-        instance.options?.apiKey === config.apiKey &&
-        instance.options?.authDomain === config.authDomain
-      );
-      const instance = existing || app.initializeApp(config, 'aakash-portfolio');
+      const instance = app.getApps().length ? app.getApp() : app.initializeApp(config);
       auth = a.getAuth(instance);
       db = f.getFirestore(instance, config.firestoreDatabaseId);
 
@@ -542,37 +574,23 @@
         }
       }
 
-      await new Promise((resolve, reject) => {
+      testConnection();
+
+      await new Promise((resolve) => {
         let settled = false;
-        const timer = setTimeout(() => {
-          if (settled) return;
-          settled = true;
-          reject(new Error('Firebase authentication is taking too long. Please refresh and check your connection.'));
-        }, 18000);
-        unsubscribeAuth = a.onAuthStateChanged(auth, async (user) => {
-          // Identity is shown IMMEDIATELY after Firebase Auth confirms login;
-          // a Firestore rules failure must not hide the Google name/photo.
+        a.onAuthStateChanged(auth, async (user) => {
           renderIdentityUI(user);
-          if (!settled) {
-            settled = true;
-            clearTimeout(timer);
-            resolve();
-          }
           if (user) {
             try {
               await ensureUserProfile(user, true);
             } catch (err) {
-              console.warn('Cloud profile could not sync:', err?.code || err?.message || 'unknown');
-              message('Signed in to Google. Your profile is shown, but cloud saving needs Firebase permissions.');
+              console.warn('Profile load warning:', err);
             }
           }
-        }, error => {
           if (!settled) {
             settled = true;
-            clearTimeout(timer);
-            reject(error);
+            resolve();
           }
-          signInError(error);
         });
       });
     })().catch((err) => {
@@ -656,9 +674,7 @@
       'auth/popup-blocked': 'Your browser blocked the sign-in popup. Allow popups for this site and try again.',
       'auth/popup-closed-by-user': 'Sign-in was cancelled. You can continue browsing locally.',
       'auth/cancelled-popup-request': 'Another sign-in popup is already open.',
-      'auth/unauthorized-domain': 'Google sign-in rejected the current website hostname: ' +
-        location.hostname + '. In Firebase project gen-lang-client-0580718541, check Authentication → Settings → Authorized domains for exactly ' +
-        location.hostname + ' (hostname only). If it is already listed, verify that this page is not opened on another origin or using another Firebase project/API key.',
+      'auth/unauthorized-domain': 'Google sign-in is not authorized for this domain.',
       'auth/operation-not-allowed': 'Google sign-in is not enabled for this Firebase project.',
       'auth/invalid-api-key': 'The Firebase sign-in configuration needs attention.',
       'auth/network-request-failed': 'Could not reach Google sign-in. Check your connection and retry.',
@@ -684,11 +700,8 @@
 
   login.onclick = async () => {
     if (!auth || !au) {
-      // Never await SDK imports AND open signInWithPopup in the same click.
-      // Browsers may drop the user gesture, causing auth/popup-blocked.
       await prepareSignIn();
-      if (auth && au) message('Google sign-in is ready. Click Continue with Google once more.');
-      return;
+      if (!auth || !au) return;
     }
     login.disabled = true;
     loginText.textContent = 'Opening Google…';
@@ -791,17 +804,29 @@
 
   window.AakashAccount = {
     save,
+    openDialog() {
+      bar.showModal();
+      prepareSignIn();
+    },
+    getState() {
+      return {
+        signedIn: Boolean(auth?.currentUser),
+        profile: auth?.currentUser ? { ...currentProfile } : null,
+      };
+    },
     async bestGuess(score) {
-      const numericScore = Number(score);
-      if (!auth?.currentUser || !Number.isFinite(numericScore) || numericScore < 1) return;
+      const numericScore = Math.trunc(Number(score));
+      if (!auth?.currentUser || !Number.isInteger(numericScore) || numericScore < 1 || numericScore > 100000) return;
       const uid = auth.currentUser.uid;
       const path = `users/${uid}`;
       const google = extractGoogleIdentity(auth.currentUser);
+      let updatedBest = null;
       try {
         await fs.runTransaction(db, async (tx) => {
           const ref = fs.doc(db, 'users', uid);
           const snap = await tx.get(ref);
           if (!snap.exists()) {
+            updatedBest = numericScore;
             tx.set(ref, {
               uid,
               displayName: google.name,
@@ -814,12 +839,27 @@
           }
           const old = snap.data()?.bestGuessScore;
           if (!old || numericScore < old) {
+            updatedBest = numericScore;
             tx.update(ref, {
               bestGuessScore: numericScore,
               updatedAt: fs.serverTimestamp(),
             });
+          } else {
+            updatedBest = old;
           }
         });
+        if (updatedBest) {
+          currentProfile = { ...currentProfile, bestGuessScore: updatedBest };
+          try {
+            const localBest = Number(localStorage.getItem('bestScore'));
+            if (!Number.isFinite(localBest) || localBest < 1 || updatedBest < localBest) {
+              localStorage.setItem('bestScore', String(updatedBest));
+            }
+          } catch {}
+          window.dispatchEvent(new CustomEvent('aakash:account-state', {
+            detail: { signedIn: true, profile: { ...currentProfile } },
+          }));
+        }
       } catch (error) {
         console.error('Best guess sync failed:', error);
         message('Score is saved locally; cloud sync is unavailable.');
@@ -879,6 +919,14 @@
       recordsHead.append(recordsTitle, closeBtn);
       dialog.append(recordsHead);
 
+      if (currentProfile.bestGuessScore) {
+        const gameHeading = document.createElement('h3');
+        gameHeading.textContent = 'Perfect Guess';
+        const gameRow = document.createElement('p');
+        gameRow.textContent = `Personal Best: ${currentProfile.bestGuessScore} ${currentProfile.bestGuessScore === 1 ? 'attempt' : 'attempts'}`;
+        dialog.append(gameHeading, gameRow);
+      }
+
       for (const name of ['bookmarks', 'testAttempts', 'orders']) {
         const h = document.createElement('h3');
         h.textContent = { bookmarks: 'Bookmarks', testAttempts: 'Test history', orders: 'Order history' }[name];
@@ -918,21 +966,10 @@
     }
   };
 
-  // Preload Firebase for ALL visitors. The Google popup must begin within a
-  // direct click after imports are ready (not after async setup in that click).
-  // onAuthStateChanged restores any previously authenticated Google session.
-  login.disabled = true;
-  loginText.textContent = 'Preparing Google sign-in…';
-  init().then(() => {
-    login.disabled = false;
-    loginText.textContent = 'Continue with Google';
-  }).catch(error => {
-    login.disabled = false;
-    loginText.textContent = 'Retry Google sign-in';
-    signInError(error);
-  });
-
-  window.addEventListener('pagehide', () => {
-    if (unsubscribeAuth) { unsubscribeAuth(); unsubscribeAuth = null; }
-  }, { once: true });
+  // Restore existing session automatically if user previously signed in
+  try {
+    if (localStorage.getItem('aakash.cloud.enabled')) {
+      init().catch(() => message('Cloud connection unavailable. You can continue locally.'));
+    }
+  } catch {}
 })();

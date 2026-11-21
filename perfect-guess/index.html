@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F6F7F4">
+  <meta name="description" content="Perfect Guess — Number logic game from 1 to 1000 by Aakash (DTU ECE), with directional range narrowing and Google cloud score sync.">
+  <meta property="og:title" content="Perfect Guess — 1 to 1000 Logic Game · AAKASH">
+  <meta property="og:description" content="Guess the secret number between 1 and 1000 in minimum attempts, narrow the binary search window, and sync your personal best.">
+  <meta property="og:type" content="website">
+  <title>Perfect Guess — AAKASH · DTU ECE</title>
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <script src="../theme-sync.js?v=20261121-t1"></script>
+  <link rel="stylesheet" href="styles.css?v=20261121-pg1">
+  <script src="app.js?v=20261121-t1" defer></script>
+</head>
+<body class="pg-body">
+  <a class="skip-link" href="#main">Skip to game</a>
+
+  <header class="studio-topbar">
+    <div class="wrap header-bar">
+      <div class="brand-cluster">
+        <a class="wordmark" href="../index.html" aria-label="AAKASH, back to portfolio">AAKASH</a>
+        <a class="back-chip" href="../index.html#work">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          Portfolio
+        </a>
+      </div>
+
+      <nav id="main-navigation" aria-label="Workspace navigation">
+        <a href="../index.html#work">Showcase</a>
+        <a href="../test-centre/">Test Centre</a>
+        <a href="../blunder/">Blunder Store</a>
+        <a href="./" aria-current="location">Perfect Guess</a>
+      </nav>
+
+      <div class="header-actions">
+        <button type="button" id="pg-theme-toggle" class="theme-btn" aria-label="Switch color theme" title="Toggle light or dark theme">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <span id="pg-theme-label">Dark</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="wrap pg-main">
+    <section class="pg-shell" aria-labelledby="pg-title">
+      <div class="pg-console">
+        <div class="console-head">
+          <div>
+            <p class="pg-kicker">Logic Game · Binary Search Intuition</p>
+            <h1 id="pg-title">Perfect Guess</h1>
+            <p class="pg-subtitle">Find the hidden integer between <strong>1</strong> and <strong>1000</strong> in as few tries as possible.</p>
+          </div>
+          <div class="window-badge" id="window-badge">
+            <span>Window</span>
+            <strong id="range-display">1 — 1000</strong>
+          </div>
+        </div>
+
+        <div class="digit-stage" id="digit-stage" data-state="idle">
+          <div class="digit-readout" aria-label="Latest guess display">
+            <span class="digit-tile" id="digit-0">-</span>
+            <span class="digit-tile" id="digit-1">-</span>
+            <span class="digit-tile" id="digit-2">-</span>
+            <span class="digit-tile" id="digit-3" hidden>1</span>
+          </div>
+
+          <div class="proximity-block" aria-live="polite">
+            <div class="proximity-head">
+              <span class="proximity-caption">Signal Proximity</span>
+              <strong class="proximity-label" id="proximity-label">Ready for first guess</strong>
+            </div>
+            <div class="proximity-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="proximity-bar-wrap">
+              <div class="proximity-fill" id="proximity-fill"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="feedback-banner" id="feedback-banner" data-tone="neutral" role="status" aria-live="polite">
+          <span class="feedback-tag" id="feedback-tag">READY</span>
+          <p class="feedback-text" id="feedback-text">Enter any integer from 1 to 1000. Optimal binary search averages ~9–10 attempts.</p>
+        </div>
+
+        <form class="guess-form" id="guess-form" novalidate>
+          <div class="input-group">
+            <label class="sr-only" for="guess-input">Your guess from 1 to 1000</label>
+            <input
+              id="guess-input"
+              type="number"
+              min="1"
+              max="1000"
+              step="1"
+              inputmode="numeric"
+              placeholder="Enter 1 – 1000 (tip: try 500)"
+              autocomplete="off"
+              required
+            >
+            <button type="submit" class="btn-primary" id="submit-guess-btn">
+              Check guess
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+            </button>
+          </div>
+          <div class="form-actions-row">
+            <button type="button" class="btn-secondary" id="new-round-btn">
+              New round
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+            </button>
+            <button type="button" class="btn-subtle" id="midpoint-btn">Suggest midpoint (500)</button>
+          </div>
+        </form>
+      </div>
+
+      <aside class="pg-sidebar" aria-label="Scoreboard and guess log">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-label">Attempts</span>
+            <strong class="metric-value tabular" id="attempts-val">0</strong>
+            <span class="metric-note" id="attempts-note">Current round</span>
+          </div>
+          <div class="metric-card is-accent">
+            <span class="metric-label">Best Score</span>
+            <strong class="metric-value tabular" id="best-val">—</strong>
+            <span class="metric-note" id="best-note">Lower is better</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Rounds Won</span>
+            <strong class="metric-value tabular" id="wins-val">0</strong>
+            <span class="metric-note">This browser</span>
+          </div>
+        </div>
+
+        <div class="cloud-sync-card" id="cloud-sync-card" data-signed-in="false">
+          <div class="cloud-sync-copy">
+            <span class="cloud-sync-kicker">Account &amp; Score Sync</span>
+            <strong id="cloud-sync-title">Playing locally</strong>
+            <p id="cloud-sync-desc">Sign in with the Account button to save your personal best score across devices.</p>
+          </div>
+          <button type="button" class="btn-sync" id="open-account-btn">Sign in / Sync</button>
+        </div>
+
+        <div class="history-card">
+          <div class="history-head">
+            <h2>Attempt Log</h2>
+            <span class="history-count tabular" id="history-count">0 entries</span>
+          </div>
+          <ol class="history-list" id="history-list">
+            <li class="history-empty" id="history-empty">Your guesses and narrowed windows will appear here.</li>
+          </ol>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <footer class="wrap pg-footer">
+    <span>Perfect Guess · Part of Aakash’s DTU ECE Portfolio</span>
+    <a href="../index.html">Back to portfolio home</a>
+  </footer>
+
+  <script src="../firebase-account.js?v=20261121-pg1" defer></script>
+  <script src="../ai-config.js?v=20261120-fast1" defer></script>
+  <script src="../ai-assistant.js?v=20261121-t2" defer></script>
+</body>
+</html>
