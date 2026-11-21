@@ -1,5 +1,6 @@
 /* Public backend address only. Do not put GEMINI_API_KEY here. */
-window.AAKASH_BACKEND_ORIGIN = window.AAKASH_BACKEND_ORIGIN || ""; // Set to your deployed Node origin.
+window.AAKASH_BACKEND_ORIGIN = window.AAKASH_BACKEND_ORIGIN ||
+  (/(^|\.)github\.io$/i.test(location.hostname) ? "https://aakash-portfolio-g3fb.onrender.com" : ""); // Public backend origin; no secret.
 (() => {
   "use strict";
   function origin() {
