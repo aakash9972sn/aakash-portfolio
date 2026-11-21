@@ -198,7 +198,11 @@
   saved.className = 'account-action-btn';
   saved.innerHTML = `${SVG.folder}<strong>My saved data</strong><span>Bookmarks &amp; history</span>`;
 
-  actionsGrid.append(bookmark, saved);
+  const myResultsBtn = document.createElement('button');
+  myResultsBtn.type = 'button';
+  myResultsBtn.className = 'account-action-btn';
+  myResultsBtn.innerHTML = `${SVG.folder}<strong>My Results</strong><span>All tests · weak &amp; strong topics</span>`;
+  actionsGrid.append(bookmark, saved, myResultsBtn);
 
   const signOutBtn = document.createElement('button');
   signOutBtn.type = 'button';
@@ -617,6 +621,23 @@
       if (typeof data?.score === 'number' && Number.isFinite(data.score)) payload.score = data.score;
       if (typeof data?.total === 'number' && Number.isFinite(data.total)) payload.total = data.total;
       if (data?.at != null) payload.at = String(data.at).slice(0, 64);
+      for (const key of ['exam','subject','examId','subjectId']) {
+        if (data?.[key] != null) payload[key] = String(data[key]).slice(0, 100);
+      }
+      for (const key of ['correct','wrong','unattempted','excluded','accuracy']) {
+        const value = Number(data?.[key]);
+        if (data?.[key] != null && Number.isFinite(value)) payload[key] = value;
+      }
+      function safeStats(obj) {
+        if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return {};
+        return Object.fromEntries(Object.entries(obj).slice(0, 125).map(([k,v]) => [
+          String(k).slice(0, 110),
+          Object.fromEntries(['correct','wrong','skipped','unattempted','excluded','total']
+            .map(key => [key, Math.max(0, Math.min(1000, Number(v?.[key]) || 0))]))
+        ]));
+      }
+      if (data?.topicStats) payload.topicStats = safeStats(data.topicStats);
+      if (data?.unitStats) payload.unitStats = safeStats(data.unitStats);
       return payload;
     }
     if (collection === 'orders') {
@@ -883,11 +904,26 @@
       }
     },
     async syncLocal() {
+      // Backfill earlier submitted attempts and reset-safe local daily summaries.
+      try {
+        const history = JSON.parse(localStorage.getItem('tclab.analysis.history.v1') || '[]');
+        if (Array.isArray(history)) {
+          for (const entry of history.slice(-300)) {
+            if (entry?.testId && entry?.at) {
+              await save('testAttempts', String(entry.testId) + '-' + String(entry.at), {
+                ...entry, title: entry.title || entry.testId
+              });
+            }
+          }
+        }
+      } catch {}
       for (const key of Object.keys(localStorage)) {
         if (key.startsWith('tclab.result.')) {
           try {
             const result = JSON.parse(localStorage.getItem(key));
-            await save('testAttempts', `${result.testId || 'test'}-${result.at || 'latest'}`, result);
+            const history = JSON.parse(localStorage.getItem('tclab.analysis.history.v1') || '[]');
+            const detail = Array.isArray(history) ? history.find(h => h.testId === result.testId && h.at === result.at) : null;
+            await save('testAttempts', `${result.testId || 'test'}-${result.at || 'latest'}`, { ...result, ...detail });
           } catch {}
         }
       }
