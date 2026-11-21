@@ -5,6 +5,10 @@ on:
     paths:
       - "command-palette.js"
       - "command-palette.css"
+      - "studio-extras.js"
+      - "studio-light-theme.css"
+      - "firebase-account.js"
+      - "scripts/studio-light-auth-browser.mjs"
       - "scripts/command-palette-browser.mjs"
       - ".github/workflows/palette-browser.yml"
       - "**/*.html"
@@ -14,7 +18,7 @@ permissions:
 jobs:
   browser:
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,9 +30,15 @@ jobs:
           npm install --no-save --no-package-lock playwright
           npx playwright install chromium --with-deps
       - run: node scripts/command-palette-browser.mjs
+      - name: Test studio UI and Google sign-in with simulated Firebase
+        run: node scripts/studio-light-auth-browser.mjs
+      - name: Inspect live Firebase authorized domain (read-only, non-blocking)
+        run: node scripts/check-firebase-domain.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: command-palette-browser
-          path: command-palette-browser.png
+          path: |
+            command-palette-browser.png
+            studio-light-auth-browser.png
           retention-days: 1
