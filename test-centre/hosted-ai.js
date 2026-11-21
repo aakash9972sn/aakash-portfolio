@@ -2,7 +2,11 @@
 (() => {
   'use strict';
 
-  const base = '';
+  // GitHub Pages only serves static files; Gemini requests must reach the Render API.
+  // Local and server-hosted deployments continue to use same-origin API routes.
+  const base = /(^|\\.)github\\.io$/i.test(location.hostname)
+    ? 'https://aakash-portfolio-g3fb.onrender.com'
+    : '';
 
   async function parseJsonSafely(response, fallbackError) {
     const raw = await response.text();
@@ -207,7 +211,7 @@
 
   async function transport(url, options = {}) {
     if (options.method === 'GET' || String(url).endsWith('/health')) {
-      const response = await fetch('/api/health', {
+      const response = await fetch(base + '/api/health', {
         credentials: 'same-origin',
         cache: 'no-store',
         headers: { Accept: 'application/json' },
