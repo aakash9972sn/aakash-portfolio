@@ -9,6 +9,45 @@
   const entries = Array.isArray(window.portfolioEntries) ? window.portfolioEntries : [];
   if (!hero || !work || !toolbar || !search || !entries.length) return;
 
+  // AI Studio's light look is now the DEFAULT. Users can always switch back
+  // to the original dark portfolio without losing their projects or test data.
+  const header = document.querySelector('.site-home .header');
+  if (header) {
+    let actions = header.querySelector('.header-actions');
+    if (!actions) {
+      actions = document.createElement('div');
+      actions.className = 'header-actions';
+      const github = header.querySelector('.github-nav');
+      if (github) {
+        github.before(actions);
+        actions.append(github);
+      } else {
+        header.append(actions);
+      }
+    }
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'studio-theme-button';
+    toggle.setAttribute('aria-label', 'Switch portfolio light or dark theme');
+    function renderTheme() {
+      const current = document.documentElement.dataset.portfolioTheme || 'light';
+      const dark = current === 'dark';
+      toggle.textContent = dark ? '☀ Light' : '☾ Dark';
+      toggle.setAttribute('aria-pressed', String(dark));
+      toggle.title = dark ? 'Switch to light theme' : 'Switch to dark theme';
+    }
+    toggle.addEventListener('click', () => {
+      const current = document.documentElement.dataset.portfolioTheme || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.portfolioTheme = next;
+      try { localStorage.setItem('aakash.portfolio.theme', next); }
+      catch (_) { /* Theme stays selected for this page even without storage. */ }
+      renderTheme();
+    });
+    actions.prepend(toggle);
+    renderTheme();
+  }
+
   const make = (tag, className, content) => {
     const node = document.createElement(tag);
     if (className) node.className = className;
