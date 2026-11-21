@@ -659,3 +659,17 @@ p { margin: 0; }
   .runner-info { display: none; }
   .q-pane { padding: 20px; }
 }
+
+/* Inline post-test Gemini review: no modal or side-panel is required. */
+.ai-inline-questions { display: grid; gap: 16px; margin-top: 20px; }
+.ai-inline-question { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 18px; overflow-wrap: anywhere; }
+.ai-inline-question h4 { margin: 0 0 14px; font-size: 1rem; line-height: 1.55; }
+.ai-inline-question p { margin: 10px 0; line-height: 1.6; }
+.ai-inline-options { display: grid; gap: 8px; padding: 0; margin: 0 0 16px; list-style: none; }
+.ai-inline-options li { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; }
+.ai-inline-options li.is-selected { border-style: dashed; border-color: var(--line-strong); }
+.ai-inline-options li.is-answer { border-color: #2a9365; }
+.ai-option-letter { font-weight: 800; min-width: 18px; }
+.ai-inline-options small { font-size: .75rem; font-weight: 700; margin-left: auto; }
+.ai-inline-question .ai-coach-output { margin-top: 12px; }
+#ai-study-coach .ai-coach-output { margin-top: 14px; }
