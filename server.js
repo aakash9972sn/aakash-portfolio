@@ -420,6 +420,26 @@ app.use((req, res, next) => {
   next();
 });
 
+// Render hosts the private Gemini API, but the official portfolio lives on
+// GitHub Pages (already authorized for Google sign-in). Direct Render's
+// HTML page visitors to that canonical authorized website. Do not alter /api/*,
+// JSON configuration, scripts, styles, PDFs, or other assets.
+app.use((req, res, next) => {
+  const host = String(req.get('host') || '').split(':')[0].toLowerCase();
+  if (host !== 'aakash-portfolio-g3fb.onrender.com' ||
+      !['GET', 'HEAD'].includes(req.method) ||
+      req.path === '/api' || req.path.startsWith('/api/')) return next();
+  const isPage = req.path === '/' ||
+    req.path === '/index.html' ||
+    req.path === '/test-centre' ||
+    req.path === '/test-centre/' ||
+    /^\/workshops\/[^/]+\/?$/.test(req.path) ||
+    /\.html$/i.test(req.path);
+  if (!isPage) return next();
+  const suffix = req.originalUrl.startsWith('/') ? req.originalUrl : '/' + req.originalUrl;
+  return res.redirect(302, 'https://aakash9972sn.github.io/aakash-portfolio' + suffix);
+});
+
 app.use(
   express.static(__dirname, {
     dotfiles: 'ignore',

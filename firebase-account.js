@@ -521,7 +521,14 @@
       au = a;
       fs = f;
 
-      const instance = app.getApps().length ? app.getApp() : app.initializeApp(config);
+      // Other widgets can initialize a different default Firebase app.
+      // Never sign in using credentials for a different Firebase project.
+      const existing = app.getApps().find(instance =>
+        instance.options?.projectId === config.projectId &&
+        instance.options?.apiKey === config.apiKey &&
+        instance.options?.authDomain === config.authDomain
+      );
+      const instance = existing || app.initializeApp(config, 'aakash-portfolio');
       auth = a.getAuth(instance);
       db = f.getFirestore(instance, config.firestoreDatabaseId);
 
@@ -649,7 +656,9 @@
       'auth/popup-blocked': 'Your browser blocked the sign-in popup. Allow popups for this site and try again.',
       'auth/popup-closed-by-user': 'Sign-in was cancelled. You can continue browsing locally.',
       'auth/cancelled-popup-request': 'Another sign-in popup is already open.',
-      'auth/unauthorized-domain': 'Firebase has not authorized aakash9972sn.github.io. Site owner: Firebase Console → Authentication → Settings → Authorized domains → add aakash9972sn.github.io (without https:// or /aakash-portfolio/).',
+      'auth/unauthorized-domain': 'Google sign-in rejected the current website hostname: ' +
+        location.hostname + '. In Firebase project gen-lang-client-0580718541, check Authentication → Settings → Authorized domains for exactly ' +
+        location.hostname + ' (hostname only). If it is already listed, verify that this page is not opened on another origin or using another Firebase project/API key.',
       'auth/operation-not-allowed': 'Google sign-in is not enabled for this Firebase project.',
       'auth/invalid-api-key': 'The Firebase sign-in configuration needs attention.',
       'auth/network-request-failed': 'Could not reach Google sign-in. Check your connection and retry.',

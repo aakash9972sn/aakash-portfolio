@@ -9,6 +9,8 @@ on:
       - "studio-light-theme.css"
       - "firebase-account.js"
       - "scripts/studio-light-auth-browser.mjs"
+      - "scripts/check-firebase-domain.mjs"
+      - "firebase-applet-config.json"
       - "scripts/command-palette-browser.mjs"
       - ".github/workflows/palette-browser.yml"
       - "**/*.html"
