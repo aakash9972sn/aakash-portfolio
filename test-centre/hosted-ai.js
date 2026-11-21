@@ -203,6 +203,7 @@
         question: body.question || 'Review these completed test results and suggest a revision plan.',
         history: (body.history || []).filter((m) => ['user', 'assistant'].includes(m.role)).slice(-6),
         pageContext: body.context || body.stats || {},
+        app: 'study',
       },
       signal,
       onText
