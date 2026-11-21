@@ -13,10 +13,10 @@ function backend(hostname,origin,configured=''){
   return window.AakashBackend;
 }
 
-test('GitHub Pages requires an actual Node backend and does not reuse broken AI Studio webapp URL',()=>{
+test('GitHub Pages portfolio routes to the verified public Render Node backend, never the AI Studio preview URL',()=>{
   const api=backend('aakash9972sn.github.io','https://aakash9972sn.github.io');
-  assert.equal(api.configured(),false);
-  assert.throws(()=>api.url('/api/health'),/GitHub Pages|Node backend/);
+  assert.equal(api.configured(),true);
+  assert.equal(api.url('/api/health'),'https://aakash-portfolio-g3fb.onrender.com/api/health');
   assert.doesNotMatch(read('backend-config.js'),/ais-pre-wdyrf6yb4psuwizvqpn4hw/);
   assert.doesNotMatch(read('backend-config.js'),/GEMINI_API_KEY\s*=/);
 });
@@ -29,6 +29,7 @@ test('Node-hosted portfolio uses same-origin Gemini routes and accepts only HTTP
   for(const url of ['http://insecure.example','https://portfolio-node.example/api','https://user:password@portfolio-node.example']){
     assert.equal(backend('aakash9972sn.github.io','https://aakash9972sn.github.io',url).configured(),false);
   }
+  assert.equal(backend('localhost','http://localhost:3000').url('/api/health'),'http://localhost:3000/api/health');
 });
 test('all eight portfolio entry pages load fresh shared backend config before AI scripts',()=>{
   const pages=[
