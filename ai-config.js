@@ -1,5 +1,5 @@
 window.AAKASH_AI = {
-  endpoint: (window.AAKASH_BACKEND_BASE || '') + '/api/ai/chat/stream',
+  endpoint: '/api/ai/chat/stream',
   app: 'portfolio',
   title: 'Aakash AI Guide',
   intro: 'Ask about my DTU ECE projects, circuit notes, or where to start.',
