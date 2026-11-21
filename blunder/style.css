@@ -3242,3 +3242,21 @@ dialog::backdrop {
 .footer-big {
   color: #748860;
 }
+
+/* Clearly separated sandbox checkout & honest local demo fulfillment. */
+.demo-order-warning { padding:16px 18px; background:#fff0ce; color:#563e14; border:1px solid #cf9f43; border-radius:16px; margin:12px 0 20px; line-height:1.5; }
+.demo-order-warning b { display:block; font-size:.78rem; letter-spacing:.09em; margin-bottom:6px; text-transform:uppercase; }
+.demo-order-warning p { margin:0; font-size:.89rem; }
+.demo-order-timeline { display:grid; gap:10px; padding:0; margin:22px 0; list-style:none; }
+.demo-order-timeline li { display:flex; align-items:flex-start; gap:13px; border:1px solid var(--line); border-radius:14px; padding:14px; opacity:.57; }
+.demo-order-timeline li.is-current { opacity:1; border-color:#638e36; background:rgba(99,142,54,.09); }
+.demo-order-timeline li.is-complete { opacity:1; }
+.demo-stage-number { flex:none; width:32px; height:32px; border-radius:50%; background:var(--line); display:grid; place-items:center; font-weight:800; }
+.demo-order-timeline li.is-current .demo-stage-number, .demo-order-timeline li.is-complete .demo-stage-number { background:var(--ink); color:#fff; }
+.demo-order-timeline li span:last-child { min-width:0; display:grid; gap:4px; }
+.demo-order-timeline li small { font-size:.82rem; line-height:1.45; }
+@media(max-width:600px) {
+  .demo-order-timeline li { padding:12px; }
+  .demo-order-warning { padding:12px; }
+  .order-actions { display:grid; grid-template-columns:1fr; }
+}
