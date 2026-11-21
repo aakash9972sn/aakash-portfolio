@@ -346,7 +346,7 @@
         })
         .join(
           "",
-        )}</div><div class="basket-summary"><div class="shipping-progress">${t.subtotal >= threshold ? "Your basket meets the free delivery threshold." : `You’re ${money(threshold - t.subtotal)} away from free delivery.`}<div><i style="width:${Math.min(100, (t.subtotal / threshold) * 100)}%"></i></div></div>${totalRows(t)}${!state.config.checkoutEnabled ? '<p class="notice">Ordering is temporarily unavailable. Your basket is saved.</p>' : ""}<button class="button button-dark" data-action="checkout">Review & checkout ${icon("arrow")}</button><small>Delivery availability is checked before placing your order.</small></div>`;
+        )}</div><div class="basket-summary"><div class="shipping-progress">${t.subtotal >= threshold ? "Your basket meets the free delivery threshold." : `You’re ${money(threshold - t.subtotal)} away from free delivery.`}<div><i style="width:${Math.min(100, (t.subtotal / threshold) * 100)}%"></i></div></div>${totalRows(t)}${!state.config.checkoutEnabled ? '<p class="notice">Demo only: checkout does not create a real order or charge you.</p>' : ""}<button class="button button-dark" data-action="checkout">${state.config.checkoutEnabled ? "Review & checkout" : "Try demo checkout"} ${icon("arrow")}</button><small>Delivery availability is checked before placing your order.</small></div>`;
     }
     if (focus?.id)
       content
@@ -414,8 +414,8 @@
       return { valid: false, text: "Please enter a valid 6-digit PIN code." };
     if (!state.config.checkoutEnabled)
       return {
-        valid: false,
-        text: "We’re preparing to open. Your area and delivery window will be confirmed at launch.",
+        valid: true,
+        text: "Demo only — this PIN code is not confirmed as a real delivery area.",
       };
     const valid = state.config.shipping.pincodes.includes(pin);
     return {
@@ -521,9 +521,10 @@
     if (!state.cart.length) return;
     const t = totals(),
       enabled = state.config.checkoutEnabled;
+    const demo = !enabled;
     const methods = enabled ? state.config.paymentMethods : ["cod"];
     $("#checkout-content").innerHTML =
-      `<form id="checkout-form"><div class="checkout-layout"><div class="checkout-form"><h3>01 &nbsp; Your details</h3><div class="field-grid"><div class="field field-wide"><label for="customer-name">Full name</label><input id="customer-name" name="name" autocomplete="name" minlength="2" maxlength="80" required></div><div class="field"><label for="customer-email">Email address</label><input id="customer-email" name="email" type="email" autocomplete="email" maxlength="160" required></div><div class="field"><label for="customer-phone">Mobile number</label><input id="customer-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel-national" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="10-digit mobile number" required></div></div><h3>02 &nbsp; Where to?</h3><div id="checkout-location" class="checkout-location"></div><div class="field-grid"><div class="field field-wide"><label for="customer-address">House / flat, building & street</label><textarea id="customer-address" name="address" autocomplete="street-address" minlength="8" maxlength="220" required></textarea></div><div class="field"><label for="customer-city">City</label><input id="customer-city" name="city" autocomplete="address-level2" minlength="2" maxlength="80" required></div><div class="field"><label for="customer-state">State</label><input id="customer-state" name="state" autocomplete="address-level1" minlength="2" maxlength="80" required></div><div class="field field-wide"><label for="customer-pin">PIN code</label><input id="customer-pin" name="pincode" inputmode="numeric" autocomplete="postal-code" pattern="[1-9][0-9]{5}" maxlength="6" value="${esc(read("pin", ""))}" required><small id="checkout-delivery">${esc(state.config.shipping.estimate)}</small></div></div><h3>03 &nbsp; Pay your way</h3>${methods.map((method, i) => `<label class="payment-option"><input type="radio" name="method" value="${method}" ${i === 0 ? "checked" : ""}><span><strong>${method === "cod" ? "Cash on Delivery" : state.config.paymentMode === "test" ? "Online payment · Test mode" : "Pay online"}</strong><small>${method === "cod" ? "Pay when your order reaches you. The store confirms your request before dispatch." : "UPI, cards and supported payment methods via Razorpay."}</small></span></label>`).join("")}<p class="notice ${enabled ? "success" : ""}">${enabled ? "Confirm your details below. The store receives your order automatically; you do not need to send a separate message." : "Ordering is temporarily unavailable. Your basket is saved; please check back shortly."}</p></div><aside class="checkout-summary"><h3>Your little finds <span>(${count()})</span></h3>${t.items.map((i) => `<div class="bag-line"><img src="${esc(i.image)}" alt="" width="46" height="50"><div><h3>${esc(i.name)}</h3><p>${esc(i.pack)} × ${i.quantity}</p></div><strong>${money(i.price * i.quantity)}</strong></div>`).join("")}<details class="coupon-section"><summary>Have an offer code?</summary><div class="coupon-row"><label class="sr-only" for="coupon">Offer code</label><input id="coupon" placeholder="Enter code" value="${esc(state.coupon)}" maxlength="30"><button type="button" data-action="coupon">Apply</button></div><p class="coupon-feedback" id="coupon-feedback" role="status"></p></details><div id="checkout-totals">${totalRows(t)}</div><button class="button button-dark" type="submit" id="place-order" ${!enabled ? "disabled" : ""}>${methods[0] === "cod" ? "Confirm COD order" : "Continue to payment"} ${icon("arrow")}</button><small>By placing an order, you agree to the store’s <button type="button" class="inline-link" data-policy="terms">terms</button> and <button type="button" class="inline-link" data-policy="privacy">privacy policy</button>.</small><div id="checkout-message" class="checkout-message" role="status"></div></aside></div></form>`;
+      `<form id="checkout-form"><div class="checkout-layout"><div class="checkout-form"><h3>01 &nbsp; Your details</h3><div class="field-grid"><div class="field field-wide"><label for="customer-name">Full name</label><input id="customer-name" name="name" autocomplete="name" minlength="2" maxlength="80" required></div><div class="field"><label for="customer-email">Email address</label><input id="customer-email" name="email" type="email" autocomplete="email" maxlength="160" required></div><div class="field"><label for="customer-phone">Mobile number</label><input id="customer-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel-national" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="10-digit mobile number" required></div></div><h3>02 &nbsp; Where to?</h3><div id="checkout-location" class="checkout-location"></div><div class="field-grid"><div class="field field-wide"><label for="customer-address">House / flat, building & street</label><textarea id="customer-address" name="address" autocomplete="street-address" minlength="8" maxlength="220" required></textarea></div><div class="field"><label for="customer-city">City</label><input id="customer-city" name="city" autocomplete="address-level2" minlength="2" maxlength="80" required></div><div class="field"><label for="customer-state">State</label><input id="customer-state" name="state" autocomplete="address-level1" minlength="2" maxlength="80" required></div><div class="field field-wide"><label for="customer-pin">PIN code</label><input id="customer-pin" name="pincode" inputmode="numeric" autocomplete="postal-code" pattern="[1-9][0-9]{5}" maxlength="6" value="${esc(read("pin", ""))}" required><small id="checkout-delivery">${esc(state.config.shipping.estimate)}</small></div></div><h3>03 &nbsp; Pay your way</h3>${methods.map((method, i) => `<label class="payment-option"><input type="radio" name="method" value="${method}" ${i === 0 ? "checked" : ""}><span><strong>${method === "cod" ? "Cash on Delivery" : state.config.paymentMode === "test" ? "Online payment · Test mode" : "Pay online"}</strong><small>${method === "cod" ? "Pay when your order reaches you. The store confirms your request before dispatch." : "UPI, cards and supported payment methods via Razorpay."}</small></span></label>`).join("")}<p class="notice ${enabled ? "success" : ""}">${enabled ? "Confirm your details below. The store receives your order automatically; you do not need to send a separate message." : "DEMO CHECKOUT ONLY: No real order will be sent, delivered or charged. Your demo order stays on this device."}</p></div><aside class="checkout-summary"><h3>Your little finds <span>(${count()})</span></h3>${t.items.map((i) => `<div class="bag-line"><img src="${esc(i.image)}" alt="" width="46" height="50"><div><h3>${esc(i.name)}</h3><p>${esc(i.pack)} × ${i.quantity}</p></div><strong>${money(i.price * i.quantity)}</strong></div>`).join("")}<details class="coupon-section"><summary>Have an offer code?</summary><div class="coupon-row"><label class="sr-only" for="coupon">Offer code</label><input id="coupon" placeholder="Enter code" value="${esc(state.coupon)}" maxlength="30"><button type="button" data-action="coupon">Apply</button></div><p class="coupon-feedback" id="coupon-feedback" role="status"></p></details><div id="checkout-totals">${totalRows(t)}</div><button class="button button-dark" type="submit" id="place-order" >${demo ? "Place demo order · no payment" : methods[0] === "cod" ? "Confirm COD order" : "Continue to payment"} ${icon("arrow")}</button><small>By placing an order, you agree to the store’s <button type="button" class="inline-link" data-policy="terms">terms</button> and <button type="button" class="inline-link" data-policy="privacy">privacy policy</button>.</small><div id="checkout-message" class="checkout-message" role="status"></div></aside></div></form>`;
     applyDeliverySelection(window.BlunderLocation.getSelection());
     closeDialog($("#bag-dialog"));
     openDialog("checkout-dialog");
@@ -550,7 +551,7 @@
     );
   }
   async function placeOrder(form) {
-    if (state.checkoutBusy || !state.config.checkoutEnabled) return;
+    if (state.checkoutBusy) return;
     if (!form.reportValidity()) return;
     const data = new FormData(form),
       customer = Object.fromEntries(
@@ -562,7 +563,7 @@
       customer.location = { ...state.checkoutLocation.point };
     const check = checkDelivery(customer.pincode),
       feedback = $("#checkout-message");
-    if (!check.valid) {
+    if (!check.valid && state.config.checkoutEnabled) {
       feedback.innerHTML = `<p class="notice error">${esc(check.text)}</p>`;
       return;
     }
@@ -575,6 +576,12 @@
       customer,
       method: data.get("method"),
     };
+    if (!state.config.checkoutEnabled) {
+      placeDemoOrder(customer);
+      feedback.textContent = "";
+      state.checkoutBusy = false;
+      return;
+    }
     const fingerprint = [
       ...new Uint8Array(
         await crypto.subtle.digest(
@@ -623,7 +630,7 @@
     } finally {
       state.checkoutBusy = false;
       if ($("#place-order"))
-        $("#place-order").disabled = !state.config.checkoutEnabled;
+        $("#place-order").disabled = false;
     }
   }
   function clearCompletedBag(order) {
