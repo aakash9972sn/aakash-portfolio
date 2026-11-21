@@ -53,6 +53,69 @@
     ].join('\n');
   }
 
+  function getUnit(q, subjectId, examId) {
+    if (q.unit && typeof q.unit === 'string' && !/^Full /i.test(q.unit)) return q.unit;
+    const registry = window.TEST_CENTRE_SYLLABI || {};
+    const item = registry[examId]?.subjects?.[subjectId];
+    const topic = String(q.t || '').trim().toLowerCase();
+    if (!topic || !item?.units) return 'Unit not tagged';
+    // Only assign when the question topic is an unambiguous title/topic match.
+    const hits = item.units.filter(u => {
+      const title = u.title.toLowerCase().replace(/^unit \d+:\s*/, '').trim();
+      return topic === title || u.topics.toLowerCase().split(/[,;]/).some(v => v.trim() === topic);
+    });
+    return hits.length === 1 ? hits[0].title : 'Unit not tagged';
+  }
+
+  function groupsFor(result, questions) {
+    const units = new Map(), topics = new Map();
+    questions.forEach((q, i) => {
+      const status = q.unscored ? 'excluded' : !Number.isInteger(result.responses[i])
+        ? 'skipped' : result.responses[i] === q.a ? 'correct' : 'wrong';
+      const unit = getUnit(q, result.subjectId, result.examId);
+      const topic = String(q.t || 'Topic not tagged');
+      [[units, unit], [topics, topic]].forEach(([map, label]) => {
+        if (!map.has(label)) map.set(label, { correct:0, wrong:0, skipped:0, excluded:0, total:0 });
+        const obj = map.get(label);
+        obj[status]++; obj.total++;
+      });
+    });
+    return {units, topics};
+  }
+
+  function statTable(title, map) {
+    const sorted = [...map].sort((a,b) => (b[1].wrong+b[1].skipped)-(a[1].wrong+a[1].skipped));
+    return '<div class="ai-report-table-wrap"><h4>' + esc(title) + '</h4><table class="ai-report-table">' +
+      '<thead><tr><th>Unit / topic</th><th>Total</th><th>Correct</th><th>Wrong</th><th>Skipped</th><th>Review only</th></tr></thead><tbody>' +
+      sorted.map(([name,v]) => '<tr><th>' + esc(name) + '</th><td>' + v.total + '</td><td>' + v.correct +
+        '</td><td>' + v.wrong + '</td><td>' + v.skipped + '</td><td>' + v.excluded + '</td></tr>').join('') +
+      '</tbody></table></div>';
+  }
+
+  function dailyHistory() {
+    try { const rows = JSON.parse(localStorage.getItem('tclab.analysis.history.v1') || '[]'); return Array.isArray(rows) ? rows : []; }
+    catch { return []; }
+  }
+
+  function dailyHTML() {
+    const entries = dailyHistory().slice().sort((a,b)=>b.at-a.at);
+    if (!entries.length) return '<p>No saved daily attempts yet.</p>';
+    const grouped = new Map();
+    entries.forEach(entry => {
+      const date = new Date(entry.at).toLocaleDateString('en-IN',{year:'numeric',month:'short',day:'numeric'});
+      if (!grouped.has(date)) grouped.set(date, []);
+      grouped.get(date).push(entry);
+    });
+    return [...grouped].map(([date, items]) =>
+      '<h4>' + esc(date) + ' · ' + items.length + ' attempt(s)</h4>' +
+      '<div class="ai-daily-attempts">' + items.map(item =>
+        '<div><b>' + esc(item.title || item.testId) + '</b><span>' +
+        esc(item.subject || '') + ' · ' + item.correct + ' correct, ' + item.wrong +
+        ' wrong, ' + item.unattempted + ' skipped · ' + item.accuracy + '%</span>' +
+        (item.testId ? '<a href="#/r/' + encodeURIComponent(item.testId) + '">Review latest result</a>' : '') +
+        '</div>').join('') + '</div>').join('');
+  }
+
   function mount(result, questions = []) {
     const host = document.querySelector('#result-body');
     if (!host) return;
@@ -63,20 +126,22 @@
     panel.id = 'ai-study-coach';
     panel.innerHTML =
       '<div class="ai-coach-title"><h3>AI Result Review</h3>' +
-      '<span>Inline question-by-question review</span></div>' +
+      '<span>Daily performance dashboard</span></div>' +
       '<p>Review every question, your selected option, the stored answer key and the explanation here on this page. ' +
       'Option-by-option Gemini explanations are requested only when you press their buttons. ' +
       'AI can make mistakes; disputed source keys are not treated as verified.</p>' +
       '<button type="button" class="btn btn-primary" id="ai-analyze">Open AI analysis</button>' +
       '<div class="ai-coach-output" id="ai-analysis-output" hidden aria-live="polite"></div>' +
-      '<div id="ai-inline-questions" class="ai-inline-questions" hidden></div>';
+      '<div id="ai-inline-questions" class="ai-inline-questions" hidden></div>' +
+      '<details class="ai-daily-history"><summary>Daily attempt history</summary><div id="ai-daily-history-list"></div></details>';
     host.appendChild(panel);
 
     const button = panel.querySelector('#ai-analyze');
     const output = panel.querySelector('#ai-analysis-output');
     const review = panel.querySelector('#ai-inline-questions');
+    panel.querySelector('#ai-daily-history-list').innerHTML = dailyHTML();
     let opened = false;
-    button.addEventListener('click', async () => {
+    button.addEventListener('click', () => {
       if (opened) {
         review.scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
@@ -119,18 +184,19 @@
       });
       review.appendChild(fragment);
       output.hidden = false;
-      output.textContent = 'Preparing your topic-wise AI review on this page…';
-      try {
-        const data = await window.HostedAI.request({
-          question: makeReviewPrompt(result, questions), history: [],
-          context: { page: 'completed test result', exam: result.exam, subject: result.subject },
-          action: 'chat'
-        }, AbortSignal.timeout(60000));
-        output.textContent = data?.answer || 'Review the question explanations below.';
-      } catch (error) {
-        output.textContent = 'Topic-wise AI summary unavailable: ' + (error.message || 'Please retry.') +
-          '\nYour questions, selected answers and saved explanations remain available below.';
-      }
+      const groups = groupsFor(result, questions);
+      const weak = [...groups.topics].filter(([k,v]) => v.wrong+v.skipped>0)
+        .sort((a,b)=>b[1].wrong+b[1].skipped-a[1].wrong-a[1].skipped).slice(0,5);
+      output.innerHTML = '<div class="ai-analysis-metrics">' +
+        '<strong>Correct: ' + result.correct + '</strong><strong>Wrong: ' + result.wrong +
+        '</strong><strong>Skipped: ' + result.unattempted + '</strong><strong>Accuracy: ' + result.accuracy +
+        '%</strong></div>' +
+        statTable('Unit-wise performance', groups.units) +
+        statTable('Topic-wise performance', groups.topics) +
+        '<p><b>Revision priorities:</b> ' + (weak.length
+          ? weak.map(([name, v]) => esc(name) + ' (' + (v.wrong+v.skipped) + ' needs review)').join(' · ')
+          : 'No wrong or skipped questions in this attempt.') + '</p>' +
+        '<p class="muted">Figures are calculated from your actual submitted answers. Untagged units are shown separately, not guessed. Detailed Gemini option explanations are available under each question.</p>';
     });
   }
 
