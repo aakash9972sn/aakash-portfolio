@@ -465,7 +465,7 @@ app.post('/api/ai/chat/stream', async (req, res) => {
 });
 
 app.post('/api/ai/chat', async (req, res) => {
-  const { question, history, context, pageContext } = req.body || {};
+  const { question, history, context, pageContext, app: clientApp } = req.body || {};
   if (typeof question !== 'string' || question.trim().length < 2 || question.length > 700) {
     return res.status(400).json({ error: 'Please enter a question between 2 and 700 characters.' });
   }
