@@ -1,0 +1,20 @@
+# Optional no-card Render Free deployment for the existing portfolio Node server.
+# This file does NOT deploy anything or activate billing on its own.
+# Enter GEMINI_API_KEY privately in Render. Never commit its value.
+services:
+  - type: web
+    name: aakash-portfolio-gemini
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ALLOWED_ORIGINS
+        value: https://aakash9972sn.github.io
+      - key: GEMINI_MODEL
+        value: gemini-3.1-flash-lite
+      - key: GEMINI_API_KEY
+        sync: false
