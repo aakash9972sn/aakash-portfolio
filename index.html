@@ -3,7 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#151b19">
+  <script>
+    try {
+      document.documentElement.dataset.portfolioTheme =
+        localStorage.getItem('aakash.portfolio.theme') === 'dark' ? 'dark' : 'light';
+    } catch (_) {
+      document.documentElement.dataset.portfolioTheme = 'light';
+    }
+  </script>
+  <meta name="theme-color" content="#F6F7F4">
   <meta name="description" content="AAKASH — B.Tech Electronics & Communication Engineering student at Delhi Technological University, 2024–2028. Explore my projects, workshops, and learning journey.">
   <meta property="og:title" content="AAKASH — DTU ECE Student · Projects &amp; Learning">
   <meta property="og:description" content="AAKASH — B.Tech Electronics & Communication Engineering student at Delhi Technological University, 2024–2028. Explore my projects, workshops, and learning journey.">
@@ -20,6 +28,7 @@
   <script src="site-motion.js?v=20261121-studio1" defer></script>
   <link rel="stylesheet" href="project-gallery.css?v=20261121-studio1">
   <link rel="stylesheet" href="studio-extras.css?v=20261121-zip1">
+  <link rel="stylesheet" href="studio-light-theme.css?v=20261121-light1">
 </head>
 <body class="site-home">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -33,7 +42,7 @@
     <section class="hero wrap" id="home" aria-labelledby="hero-title">
       <div class="hero-top"><span class="eyebrow"><i></i> ELECTRONICS &amp; COMMUNICATION / DTU</span><span class="edition">SELECTED WORK / 2026</span></div>
       <div class="hero-layout">
-        <div class="intro"><p class="hello">Hi, I'm AAKASH <span aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M12 1v22M1 12h22M4.2 4.2l15.6 15.6m0-15.6L4.2 19.8"/></svg></span></p><h1 id="hero-title">Electronics.<br><em>Code. Curiosity.</em></h1><p class="hero-description">An Electronics &amp; Communication Engineering student at DTU. Exploring the space between circuits, embedded systems and thoughtful experiences on the web.</p><div class="hero-cta-row"><a class="button light" href="#work">Explore my work <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a><a class="hero-secondary" href="#about">A little about me <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></div></div>
+        <div class="intro"><p class="hello">Hi, I'm AAKASH <span aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M12 1v22M1 12h22M4.2 4.2l15.6 15.6m0-15.6L4.2 19.8"/></svg></span></p><h1 id="hero-title">From RF coupling<br>to <em>full-stack web.</em></h1><p class="hero-description">I’m an Electronics &amp; Communication Engineering student at DTU, building across layers—from 13.56 MHz RFID hardware and analog circuits to useful web apps and AI study tools.</p><div class="hero-cta-row"><a class="button light" href="#work">Explore my work <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a><a class="hero-secondary" href="test-centre/">Explore Test Centre</a><a class="hero-secondary" href="#about">A little about me <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></div></div>
         <figure class="hero-art portrait-card"><img src="assets/aakash.jpg" alt="Portrait of AAKASH" width="683" height="576" fetchpriority="high"><figcaption><div><strong>AAKASH</strong><span>DTU · ELECTRONICS &amp; COMMUNICATION</span></div><span class="portrait-year">CLASS<br>OF ’28 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></span></figcaption></figure>
       </div>
       <div class="hero-bottom"><div class="hero-disciplines"><span><i aria-hidden="true"></i> EMBEDDED SYSTEMS</span><span><i aria-hidden="true"></i> WEB DEVELOPMENT</span><span><i aria-hidden="true"></i> ALWAYS LEARNING</span></div><a href="#work">SCROLL TO DISCOVER <span aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14m-7-7 7 7 7-7"/></svg></span></a></div>
@@ -89,7 +98,7 @@
 <template id="artwork-pcb"><span class="art-kicker">FIELD NOTES / HARDWARE</span><svg class="circuit-art" viewBox="0 0 500 200" fill="none"><rect x="190" y="40" width="100" height="100" rx="6" stroke="currentColor" stroke-width="2"/><rect x="207" y="57" width="66" height="66" rx="3" stroke="currentColor" opacity=".5"/><path d="M210 40V10H100M230 40V0M250 40V15H370M190 60H135L110 85H0M190 80H155L110 125H40M190 100H160v60H0M210 140v60M240 140v30h110v30M270 140v15h180M290 60h70l40-40h100M290 90h110l45 45h55M290 120h50l35 35h125" stroke="currentColor" stroke-width="2"/><g fill="currentColor"><circle cx="100" cy="10" r="4"/><circle cx="370" cy="15" r="4"/><circle cx="40" cy="125" r="4"/><circle cx="450" cy="155" r="4"/></g></svg><div class="workshop-art-caption"><strong>A circuit.<br>A board. <em>A beginning.</em></strong><span class="art-chip">EDWinXP</span></div></template>
 <template id="artwork-rfid"><div class="source-image-preview"><img src="assets/projects/rfid-reference-setup.jpg" alt="" width="1024" height="718" loading="lazy"><span class="source-preview-tag">01 / RFID CARD DETECTION</span><div class="source-preview-caption"><small>REFERENCE IMAGE FROM THE REPORT</small><strong>A card. A reader.<br>A clear response.</strong></div></div></template>
 <template id="artwork-attendance"><div class="source-image-preview"><div class="source-preview-pair"><img src="assets/projects/pn532-reader.jpg" alt="" width="800" height="800" loading="lazy"><img src="assets/projects/ds3231-rtc.jpg" alt="" width="1024" height="1024" loading="lazy"></div><span class="source-preview-tag">02 / SMART ID &amp; TIME ANALYTICS</span><div class="source-preview-caption"><small>COMPONENT REFERENCES FROM THE REPORT</small><strong>Every visit.<br>Time, accounted for.</strong></div></div></template>
-<script src="firebase-account.js?v=20261121-studio1" defer></script>
+<script src="firebase-account.js?v=20261121-authfix1" defer></script>
 <script src="backend-config.js?v=20261121-sitefix1"></script>
 <script src="ai-config.js?v=20261121-sitefix1" defer></script>
 <script src="ai-assistant.js?v=20261121-sitefix1" defer></script>
