@@ -1,4 +1,4 @@
-// Same-origin configuration when hosted on the Express Node server.
-// For GitHub Pages or static hosting, set both to your deployed Node HTTPS URL (without /api).
-window.BLUNDER_API_ORIGIN = "";
-window.BLUNDER_AI_API_ORIGIN = "";
+// Public API endpoint. Payments and real checkout remain server-disabled until
+// the merchant configures persistent orders, stock, service areas and fulfilment.
+window.BLUNDER_API_ORIGIN = "https://aakash-portfolio-g3fb.onrender.com";
+window.BLUNDER_AI_API_ORIGIN = "https://aakash-portfolio-g3fb.onrender.com";
