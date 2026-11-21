@@ -673,3 +673,19 @@ p { margin: 0; }
 .ai-inline-options small { font-size: .75rem; font-weight: 700; margin-left: auto; }
 .ai-inline-question .ai-coach-output { margin-top: 12px; }
 #ai-study-coach .ai-coach-output { margin-top: 14px; }
+
+/* Persistent date-wise study analytics */
+.ai-analysis-metrics { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+.ai-analysis-metrics strong { padding:10px 14px; border:1px solid var(--line); background:var(--surface); border-radius:9px; }
+.ai-report-table-wrap { overflow-x:auto; margin:16px 0; }
+.ai-report-table-wrap h4 { margin:0 0 8px; font-size:1rem; }
+.ai-report-table { width:100%; border-collapse:collapse; font-size:.87rem; }
+.ai-report-table th,.ai-report-table td { padding:9px 10px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
+.ai-report-table th:first-child { white-space:normal; min-width:140px; }
+.ai-daily-history { margin-top:12px; border:1px solid var(--line); padding:14px; border-radius:10px; }
+.ai-daily-history summary { cursor:pointer; font-weight:700; }
+.ai-daily-history h4 { margin:14px 0 8px; }
+.ai-daily-attempts { display:grid; gap:8px; }
+.ai-daily-attempts > div { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:10px; border:1px solid var(--line); border-radius:8px; }
+.ai-daily-attempts span { color:var(--muted); font-size:.85rem; }
+.ai-daily-attempts a { margin-left:auto; font-size:.85rem; }
