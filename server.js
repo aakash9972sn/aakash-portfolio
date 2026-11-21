@@ -5,7 +5,7 @@ const { GoogleGenAI, ThinkingLevel, Type } = require('@google/genai');
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = '0.0.0.0';
-const MODEL_ID = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
+const MODEL_ID = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 
 const PORTFOLIO_SYSTEM_INSTRUCTION = `You are the fast AI portfolio & study assistant for AAKASH, a B.Tech Electronics & Communication Engineering (ECE) student at Delhi Technological University (DTU, Class of 2028).
 Answer clearly, accurately, and concisely in English or Hindi/Hinglish matching the visitor's language.

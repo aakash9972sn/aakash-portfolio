@@ -41,3 +41,47 @@ if(!combined) {
 }
 console.log('PASS: real Gemini model streamed answer text, length '+combined.length);
 
+
+
+// Test Centre live generation: one minimal GATE ECE question, no user data.
+const mcq=await fetch(base+'/api/ai/study-mcq',{
+  method:'POST',headers:{...common.headers,'Content-Type':'application/json',Accept:'application/json'},
+  body:JSON.stringify({exam:'GATE ECE',subject:'Network Theory',topic:"Ohm's law",count:1,difficulty:'Foundation'}),
+  signal:AbortSignal.timeout(75000)
+});
+const mcqType=mcq.headers.get('content-type')||'';
+const rawMcq=await mcq.text();
+if(mcq.status!==200||!mcqType.includes('application/json')) {
+  const safe=rawMcq.slice(0,230).replace(/AIza[A-Za-z0-9_-]+|AQ\.[A-Za-z0-9_-]+/g,'[redacted]');
+  throw new Error('Test Centre MCQ request HTTP '+mcq.status+': '+safe);
+}
+let generated;
+try{generated=JSON.parse(rawMcq)}catch{throw new Error('Test Centre MCQ response was not JSON')}
+check(Array.isArray(generated.questions)&&generated.questions.length===1,'No MCQ returned');
+const q=generated.questions[0];
+check(typeof q.q==='string'&&q.q.length>14,'MCQ missing question');
+check(Array.isArray(q.options)&&q.options.length===4,'MCQ missing four options');
+check(Number.isInteger(q.answerIndex)&&q.answerIndex>=0&&q.answerIndex<4,'MCQ answer index invalid');
+check(typeof q.explanation==='string'&&q.explanation.length>10,'MCQ explanation missing');
+console.log('PASS: real GATE ECE Test Centre AI MCQ generation with valid four-option answer');
+
+// Verify one real doubt explanation using the generated question.
+const doubt=await fetch(base+'/api/ai/study-doubt',{
+  method:'POST',headers:{...common.headers,'Content-Type':'application/json',Accept:'application/json'},
+  body:JSON.stringify({
+    exam:'GATE ECE',subject:'Network Theory',question:q.q,options:q.options,
+    correctIndex:q.answerIndex,selectedIndex:0,
+    userDoubt:'Explain the correct option in one sentence.'
+  }),
+  signal:AbortSignal.timeout(75000)
+});
+const doubtType=doubt.headers.get('content-type')||'';
+const rawDoubt=await doubt.text();
+if(doubt.status!==200||!doubtType.includes('application/json')) {
+  const safe=rawDoubt.slice(0,230).replace(/AIza[A-Za-z0-9_-]+|AQ\.[A-Za-z0-9_-]+/g,'[redacted]');
+  throw new Error('Test Centre doubt HTTP '+doubt.status+': '+safe);
+}
+let explanation;
+try{explanation=JSON.parse(rawDoubt)}catch{throw new Error('Doubt response was not JSON')}
+check(typeof explanation.answer==='string'&&explanation.answer.length>12,'Gemini doubt explanation missing');
+console.log('PASS: real Test Centre AI doubt explanation');
