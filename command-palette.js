@@ -169,6 +169,8 @@
       event.preventDefault();
       if(dialog.open)closeDialog();
       else openDialog();
+    } else if(event.key==='Escape'&&dialog.open) {
+      closeDialog();
     }
   });
   dialog.addEventListener('click',event=>{
