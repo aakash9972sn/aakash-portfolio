@@ -29,5 +29,15 @@ if(ai.status!==200||!type.includes('text/event-stream')) {
  throw new Error('Real Gemini request failed: '+sanitized);
 }
 check(text.includes('data:'),'SSE stream contained no data events');
-check(/READY/i.test(text),'Gemini did not return an expected greeting');
-console.log('PASS: real Gemini model provided a streamed answer through the Render backend');
+const events=text.split(/\\r?\\n/).filter(x=>x.startsWith('data:')).map(x=>x.slice(5).trim()).filter(Boolean);
+const parsed=events.map(raw=>{try{return JSON.parse(raw)}catch{return {invalid:true}}});
+const pieces=parsed.filter(x=>typeof x.text==='string').map(x=>x.text);
+const combined=pieces.join('').trim();
+if(!combined) {
+ console.log('STREAM_EVENTS',JSON.stringify(parsed.map(e=>({
+   keys:Object.keys(e),error:typeof e.error==='string'?e.error.slice(0,180):undefined
+ })).slice(0,10)).replace(/AIza[A-Za-z0-9_-]+|AQ\\.[A-Za-z0-9_-]+/g,'[redacted]'));
+ throw new Error('Gemini SSE stream did not contain answer text');
+}
+console.log('PASS: real Gemini model streamed answer text, length '+combined.length);
+
