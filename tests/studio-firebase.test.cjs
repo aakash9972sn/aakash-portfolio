@@ -62,10 +62,12 @@ test('Google popup initializes before click and keeps original named Firestore d
  assert.match(source,/renderIdentityUI\(user\)/);
  assert.match(source,/if \(unsubscribeAuth\)/);
  assert.match(source,/auth\/unauthorized-domain/);
+ assert.match(source,/location\.hostname/);
+ assert.match(source,/instance\.options\?\.projectId === config\.projectId/);
  assert.doesNotMatch(source,/testConnection\(\)/);
  assert.doesNotMatch(source,/console\.error\('Firestore Error:', JSON\.stringify\(errInfo\)/);
  for(const page of pages) {
-   assert.match(read(page),/firebase-account\.js\?v=20261121-authfix1/,page);
+   assert.match(read(page),/firebase-account\.js\?v=20261121-authdomain2/,page);
  }
 });
 test('project reports, Test Centre, maps and strict Firestore schemas remain unchanged',()=>{
