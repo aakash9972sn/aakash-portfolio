@@ -1,0 +1,22 @@
+name: Verify live Render Gemini backend
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend-config.js"
+      - "scripts/verify-render-gemini.mjs"
+      - ".github/workflows/render-gemini-check.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check publicly deployed Gemini and GitHub Pages CORS
+        run: node scripts/verify-render-gemini.mjs
