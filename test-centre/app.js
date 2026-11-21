@@ -25,12 +25,15 @@
   const BKEY = (id) => 'tclab.best.' + id;
   const RKEY = (id) => 'tclab.result.' + id;
   const HISTORY_KEY = 'tclab.analysis.history.v1';
-  function recordDailyAttempt(result) {
+  function recordDailyAttempt(result, questions) {
     if (!result || !result.testId || !Number.isFinite(result.at)) return;
     const history = store.get(HISTORY_KEY, []);
     const rows = Array.isArray(history) ? history : [];
     if (rows.some(x => x.testId === result.testId && x.at === result.at)) return;
+    const breakdown = Array.isArray(questions) && window.TestCentreAI?.summarize
+      ? window.TestCentreAI.summarize(result, questions) : null;
     rows.push({
+      unitStats: breakdown?.units || {}, topicStats: breakdown?.topics || result.topics,
       testId: result.testId, at: result.at, title: result.title,
       exam: result.exam, subject: result.subject, examId: result.examId,
       subjectId: result.subjectId, correct: result.correct, wrong: result.wrong,
@@ -668,7 +671,7 @@
       at: Date.now()
     };
     store.set(RKEY(run.test.id), result);
-    recordDailyAttempt(result);
+    recordDailyAttempt(result, run.questions);
     window.AakashAccount?.save('testAttempts', result.testId+'-'+result.at, result);
     store.del(PKEY(run.test.id));
     const prevBest = store.get(BKEY(run.test.id), null);
@@ -698,7 +701,7 @@
     setScreen('result');
     const result = lastResult && lastResult.testId === entry.test.id ? lastResult : store.get(RKEY(entry.test.id), null);
     if (!result || !Array.isArray(result.responses) || !result.topics) { go('#/'); return; }
-    recordDailyAttempt(result); // Backfill saved results created before daily tracking.
+    recordDailyAttempt(result, questionsOf(entry.test)); // Backfill older saved result.
     solutionFilter = 'all';
     const questions = questionsOf(entry.test);
     const pct = result.total ? Math.round((Math.max(0, result.score) / result.total) * 100) : 0;
