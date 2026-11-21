@@ -193,7 +193,8 @@
       body.appendChild(box);
 
       button.addEventListener('click', () =>
-        explainQuestion(q, result.responses[i], result, button, status));;
+        explainQuestion(q, result.responses[i], result, button, status));
+    });
   }
 
   window.TestCentreAI = { mount, mountSolutions };
