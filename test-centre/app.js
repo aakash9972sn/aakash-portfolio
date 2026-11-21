@@ -34,6 +34,7 @@
       ? window.TestCentreAI.summarize(result, questions) : null;
     rows.push({
       unitStats: breakdown?.units || {}, topicStats: breakdown?.topics || result.topics,
+      ownerUid: window.AakashAccount?.getState?.()?.uid || null,
       testId: result.testId, at: result.at, title: result.title,
       exam: result.exam, subject: result.subject, examId: result.examId,
       subjectId: result.subjectId, correct: result.correct, wrong: result.wrong,
