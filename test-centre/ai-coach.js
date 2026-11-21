@@ -92,6 +92,20 @@
       '</tbody></table></div>';
   }
 
+  function summarize(result, questions) {
+    const groups = groupsFor(result, questions);
+    return {
+      units: Object.fromEntries(groups.units),
+      topics: Object.fromEntries(groups.topics)
+    };
+  }
+
+  function compactStats(label, rows) {
+    if (!rows || typeof rows !== 'object') return '';
+    return '<details class="ai-history-stats"><summary>' + esc(label) + '</summary>' +
+      statTable(label, new Map(Object.entries(rows))) + '</details>';
+  }
+
   function dailyHistory() {
     try { const rows = JSON.parse(localStorage.getItem('tclab.analysis.history.v1') || '[]'); return Array.isArray(rows) ? rows : []; }
     catch { return []; }
@@ -113,6 +127,7 @@
         esc(item.subject || '') + ' · ' + item.correct + ' correct, ' + item.wrong +
         ' wrong, ' + item.unattempted + ' skipped · ' + item.accuracy + '%</span>' +
         (item.testId ? '<a href="#/r/' + encodeURIComponent(item.testId) + '">Review latest result</a>' : '') +
+        compactStats('Unit-wise scores',item.unitStats) + compactStats('Topic-wise scores',item.topicStats) +
         '</div>').join('') + '</div>').join('');
   }
 
@@ -263,5 +278,5 @@
     });
   }
 
-  window.TestCentreAI = { mount, mountSolutions };
+  window.TestCentreAI = { mount, mountSolutions, summarize };
 })();
