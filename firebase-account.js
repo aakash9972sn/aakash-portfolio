@@ -17,6 +17,7 @@
   let au;
   let initPromise;
   let configCache;
+  let unsubscribeAuth = null;
   let currentProfile = {
     displayName: '',
     photoURL: '',
@@ -273,25 +274,15 @@
   }
 
   function handleFirestoreError(error, operationType, path) {
-    const errInfo = {
-      error: error instanceof Error ? error.message : String(error),
-      authInfo: {
-        userId: auth?.currentUser?.uid ?? null,
-        email: auth?.currentUser?.email ?? null,
-        emailVerified: auth?.currentUser?.emailVerified ?? null,
-        isAnonymous: auth?.currentUser?.isAnonymous ?? null,
-        tenantId: auth?.currentUser?.tenantId ?? null,
-        providerInfo:
-          auth?.currentUser?.providerData?.map((provider) => ({
-            providerId: provider.providerId,
-            email: provider.email,
-          })) || [],
-      },
-      operationType,
-      path,
-    };
-    console.error('Firestore Error:', JSON.stringify(errInfo));
-    throw new Error(JSON.stringify(errInfo));
+    // Never print account email, tokens or raw private documents to console.
+    const code = String(error?.code || 'firestore/unavailable');
+    console.warn('Cloud sync operation failed:', operationType, path, code);
+    if (code.includes('permission-denied')) {
+      message('Google sign-in succeeded, but Firebase database security rules denied cloud saving. Your local data is safe.');
+    } else {
+      message('Cloud sync is temporarily unavailable. Your local progress is safe.');
+    }
+    throw new Error('Cloud ' + operationType + ' failed (' + code + ')');
   }
 
   async function loadConfig() {
@@ -311,15 +302,6 @@
     throw new Error('Could not load firebase-applet-config.json');
   }
 
-  async function testConnection() {
-    try {
-      await fs.getDocFromServer(fs.doc(db, 'test', 'connection'));
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('the client is offline')) {
-        console.error('Please check your Firebase configuration.');
-      }
-    }
-  }
 
   function extractGoogleIdentity(user) {
     if (!user) return { name: '', photo: '', email: '' };
@@ -553,23 +535,37 @@
         }
       }
 
-      testConnection();
-
-      await new Promise((resolve) => {
+      await new Promise((resolve, reject) => {
         let settled = false;
-        a.onAuthStateChanged(auth, async (user) => {
+        const timer = setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          reject(new Error('Firebase authentication is taking too long. Please refresh and check your connection.'));
+        }, 18000);
+        unsubscribeAuth = a.onAuthStateChanged(auth, async (user) => {
+          // Identity is shown IMMEDIATELY after Firebase Auth confirms login;
+          // a Firestore rules failure must not hide the Google name/photo.
           renderIdentityUI(user);
+          if (!settled) {
+            settled = true;
+            clearTimeout(timer);
+            resolve();
+          }
           if (user) {
             try {
               await ensureUserProfile(user, true);
             } catch (err) {
-              console.warn('Profile load warning:', err);
+              console.warn('Cloud profile could not sync:', err?.code || err?.message || 'unknown');
+              message('Signed in to Google. Your profile is shown, but cloud saving needs Firebase permissions.');
             }
           }
+        }, error => {
           if (!settled) {
             settled = true;
-            resolve();
+            clearTimeout(timer);
+            reject(error);
           }
+          signInError(error);
         });
       });
     })().catch((err) => {
@@ -653,7 +649,7 @@
       'auth/popup-blocked': 'Your browser blocked the sign-in popup. Allow popups for this site and try again.',
       'auth/popup-closed-by-user': 'Sign-in was cancelled. You can continue browsing locally.',
       'auth/cancelled-popup-request': 'Another sign-in popup is already open.',
-      'auth/unauthorized-domain': 'Google sign-in is not authorized for this domain.',
+      'auth/unauthorized-domain': 'Firebase has not authorized aakash9972sn.github.io. Site owner: Firebase Console → Authentication → Settings → Authorized domains → add aakash9972sn.github.io (without https:// or /aakash-portfolio/).',
       'auth/operation-not-allowed': 'Google sign-in is not enabled for this Firebase project.',
       'auth/invalid-api-key': 'The Firebase sign-in configuration needs attention.',
       'auth/network-request-failed': 'Could not reach Google sign-in. Check your connection and retry.',
@@ -679,8 +675,11 @@
 
   login.onclick = async () => {
     if (!auth || !au) {
+      // Never await SDK imports AND open signInWithPopup in the same click.
+      // Browsers may drop the user gesture, causing auth/popup-blocked.
       await prepareSignIn();
-      if (!auth || !au) return;
+      if (auth && au) message('Google sign-in is ready. Click Continue with Google once more.');
+      return;
     }
     login.disabled = true;
     loginText.textContent = 'Opening Google…';
@@ -910,10 +909,21 @@
     }
   };
 
-  // Restore existing session automatically if user previously signed in
-  try {
-    if (localStorage.getItem('aakash.cloud.enabled')) {
-      init().catch(() => message('Cloud connection unavailable. You can continue locally.'));
-    }
-  } catch {}
+  // Preload Firebase for ALL visitors. The Google popup must begin within a
+  // direct click after imports are ready (not after async setup in that click).
+  // onAuthStateChanged restores any previously authenticated Google session.
+  login.disabled = true;
+  loginText.textContent = 'Preparing Google sign-in…';
+  init().then(() => {
+    login.disabled = false;
+    loginText.textContent = 'Continue with Google';
+  }).catch(error => {
+    login.disabled = false;
+    loginText.textContent = 'Retry Google sign-in';
+    signInError(error);
+  });
+
+  window.addEventListener('pagehide', () => {
+    if (unsubscribeAuth) { unsubscribeAuth(); unsubscribeAuth = null; }
+  }, { once: true });
 })();
