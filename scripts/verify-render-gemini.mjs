@@ -85,3 +85,29 @@ let explanation;
 try{explanation=JSON.parse(rawDoubt)}catch{throw new Error('Doubt response was not JSON')}
 check(typeof explanation.answer==='string'&&explanation.answer.length>12,'Gemini doubt explanation missing');
 console.log('PASS: real Test Centre AI doubt explanation');
+
+
+// CUET PG regression: study assistant must know this live catalogue.
+const cuetChat=await fetch(base+'/api/ai/chat',{
+  method:'POST',headers:{...common.headers,'Content-Type':'application/json',Accept:'application/json'},
+  body:JSON.stringify({app:'study',question:'Does this Test Centre have CUET PG Life Sciences and Zoology PYPs? Answer with the subject names and total imported questions.',history:[],context:{cuetPg:{available:true,totalImportedPreviousYearQuestions:275}}}),
+  signal:AbortSignal.timeout(65000)
+});
+check(cuetChat.status===200,'CUET study chat HTTP '+cuetChat.status);
+const cuetData=await cuetChat.json();
+check(/CUET/i.test(cuetData.answer||'')&&/275/.test(cuetData.answer||''),'CUET chat omitted available 275-question bank');
+check(!/not (yet )?(listed|available|populated)/i.test(cuetData.answer||''),'CUET chat incorrectly claims unavailable');
+console.log('PASS: study Gemini knows CUET PG PYPs are available');
+
+// Check real CUET Life Sciences test generation, not just GATE questions.
+const cuetMcq=await fetch(base+'/api/ai/study-mcq',{
+  method:'POST',headers:{...common.headers,'Content-Type':'application/json',Accept:'application/json'},
+  body:JSON.stringify({exam:'CUET PG',subject:'Life Sciences (SCQP17)',unit:'Biochemistry',syllabusSpec:'Enzymes, proteins, carbohydrates, lipids',count:2,difficulty:'Exam Standard'}),
+  signal:AbortSignal.timeout(75000)
+});
+const cuetMcqBody=await cuetMcq.text();
+check(cuetMcq.status===200,'CUET Life Sciences generator HTTP '+cuetMcq.status+': '+cuetMcqBody.slice(0,200));
+const cuetMcqs=JSON.parse(cuetMcqBody).questions;
+check(Array.isArray(cuetMcqs)&&cuetMcqs.length>=1,'CUET Life Sciences generated no valid MCQs');
+check(cuetMcqs.every(q=>Array.isArray(q.options)&&q.options.length===4),'CUET MCQ options invalid');
+console.log('PASS: real CUET PG Life Sciences AI MCQ generation');
