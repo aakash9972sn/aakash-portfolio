@@ -131,6 +131,29 @@
         '</div>').join('') + '</div>').join('');
   }
 
+  function askAssistantAboutQuestion(q, selected, result) {
+    const assistant = window.AakashAssistant;
+    if (!assistant || typeof assistant.open !== 'function') {
+      alert('AI Assistant is still loading. Refresh and retry.');
+      return;
+    }
+    const letters = ['A', 'B', 'C', 'D'];
+    const selectedText = Number.isInteger(selected) && q.o[selected]
+      ? letters[selected] + '. ' + q.o[selected] : 'Not attempted';
+    const keyText = q.unscored ? 'Disputed; do not assume a correct key'
+      : letters[q.a] + '. ' + q.o[q.a];
+    const prompt = [
+      'Help me understand this completed ' + String(result.exam || '') + ' ' +
+        String(result.subject || '') + ' MCQ. Check the stored key and explain the concept.',
+      'Question: ' + String(q.q || '').slice(0, 240),
+      ...q.o.map((o, i) => letters[i] + ': ' + String(o).slice(0, 65)),
+      'My selected answer: ' + selectedText.slice(0, 85),
+      'Stored answer: ' + keyText.slice(0, 85),
+      'Explain clearly and answer any follow-up.'
+    ].join('\n').slice(0, 700);
+    assistant.open(prompt);
+  }
+
   function mount(result, questions = []) {
     const host = document.querySelector('#result-body');
     if (!host) return;
@@ -252,10 +275,27 @@
           '<p><b>Existing explanation:</b> ' + esc(q.e || 'No saved explanation.') + '</p>' +
           (q.unscored ? '<p><b>Source warning:</b> Disputed answer key; excluded from scoring. ' +
             esc(q.sourceAnswer || '') + '</p>' : '') +
+          '<div class="ai-review-actions">' +
+          '<button type="button" class="ai-short-explanation-btn" aria-expanded="false">Explanation</button>' +
+          '<button type="button" class="ai-ask-bot-btn">Ask AI</button>' +
+          '</div>' +
+          '<div class="ai-review-short-explanation" hidden></div>' +
+          '<div class="ai-review-detailed">' +
           '<button type="button" class="btn-ai-doubt">Explain all four options with Gemini</button>' +
-          '<div class="ai-coach-output" hidden aria-live="polite"></div>';
-        const explainButton = article.querySelector('button');
-        const explanation = article.querySelector('.ai-coach-output');
+          '<div class="ai-coach-output" hidden aria-live="polite"></div></div>';
+        const shortButton = article.querySelector('.ai-short-explanation-btn');
+        const shortPanel = article.querySelector('.ai-review-short-explanation');
+        shortPanel.textContent = q.unscored
+          ? 'Source answer key is disputed. ' + (q.sourceAnswer || q.e || 'Review independently before relying on this answer.')
+          : (q.e || 'No saved explanation for this question. Use Ask AI for a walkthrough.');
+        shortButton.addEventListener('click', () => {
+          shortPanel.hidden = !shortPanel.hidden;
+          shortButton.setAttribute('aria-expanded', String(!shortPanel.hidden));
+        });
+        article.querySelector('.ai-ask-bot-btn').addEventListener('click', () =>
+          askAssistantAboutQuestion(q, selected, result));
+        const explainButton = article.querySelector('.btn-ai-doubt');
+        const explanation = article.querySelector('.ai-review-detailed .ai-coach-output');
         explainButton.addEventListener('click', () =>
           explainQuestion(q, selected, result, explainButton, explanation));
         fragment.appendChild(article);
