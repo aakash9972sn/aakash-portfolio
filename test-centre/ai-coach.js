@@ -147,13 +147,52 @@
       'AI can make mistakes; disputed source keys are not treated as verified.</p>' +
       '<button type="button" class="btn btn-primary" id="ai-analyze">Open AI analysis</button>' +
       '<div class="ai-coach-output" id="ai-analysis-output" hidden aria-live="polite"></div>' +
-      '<div id="ai-inline-questions" class="ai-inline-questions" hidden></div>' +
+      '<div id="ai-review-workspace" hidden>' +
+      '<div class="ai-review-modebar" role="group" aria-label="Review display mode">' +
+      '<button type="button" class="ai-review-mode is-active" data-mode="list" aria-pressed="true">Vertical review</button>' +
+      '<button type="button" class="ai-review-mode" data-mode="focus" aria-pressed="false">Test-style review</button></div>' +
+      '<div id="ai-review-navigation" class="ai-review-navigation" hidden>' +
+      '<button type="button" id="ai-review-prev">← Previous</button><span id="ai-review-position" aria-live="polite"></span>' +
+      '<button type="button" id="ai-review-next">Next →</button></div>' +
+      '<div id="ai-inline-questions" class="ai-inline-questions"></div></div>' +
       '<details class="ai-daily-history"><summary>Daily attempt history</summary><div id="ai-daily-history-list"></div></details>';
     host.appendChild(panel);
 
     const button = panel.querySelector('#ai-analyze');
     const output = panel.querySelector('#ai-analysis-output');
+    const workspace = panel.querySelector('#ai-review-workspace');
     const review = panel.querySelector('#ai-inline-questions');
+    const navigation = panel.querySelector('#ai-review-navigation');
+    const position = panel.querySelector('#ai-review-position');
+    const prev = panel.querySelector('#ai-review-prev');
+    const next = panel.querySelector('#ai-review-next');
+    let mode = 'list';
+    let activeQuestion = 0;
+    function updateMode() {
+      const cards = [...review.querySelectorAll('.ai-inline-question')];
+      const focus = mode === 'focus';
+      review.classList.toggle('is-focus', focus);
+      navigation.hidden = !focus;
+      cards.forEach((card, index) => { card.hidden = focus && index !== activeQuestion; });
+      position.textContent = cards.length ? 'Question ' + (activeQuestion + 1) + ' / ' + cards.length : '';
+      prev.disabled = activeQuestion === 0;
+      next.disabled = activeQuestion >= cards.length - 1;
+      panel.querySelectorAll('[data-mode]').forEach(btn => {
+        const selected = btn.dataset.mode === mode;
+        btn.classList.toggle('is-active', selected);
+        btn.setAttribute('aria-pressed', String(selected));
+      });
+    }
+    panel.querySelectorAll('[data-mode]').forEach(btn => btn.addEventListener('click', () => {
+      mode = btn.dataset.mode;
+      updateMode();
+      review.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
+    prev.addEventListener('click', () => { activeQuestion = Math.max(0, activeQuestion - 1); updateMode(); });
+    next.addEventListener('click', () => {
+      activeQuestion = Math.min(review.querySelectorAll('.ai-inline-question').length - 1, activeQuestion + 1);
+      updateMode();
+    });
     panel.querySelector('#ai-daily-history-list').innerHTML = dailyHTML();
     let opened = false;
     button.addEventListener('click', () => {
@@ -163,7 +202,7 @@
       }
       opened = true;
       button.textContent = 'View question analysis';
-      review.hidden = false;
+      workspace.hidden = false;
       const letters = ['A', 'B', 'C', 'D'];
       const fragment = document.createDocumentFragment();
       questions.forEach((q, i) => {
@@ -175,9 +214,12 @@
         const options = q.o.map((option, j) => {
           const tags = [];
           if (selected === j) tags.push('<strong>Your choice</strong>');
-          if (!q.unscored && q.a === j) tags.push('<strong>Stored key</strong>');
-          return '<li class="' + (selected === j ? 'is-selected ' : '') +
-            (!q.unscored && q.a === j ? 'is-answer' : '') + '">' +
+          if (!q.unscored && q.a === j) tags.push('<strong>Correct answer</strong>');
+          const correct = !q.unscored && q.a === j;
+          const incorrectChoice = !q.unscored && selected === j && q.a !== j;
+          return '<li class="' + (correct ? 'is-answer ' : '') +
+            (incorrectChoice ? 'is-incorrect-choice ' : '') +
+            (q.unscored && selected === j ? 'is-selected ' : '') + '">' +
             '<span class="ai-option-letter">' + letters[j] + '</span><span>' + esc(option) + '</span>' +
             (tags.length ? '<small>' + tags.join(' · ') + '</small>' : '') + '</li>';
         }).join('');
@@ -198,6 +240,7 @@
         fragment.appendChild(article);
       });
       review.appendChild(fragment);
+      updateMode();
       output.hidden = false;
       const groups = groupsFor(result, questions);
       const weak = [...groups.topics].filter(([k,v]) => v.wrong+v.skipped>0)
