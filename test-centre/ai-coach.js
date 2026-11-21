@@ -9,21 +9,6 @@
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   })[c]);
 
-  function openAssistant(prompt, output) {
-    if (window.AakashAssistant && typeof window.AakashAssistant.open === 'function') {
-      window.AakashAssistant.open(prompt.slice(0, 700));
-      if (output) {
-        output.hidden = false;
-        output.textContent = 'Question prepared in the AI Assistant. Press Send there to get a response.';
-      }
-    } else {
-      if (output) {
-        output.hidden = false;
-        output.textContent = 'AI Assistant is not loaded yet. Refresh the page and retry.';
-      }
-    }
-  }
-
   function analysisPrompt(result) {
     const topics = Object.entries(result.topics || {})
       .map(([name, t]) => ({ name, wrong: Number(t.wrong) || 0, skipped: Number(t.unattempted) || 0,
@@ -45,45 +30,143 @@
     ].join(' ').slice(0, 700);
   }
 
-  function questionPrompt(q, selected, exam, subject) {
-    const selectedLabel = Number.isInteger(selected) && q.o[selected] ?
-      q.o[selected] : 'Skipped';
-    return [
-      'Explain this COMPLETED ' + truncate(exam, 20) + ' ' +
-        truncate(subject, 30) + ' MCQ. Double-check the given answer key.',
-      'Q: ' + truncate(q.q, 210),
-      'A: ' + truncate(q.o[0], 55),
-      'B: ' + truncate(q.o[1], 55),
-      'C: ' + truncate(q.o[2], 55),
-      'D: ' + truncate(q.o[3], 55),
-      'My answer: ' + truncate(selectedLabel, 65) + '.',
-      'Stored key: ' + truncate(q.o[q.a], 65) + '.',
-      'Explain why, and flag any mistake in the stored key.'
-    ].join(' ').slice(0, 700);
+  function getQuestionDetails(q, selected) {
+    const optionLetters = ['A', 'B', 'C', 'D'];
+    return {
+      chosen: Number.isInteger(selected) && q.o[selected] ? optionLetters[selected] + '. ' + q.o[selected] : 'Not attempted',
+      correct: q.unscored ? 'Disputed / review-only' : optionLetters[q.a] + '. ' + q.o[q.a],
+    };
   }
 
-  function mount(result) {
+  function makeReviewPrompt(result, questions) {
+    const topics = Object.entries(result.topics || {}).map(([name, item]) =>
+      name + ': ' + Number(item.correct || 0) + ' right, ' +
+      Number(item.wrong || 0) + ' wrong, ' + Number(item.unattempted || 0) + ' skipped');
+    return [
+      'Analyze this completed ' + truncate(result.exam, 35) + ' ' + truncate(result.subject, 50) + ' test.',
+      'Score ' + result.score + '/' + result.total + ', accuracy ' + result.accuracy +
+        '%, correct ' + result.correct + ', wrong ' + result.wrong + ', skipped ' + result.unattempted + '.',
+      'Topic performance: ' + topics.join('; ').slice(0, 1000),
+      'Wrong/skipped question topics: ' + questions.filter((q, i) => q.unscored !== true &&
+        result.responses[i] !== q.a).map((q) => q.t || 'General').slice(0, 25).join(', '),
+      'Give a practical revision plan, weak concepts, and priorities. Do not invent timing, missing answers, or question details.'
+    ].join('\n');
+  }
+
+  function mount(result, questions = []) {
     const host = document.querySelector('#result-body');
     if (!host) return;
     const previous = host.querySelector('#ai-study-coach');
     if (previous) previous.remove();
-
     const panel = document.createElement('section');
     panel.className = 'ai-study-coach';
     panel.id = 'ai-study-coach';
     panel.innerHTML =
       '<div class="ai-coach-title"><h3>AI Result Review</h3>' +
-      '<span>Uses your existing AI Assistant</span></div>' +
-      '<p>Review the score and weak topics in the AI Assistant already on this site. ' +
-      'Your test answers are not sent automatically; you choose when to ask. ' +
-      'AI advice can contain errors.</p>' +
+      '<span>Inline question-by-question review</span></div>' +
+      '<p>Review every question, your selected option, the stored answer key and the explanation here on this page. ' +
+      'Option-by-option Gemini explanations are requested only when you press their buttons. ' +
+      'AI can make mistakes; disputed source keys are not treated as verified.</p>' +
       '<button type="button" class="btn btn-primary" id="ai-analyze">Open AI analysis</button>' +
-      '<div class="ai-coach-output" id="ai-analysis-output" hidden aria-live="polite"></div>';
+      '<div class="ai-coach-output" id="ai-analysis-output" hidden aria-live="polite"></div>' +
+      '<div id="ai-inline-questions" class="ai-inline-questions" hidden></div>';
     host.appendChild(panel);
 
     const button = panel.querySelector('#ai-analyze');
     const output = panel.querySelector('#ai-analysis-output');
-    button.addEventListener('click', () => openAssistant(analysisPrompt(result), output));
+    const review = panel.querySelector('#ai-inline-questions');
+    let opened = false;
+    button.addEventListener('click', async () => {
+      if (opened) {
+        review.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      opened = true;
+      button.textContent = 'View question analysis';
+      review.hidden = false;
+      const letters = ['A', 'B', 'C', 'D'];
+      const fragment = document.createDocumentFragment();
+      questions.forEach((q, i) => {
+        if (!q || !Array.isArray(q.o) || q.o.length !== 4) return;
+        const selected = result.responses[i];
+        const details = getQuestionDetails(q, selected);
+        const article = document.createElement('article');
+        article.className = 'ai-inline-question';
+        const options = q.o.map((option, j) => {
+          const tags = [];
+          if (selected === j) tags.push('<strong>Your choice</strong>');
+          if (!q.unscored && q.a === j) tags.push('<strong>Stored key</strong>');
+          return '<li class="' + (selected === j ? 'is-selected ' : '') +
+            (!q.unscored && q.a === j ? 'is-answer' : '') + '">' +
+            '<span class="ai-option-letter">' + letters[j] + '</span><span>' + esc(option) + '</span>' +
+            (tags.length ? '<small>' + tags.join(' · ') + '</small>' : '') + '</li>';
+        }).join('');
+        article.innerHTML =
+          '<h4>Q' + (i + 1) + '. ' + esc(q.q) + '</h4>' +
+          '<ul class="ai-inline-options">' + options + '</ul>' +
+          '<p><b>Your answer:</b> ' + esc(details.chosen) + '</p>' +
+          '<p><b>' + (q.unscored ? 'Answer key status:' : 'Stored correct answer:') + '</b> ' + esc(details.correct) + '</p>' +
+          '<p><b>Existing explanation:</b> ' + esc(q.e || 'No saved explanation.') + '</p>' +
+          (q.unscored ? '<p><b>Source warning:</b> Disputed answer key; excluded from scoring. ' +
+            esc(q.sourceAnswer || '') + '</p>' : '') +
+          '<button type="button" class="btn-ai-doubt">Explain all four options with Gemini</button>' +
+          '<div class="ai-coach-output" hidden aria-live="polite"></div>';
+        const explainButton = article.querySelector('button');
+        const explanation = article.querySelector('.ai-coach-output');
+        explainButton.addEventListener('click', () =>
+          explainQuestion(q, selected, result, explainButton, explanation));
+        fragment.appendChild(article);
+      });
+      review.appendChild(fragment);
+      output.hidden = false;
+      output.textContent = 'Preparing your topic-wise AI review on this page…';
+      try {
+        const data = await window.HostedAI.request({
+          question: makeReviewPrompt(result, questions), history: [],
+          context: { page: 'completed test result', exam: result.exam, subject: result.subject },
+          action: 'chat'
+        }, AbortSignal.timeout(60000));
+        output.textContent = data?.answer || 'Review the question explanations below.';
+      } catch (error) {
+        output.textContent = 'Topic-wise AI summary unavailable: ' + (error.message || 'Please retry.') +
+          '\nYour questions, selected answers and saved explanations remain available below.';
+      }
+    });
+  }
+
+  async function explainQuestion(q, selected, result, button, status) {
+    if (!window.HostedAI?.request) {
+      status.hidden = false;
+      status.textContent = 'AI service is unavailable. Please refresh this page.';
+      return;
+    }
+    button.disabled = true;
+    status.hidden = false;
+    status.textContent = 'Gemini is checking every option…';
+    const doubt = q.unscored
+      ? 'This question has a disputed source key and is excluded from scoring. Do not treat correctIndex as authoritative. Assess A, B, C and D individually, explain the ambiguity, and identify any error. Source note: ' + (q.sourceAnswer || '')
+      : 'Evaluate options A, B, C and D separately. Say why the correct option is correct and why each of the other three is incorrect. Check whether the supplied answer key is valid. Mention the student-selected answer and explain their mistake if any. Do not invent facts.';
+    try {
+      const data = await window.HostedAI.request({
+        action: 'doubt',
+        question: {
+          exam: result.exam, subject: result.subject,
+          question: q.q, options: q.o,
+          correctIndex: q.unscored ? null : q.a,
+          selectedIndex: Number.isInteger(selected) ? selected : null,
+          userDoubt: doubt
+        }
+      }, AbortSignal.timeout(75000));
+      if (typeof data?.answer !== 'string' || !data.answer.trim())
+        throw new Error('Gemini returned an empty explanation.');
+      status.textContent = data.answer;
+      button.textContent = 'Regenerate option analysis';
+    } catch (error) {
+      status.textContent = 'Could not load AI explanation: ' + (error.message || 'Unknown error') +
+        '. Your saved answer key and explanation remain visible.';
+    } finally {
+      button.disabled = false;
+    }
   }
 
   function mountSolutions(result, questions) {
@@ -100,7 +183,7 @@
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'btn-ai-doubt';
-      button.textContent = 'Explain with AI Assistant';
+      button.textContent = 'Explain all options with Gemini';
       const status = document.createElement('div');
       status.className = 'ai-coach-output';
       status.hidden = true;
@@ -109,16 +192,8 @@
       box.appendChild(status);
       body.appendChild(box);
 
-      button.addEventListener('click', async () => {
-        button.disabled = true; status.hidden = false; status.textContent = 'Preparing explanation…';
-        try {
-          const data = await window.HostedAI.request({action:'doubt',question:{exam:result.exam,subject:result.subject,question:q.q,options:q.o,correctIndex:q.a,selectedIndex:result.responses[i]??null,userDoubt:q.unscored ? 'This question has a disputed source key and is excluded from scoring. Do not treat correctIndex as authoritative. Explain the ambiguity and assess each option. Source note: '+q.sourceAnswer : 'Explain the solution step by step and check the supplied answer key.'}},AbortSignal.timeout(60000));
-          if(typeof data.answer!=='string'||!data.answer.trim())throw new Error('No explanation returned.');
-          status.textContent=data.answer;
-        } catch(error){status.textContent=error.message||'Explanation unavailable. Please retry.';}
-        finally {button.disabled=false;}
-      });
-    });
+      button.addEventListener('click', () =>
+        explainQuestion(q, result.responses[i], result, button, status));;
   }
 
   window.TestCentreAI = { mount, mountSolutions };
