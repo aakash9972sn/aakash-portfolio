@@ -278,5 +278,10 @@
     });
   }
 
-  window.TestCentreAI = { mount, mountSolutions, summarize };
+  function mountHistory() {
+    const target = document.querySelector('#daily-performance-history');
+    if (target) target.innerHTML = dailyHTML();
+  }
+
+  window.TestCentreAI = { mount, mountSolutions, summarize, mountHistory };
 })();
