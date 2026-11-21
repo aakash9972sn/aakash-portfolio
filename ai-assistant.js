@@ -258,6 +258,7 @@
         {
           question,
           context,
+          app: config.app || 'portfolio',
           history: history.slice(-6).map((m) => ({
             role: m.role,
             content: m.content.slice(0, 1200),
