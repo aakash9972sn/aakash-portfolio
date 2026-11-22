@@ -64,6 +64,7 @@
     observer.observe(root, {subtree:true, childList:true, characterData:true});
     scan(root);
   }
+  window.addEventListener('testcentre:math-ready', () => scan(document.body));
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', observe, {once:true});
   } else observe();
