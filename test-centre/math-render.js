@@ -4,7 +4,6 @@
   'use strict';
   const hasMath = value => /\\\(|\\\[|\$\$|(^|[^\w\\])\$(?=\S)/.test(String(value || ''));
   let queued = new Set(), scheduled = false, inProgress = false;
-  const pending = new Set();
   function enqueue(node) {
     if (!node || !node.isConnected || !window.MathJax?.typesetPromise) return;
     queued.add(node);
