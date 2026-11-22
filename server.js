@@ -47,11 +47,11 @@ Key portfolio details:
    - PCB Designing Bootcamp (13-14 February 2026, AICTE IDEA Lab, DTU): Schematic capture, component placement, routing, DRC, fabrication, assembly, and QA using EDWinXP.
 3. Education: DTU B.Tech ECE (2024-2028), Govt. Boys Sr. Sec. School No. 1 (Class X 2021, Class XII 2023), MCD Primary School.
 
-Keep responses concise, helpful, and grounded in the published portfolio facts and current page context. Do not invent hardware test metrics that are not documented.`;
+Keep responses concise, helpful, and grounded in the published portfolio facts and current page context. Use textbook-style LaTeX for mathematical, chemical, and scientific expressions: inline \( ... \), display \[ ... \]; for example \(\\frac{a+b}{c}\), \(NH_3\), \(sp^3\). Keep ordinary prose as plain text; no HTML, markdown code fences, or raw equations outside math delimiters. Do not invent hardware test metrics that are not documented.`;
 
 const STUDY_SYSTEM_INSTRUCTION = `You are Aakash Gemini, the Test Centre study assistant for GATE ECE, NEET UG, and CUET PG. Answer accurately based on the supplied public catalogue context; never invent course availability, question counts or live API success.
 The Test Centre explicitly supports CUET PG Life Sciences (SCQP17) and Zoology (SCQP28), with a separate syllabus registry and Gemini syllabus-driven MCQ mock generation. Its imported PYP bank contains 575 questions across six papers: CUET PG Life Sciences 2025 (75), Life Sciences 2023 Shift 2 (100) and Shift 3 (100), Zoology 2023 Shift 1 (100), Zoology 2022 (100), and CUCET Life Sciences 2021 (100). Of these, 28 source-flagged uncertain questions are review-only and excluded from scored attempts. 2023 answer keys came from user-provided CSVs and are not independently verified against official NTA answer keys. These PYPs are stored separately from EXAM_DATA; the absence of CUET in EXAM_DATA must NEVER be interpreted as CUET content being unavailable.
-Distinguish built-in previous-year papers from generated questions, which require the hosted Gemini backend. If asked for navigation, point students to the CUET PG track and its PYP or AI mock interface. Match the user's language and avoid unsupported claims.`;
+Distinguish built-in previous-year papers from generated questions, which require the hosted Gemini backend. Use textbook-style LaTeX for mathematical, chemical, and scientific expressions: inline \( ... \), display \[ ... \]; for example \(\\frac{a+b}{c}\), \(NH_3\), \(sp^3\). Keep ordinary prose as plain text; no HTML, markdown code fences, or raw equations outside math delimiters. If asked for navigation, point students to the CUET PG track and its PYP or AI mock interface. Match the user's language and avoid unsupported claims.`;
 
 function createGeminiClient() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -530,9 +530,9 @@ app.post('/api/ai/study-mcq', async (req, res) => {
     `Batch variation #${batchNum + 1}: emphasize ${angleHint}.`,
     'Rules:',
     '- Strictly stay inside the stated exam pattern and official syllabus topics above.',
-    '- Standalone clear question (15-500 chars, plain text/Unicode math, no markdown).',
+    '- Standalone clear question (15-500 chars) and options. Render all mathematical, chemical and symbolic expressions as LaTeX wrapped in \\( ... \\) or \\[ ... \\]; use \\frac, _ for subscripts, ^ for powers. Ordinary prose stays plain text without markdown.',
     '- Exactly 4 distinct options and verified single best answerIndex (0-3).',
-    '- Crisp 1-2 sentence explanation (20-280 chars) and exact short syllabus unit/subtopic tag.',
+    '- Crisp 1-2 sentence explanation (20-280 chars) and exact short syllabus unit/subtopic tag; math and chemistry notation use the same LaTeX delimiters.',
     avoidList.length ? `Do not repeat or paraphrase:\n- ${avoidList.join('\n- ')}` : '',
   ]
     .filter(Boolean)
@@ -548,7 +548,7 @@ app.post('/api/ai/study-mcq', async (req, res) => {
         contents: prompt,
         config: {
           systemInstruction:
-            'You are an expert Indian competitive exam paper setter for GATE ECE, NEET UG, and CUET PG (Life Sciences SCQP17 & Zoology SCQP28). Strictly follow the provided official syllabus unit and subtopic list—never ask out-of-syllabus questions. Output strictly valid JSON matching the schema with concise verified solutions.',
+            'You are an expert Indian competitive exam paper setter for GATE ECE, NEET UG, and CUET PG (Life Sciences SCQP17 & Zoology SCQP28). Strictly follow the provided official syllabus unit and subtopic list—never ask out-of-syllabus questions. Output strictly valid JSON matching the schema with concise verified solutions. Use LaTeX escaped correctly for JSON strings, with math delimited by \\( ... \\) and \\[ ... \\]; do not use HTML.',
           thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
           responseMimeType: 'application/json',
           responseSchema: {
@@ -626,7 +626,7 @@ app.post('/api/ai/study-doubt', async (req, res) => {
       contents: prompt,
       config: {
         systemInstruction:
-          'You are a patient GATE ECE, NEET UG & CUET PG subject tutor. Explain clearly in plain text (no markdown ** or ###). Verify whether the stored answer key is correct and highlight if any option has an error.',
+          'You are a patient GATE ECE, NEET UG & CUET PG subject tutor. Explain clearly in plain text (no markdown ** or ###). Verify whether the stored answer key is correct and highlight if any option has an error. Use textbook-style LaTeX for mathematical, chemical, and scientific expressions: inline \( ... \), display \[ ... \]; for example \(\\frac{a+b}{c}\), \(NH_3\), \(sp^3\). Keep ordinary prose as plain text; no HTML, markdown code fences, or raw equations outside math delimiters.',
         thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
       },
     });
