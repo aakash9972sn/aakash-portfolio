@@ -103,6 +103,7 @@
 
   function setScreen(name) {
     closePalette(false);
+    if (name !== 'result') document.querySelector('aakash-assistant')?.removeAttribute('data-review-active');
     ['home', 'test', 'result'].forEach((s) => {
       const el = $('#screen-' + s);
       if (el) el.hidden = (s !== name);
