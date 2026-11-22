@@ -566,3 +566,8 @@ footer {
 /* Focused Test Centre review provides its own Ask AI control, so the floating
    launcher must not cover Previous / Palette / Next navigation. */
 :host([data-review-active]) .launcher { display: none !important; }
+
+/* SVG MathJax inside the chatbot's shadow root (document styles don't cross it). */
+mjx-container { max-width: 100%; vertical-align: middle; }
+mjx-container[display="true"] { display: block; overflow-x: auto; overflow-y: hidden; padding: 4px 0; text-align: center; }
+.message p { overflow-wrap: anywhere; }
