@@ -800,3 +800,10 @@ p { margin: 0; }
   .ai-review-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
   .ai-review-actions button { min-width:0; padding:11px 7px; font-size:.85rem; }
 }
+
+/* Keep focused review buttons on separate rows, with no overlapping surfaces. */
+#ai-study-coach.is-test-review .ai-review-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+#ai-study-coach.is-test-review .ai-review-actions button { width:100%; min-width:0; white-space:normal; }
+#ai-review-navigation { position:static; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr); gap:10px; clear:both; margin-top:16px; }
+#ai-review-navigation button { min-width:0; width:100%; position:static; white-space:normal; }
+@media(max-width:600px) { #ai-review-navigation { gap:6px; } #ai-review-navigation button { font-size:.75rem; padding:11px 4px; } }
