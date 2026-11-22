@@ -122,6 +122,7 @@
     content.textContent = text;
     div.append(label, content);
     messages.appendChild(div);
+    if (text && window.TestCentreMath?.enabled()) window.TestCentreMath.renderShadow(content);
     conversation.scrollTop = conversation.scrollHeight;
     return content;
   }
@@ -283,6 +284,9 @@
       } else {
         assistantParagraph.textContent = finalAnswer;
       }
+
+      // Render once after the streamed text is complete (partial TeX may be invalid).
+      if (window.TestCentreMath?.enabled()) window.TestCentreMath.renderShadow(assistantParagraph);
 
       history.push(
         { role: 'user', content: question },
