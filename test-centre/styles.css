@@ -807,3 +807,17 @@ p { margin: 0; }
 #ai-review-navigation { position:static; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr); gap:10px; clear:both; margin-top:16px; }
 #ai-review-navigation button { min-width:0; width:100%; position:static; white-space:normal; }
 @media(max-width:600px) { #ai-review-navigation { gap:6px; } #ai-review-navigation button { font-size:.75rem; padding:11px 4px; } }
+
+/* Textbook mathematics; keep long formulae legible on mobile without clipping. */
+#screen-test mjx-container,
+#screen-result mjx-container,
+#screen-home mjx-container { max-width:100%; }
+#screen-test mjx-container[display="true"],
+#screen-result mjx-container[display="true"],
+#screen-home mjx-container[display="true"] {
+  display:block; overflow-x:auto; overflow-y:hidden;
+  padding:.35rem 0; text-align:center; -webkit-overflow-scrolling:touch;
+}
+#q-text mjx-container, .opt-text mjx-container,
+.ai-inline-question mjx-container, .ai-review-short-explanation mjx-container,
+.ai-coach-output mjx-container { vertical-align:middle; }
