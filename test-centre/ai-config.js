@@ -25,11 +25,14 @@ window.AAKASH_AI = {
       aiMocks: 'Syllabus-driven Gemini MCQs for Life Sciences and Zoology; generation requires the live backend',
       previousYearPapers: [
         { exam: 'CUET PG', year: 2025, subject: 'Life Sciences', questions: 75 },
+        { exam: 'CUET PG', year: 2023, subject: 'Life Sciences', shift: 2, questions: 100, reviewOnly: 15 },
+        { exam: 'CUET PG', year: 2023, subject: 'Life Sciences', shift: 3, questions: 100, reviewOnly: 7 },
+        { exam: 'CUET PG', year: 2023, subject: 'Zoology', shift: 1, questions: 100, reviewOnly: 3 },
         { exam: 'CUET PG', year: 2022, subject: 'Zoology', questions: 100 },
         { exam: 'CUCET', year: 2021, subject: 'Life Sciences', questions: 100 },
       ],
-      totalImportedPreviousYearQuestions: 275,
-      note: 'Three source-flagged questions are review-only and excluded from scoring. CUET PYPs are in pyp-data.js, not EXAM_DATA.',
+      totalImportedPreviousYearQuestions: 575,
+      note: '28 source-flagged questions across six imported papers are review-only and excluded from scoring; 2023 answer keys came from supplied CSVs and have not been independently verified against an official answer key.',
     },
     exams: (window.EXAM_DATA || []).map((exam) => ({
       name: exam.name,
