@@ -213,6 +213,7 @@
       review.classList.toggle('is-focus', focus);
       navigation.hidden = !focus;
       panel.classList.toggle('is-test-review', focus);
+      document.querySelector('aakash-assistant')?.toggleAttribute('data-review-active', focus);
       if (!focus) closePalette();
       cards.forEach((card, index) => { card.hidden = focus && index !== activeQuestion; });
       paletteGrid.querySelectorAll('button').forEach((btn, index) => {
@@ -295,6 +296,7 @@
         article.querySelector('.ai-ask-bot-btn').addEventListener('click', () =>
           askAssistantAboutQuestion(q, selected, result));
         const explainButton = article.querySelector('.btn-ai-doubt');
+        explainButton.setAttribute('aria-expanded', 'false');
         const explanation = article.querySelector('.ai-review-detailed .ai-coach-output');
         explainButton.addEventListener('click', () =>
           explainQuestion(q, selected, result, explainButton, explanation));
@@ -354,13 +356,24 @@
   }
 
   async function explainQuestion(q, selected, result, button, status) {
+    // A successful Gemini response belongs to this question. Toggle it locally
+    // instead of making duplicate API requests on repeated button clicks.
+    if (status.dataset.aiLoaded === 'true') {
+      status.hidden = !status.hidden;
+      button.textContent = status.hidden ? 'Show option analysis' : 'Hide option analysis';
+      button.setAttribute('aria-expanded', String(!status.hidden));
+      return;
+    }
     if (!window.HostedAI?.request) {
       status.hidden = false;
       status.textContent = 'AI service is unavailable. Please refresh this page.';
+      button.textContent = 'Retry option analysis';
+      button.setAttribute('aria-expanded', 'true');
       return;
     }
     button.disabled = true;
     status.hidden = false;
+    button.setAttribute('aria-expanded', 'true');
     status.textContent = 'Gemini is checking every option…';
     const doubt = q.unscored
       ? 'This question has a disputed source key and is excluded from scoring. Do not treat correctIndex as authoritative. Assess A, B, C and D individually, explain the ambiguity, and identify any error. Source note: ' + (q.sourceAnswer || '')
@@ -379,10 +392,12 @@
       if (typeof data?.answer !== 'string' || !data.answer.trim())
         throw new Error('Gemini returned an empty explanation.');
       status.textContent = data.answer;
-      button.textContent = 'Regenerate option analysis';
+      status.dataset.aiLoaded = 'true';
+      button.textContent = 'Hide option analysis';
     } catch (error) {
       status.textContent = 'Could not load AI explanation: ' + (error.message || 'Unknown error') +
         '. Your saved answer key and explanation remain visible.';
+      button.textContent = 'Retry option analysis';
     } finally {
       button.disabled = false;
     }
@@ -402,7 +417,8 @@
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'btn-ai-doubt';
-      button.textContent = 'Explain all options with Gemini';
+      button.textContent = 'Generate option analysis';
+      button.setAttribute('aria-expanded', 'false');
       const status = document.createElement('div');
       status.className = 'ai-coach-output';
       status.hidden = true;
