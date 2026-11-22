@@ -239,6 +239,58 @@
   <!-- ============================== MODAL ============================== -->
   <div id="modal" hidden></div>
 
+  <!-- MathJax 3 SVG renderer: book-style formulas, including inside the AI chat shadow DOM. -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)'], ['
+  <script src="pyp-data.js?v=20261121-syl1"></script>
+  <script src="pyp-2023-shift2.js?v=20261122-import1"></script>
+  <script src="pyp-2023-shift3.js?v=20261122-import1"></script>
+  <script src="pyp-2023-shift1.js?v=20261122-import1"></script>
+  <script src="pyp-2023-register.js?v=20261122-import1"></script>
+  <script src="syllabus-data.js?v=20261121-syl1"></script>
+  <script src="test-core.js?v=20261120-pyp1"></script>
+  <script src="hosted-ai.js?v=20261121-cuetfix2"></script>
+  <script src="../firebase-account.js?v=20261121-myresults3" defer></script>
+  <script src="ai-config.js?v=20261122-archive575-1"></script>
+  <script src="ai-coach.js?v=20261122-math1"></script>
+  <script src="ai-generator.js?v=20261121-history3"></script>
+  <script src="app.js?v=20261122-math1"></script>
+  <script src="../ai-assistant.js?v=20261122-math1" defer></script>
+</body>
+</html>
+, '
+  <script src="pyp-data.js?v=20261121-syl1"></script>
+  <script src="pyp-2023-shift2.js?v=20261122-import1"></script>
+  <script src="pyp-2023-shift3.js?v=20261122-import1"></script>
+  <script src="pyp-2023-shift1.js?v=20261122-import1"></script>
+  <script src="pyp-2023-register.js?v=20261122-import1"></script>
+  <script src="syllabus-data.js?v=20261121-syl1"></script>
+  <script src="test-core.js?v=20261120-pyp1"></script>
+  <script src="hosted-ai.js?v=20261121-cuetfix2"></script>
+  <script src="../firebase-account.js?v=20261121-myresults3" defer></script>
+  <script src="ai-config.js?v=20261122-archive575-1"></script>
+  <script src="ai-coach.js?v=20261122-review-fix1"></script>
+  <script src="ai-generator.js?v=20261121-history3"></script>
+  <script src="app.js?v=20261122-pyp2023-1"></script>
+  <script src="../ai-assistant.js?v=20261122-review-fix1" defer></script>
+</body>
+</html>
+]], displayMath: [['\\[', '\\]'], ['$', '$']], processEscapes: true },
+      svg: { fontCache: 'local' },
+      options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] },
+      startup: {
+        ready: function () {
+          MathJax.startup.defaultReady();
+          MathJax.startup.promise.then(function () {
+            window.dispatchEvent(new Event('testcentre:math-ready'));
+          });
+        }
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+  <script src="math-render.js?v=20261122-math1"></script>
   <script src="data.js"></script>
   <script src="pyp-data.js?v=20261121-syl1"></script>
   <script src="pyp-2023-shift2.js?v=20261122-import1"></script>
