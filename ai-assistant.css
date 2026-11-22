@@ -562,3 +562,7 @@ footer {
   display: block;
   margin: auto;
 }
+
+/* Focused Test Centre review provides its own Ask AI control, so the floating
+   launcher must not cover Previous / Palette / Next navigation. */
+:host([data-review-active]) .launcher { display: none !important; }
