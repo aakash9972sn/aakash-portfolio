@@ -132,7 +132,7 @@
     },
     'cuet-pg': {
       eyebrow: 'PRACTICE PORTAL · CUET PG',
-      lede: 'CUET PG Life Sciences (SCQP17) & Zoology (SCQP28) practice — includes all 275 official PYPs and syllabus-driven Gemini AI mocks (+4/−1).',
+      lede: 'CUET PG Life Sciences (SCQP17) & Zoology (SCQP28) practice — includes 575 imported previous-year questions (source answer keys not independently verified) and syllabus-driven Gemini AI mocks (+4/−1).',
       ctaSub: 'Generate MCQs strictly from CUET PG SCQP17 & SCQP28 syllabi.',
       railSub: 'CUET PG Track',
       catalogHeading: 'CUET PG & PYP modules'
