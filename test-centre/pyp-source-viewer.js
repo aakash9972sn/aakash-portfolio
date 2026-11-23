@@ -60,6 +60,8 @@ function dialog(){
   '<p id="pyp-source-message" role="status"></p>',
   '<div id="pyp-source-content" hidden>',
   '<nav class="pyp-source-navigation" aria-label="Question navigation"><button id="pyp-source-prev-q" type="button">← Question</button><b id="pyp-source-question"></b><button id="pyp-source-next-q" type="button">Question →</button></nav>',
+  '<button type="button" id="pyp-source-palette-toggle" class="pyp-source-palette-toggle" aria-controls="pyp-source-palette" aria-expanded="false">Question palette</button>',
+  '<div id="pyp-source-palette" class="pyp-source-palette" hidden></div>',
   '<nav class="pyp-source-navigation" aria-label="PDF page navigation"><button id="pyp-source-prev-page" type="button">← Page</button><b id="pyp-source-page"></b><button id="pyp-source-next-page" type="button">Page →</button></nav>',
   '<p id="pyp-source-page-hint" class="pyp-source-hint"></p><div class="pyp-source-canvas-box"><canvas id="pyp-source-canvas"></canvas></div>',
   '<section id="pyp-source-answer-panel" class="pyp-source-answer-panel"><h3>Unscored practice answer</h3><p>No verified answer key is included for this paper. Select an option to save your practice response locally; marks will not be calculated.</p><div id="pyp-source-choices"></div><small id="pyp-source-progress"></small></section>',
@@ -70,6 +72,10 @@ function dialog(){
  $('pyp-source-attach').addEventListener('click',()=>{selectedId=active?.id;input.click()});
  $('pyp-source-prev-q').addEventListener('click',()=>setQuestion(active.q-1));
  $('pyp-source-next-q').addEventListener('click',()=>setQuestion(active.q+1));
+ $('pyp-source-palette-toggle').addEventListener('click',()=>{
+   const palette=$('pyp-source-palette'); palette.hidden=!palette.hidden;
+   $('pyp-source-palette-toggle').setAttribute('aria-expanded',String(!palette.hidden));
+ });
  $('pyp-source-prev-page').addEventListener('click',()=>setPage(active.page-1));
  $('pyp-source-next-page').addEventListener('click',()=>setPage(active.page+1));
  d.addEventListener('close',()=>{renderSerial++;if(renderTask){try{renderTask.cancel()}catch{}renderTask=null}});
@@ -121,6 +127,24 @@ function setAnswer(value){
  try{localStorage.setItem('tclab.pdf.responses.'+active.id,JSON.stringify(v))}catch{}
  drawChoices();
 }
+function renderQuestionPalette(){
+ if(!active)return;
+ const box=$('pyp-source-palette');
+ if(!box)return;
+ const v=active.meta.test?{}:localAnswers();
+ box.replaceChildren();
+ for(let n=1;n<=active.meta.count;n++){
+  const b=document.createElement('button');
+  b.type='button';b.textContent=String(n);
+  b.className=(n===active.q?'is-current ':'')+
+    (v[n]?'is-answered':'');
+  b.setAttribute('aria-label','Jump to question '+n+(v[n]?', selected '+v[n]:''));
+  b.setAttribute('aria-current',n===active.q?'step':'false');
+  b.onclick=()=>{setQuestion(n);box.hidden=true;
+    $('pyp-source-palette-toggle').setAttribute('aria-expanded','false');};
+  box.appendChild(b);
+ }
+}
 function drawChoices(){
  if(!active||active.meta.test)return;
  const v=localAnswers(),root=$('pyp-source-choices');root.replaceChildren();
@@ -133,6 +157,7 @@ function drawChoices(){
  const b=document.createElement('button');b.type='button';b.textContent='Clear';b.onclick=()=>setAnswer(null);root.appendChild(b);
  const n=Object.keys(v).filter(x=>Number(x)>=1&&Number(x)<=active.meta.count&&/^[A-D]$/.test(v[x])).length;
  $('pyp-source-progress').textContent=n+' / '+active.meta.count+' selected · saved on this device (not scored)';
+ renderQuestionPalette();
 }
 function setQuestion(q){
  if(!active?.pdf)return;
@@ -145,6 +170,7 @@ function setQuestion(q){
   ? 'Mapped to the original PDF page. Use Page ± if the question or its options extend onto another page.'
   : 'This source PDF has unreadable text encoding. Locate the question with the page controls.';
  setPage(mapped||1);
+ renderQuestionPalette();
  drawChoices();
 }
 async function setPage(page){
