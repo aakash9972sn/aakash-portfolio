@@ -86,38 +86,69 @@ function message(text,error){
 }
 async function open(id,q=1){
  const meta=metaById[id];if(!meta)return;
+ const serial=++openSerial;
  const d=dialog();if(!d.open)d.showModal();
  const old=active,keep=old?.id===id?old.pdf:null;
  if(old&&old.id!==id){
-   renderSerial++;
-   if(renderTask){try{renderTask.cancel()}catch{}renderTask=null;}
-   if(old.pdf)old.pdf.destroy().catch(()=>{});
+  renderSerial++;
+  if(renderTask){try{renderTask.cancel()}catch{}renderTask=null}
+  if(old.pdf)old.pdf.destroy().catch(()=>{});
  }
- active={id,meta,q:Math.max(1,Math.min(meta.count,Number(q)||1)),pdf:keep,page:1};
+ active={id,meta,q:Math.min(meta.count,Math.max(1,Number(q)||1)),pdf:keep,remote:null,page:1};
  $('pyp-source-name').textContent=meta.title;
  $('pyp-source-content').hidden=true;
  $('pyp-source-filename').textContent='';
- message('Checking whether this original PDF is saved on this device…');
+ const link=$('pyp-source-external');
+ link.href=meta.sourceUrl||'#'; link.hidden=!meta.sourceUrl;
+ $('pyp-source-canvas').hidden=false;
+ $('pyp-source-remote-frame').hidden=true;
+ message('Opening original question paper…');
  try{
-  const saved=await read(id);
-  if(active.id!==id)return;
-  if(!saved){
-   message('Choose '+meta.file+' on your device once. The ChatGPT attachment is not automatically available to the website.');
+  const saved=await read(id).catch(()=>null);
+  if(serial!==openSerial||active.id!==id)return;
+  if(saved){
+   $('pyp-source-filename').textContent=saved.name+' · local copy';
+   if(!keep){
+    const lib=await pdfjs();
+    const pdf=await lib.getDocument({data:new Uint8Array(await saved.blob.arrayBuffer())}).promise;
+    if(pdf.numPages!==meta.totalPages)throw Error('Local PDF page count differs from original.');
+    if(serial!==openSerial)return;
+    active.pdf=pdf;
+   }
+  }else if(meta.sourceUrl){
+   active.remote=meta.sourceUrl;
+   try{
+    const lib=await pdfjs();
+    const pdf=await lib.getDocument({url:meta.sourceUrl}).promise;
+    if(serial!==openSerial){pdf.destroy().catch(()=>{});return}
+    if(pdf.numPages!==meta.totalPages)throw Error('Remote PDF page count differs from original.');
+    active.pdf=pdf;active.remote=null;
+   }catch(e){
+    if(serial!==openSerial)return;
+    active.remote=meta.sourceUrl;
+    message('Using browser PDF viewer. If it appears blank, use "Open original PDF" above.');
+   }
+  }else{
+   message('Online source unavailable. You can use a local PDF instead.',true);
    return;
   }
-  $('pyp-source-filename').textContent=saved.name+' · saved locally';
-  if(!keep){
-   const lib=await pdfjs();
-   const pdf=await lib.getDocument({data:new Uint8Array(await saved.blob.arrayBuffer())}).promise;
-   if(pdf.numPages!==meta.totalPages)throw Error('This PDF has '+pdf.numPages+' pages, expected '+meta.totalPages+'. Choose the correct original.');
-   active.pdf=pdf;
-  }
-  if(active.id!==id)return;
+  if(serial!==openSerial||active.id!==id)return;
   $('pyp-source-content').hidden=false;
   $('pyp-source-answer-panel').hidden=Boolean(meta.test);
-  message(meta.test?'This is the original source for an existing scored Test Centre paper. Answer questions using the regular test screen.':'Image-based unscored practice. No verified key or marks are available.');
+  if(!active.remote)message(meta.test
+   ?'Original source ready. Use the scored test interface to answer.'
+   :'Original paper ready. Practice responses are saved on this device without scoring.');
   setQuestion(active.q);
- }catch(e){message('Cannot open PDF: '+(e.message||e),true)}
+ }catch(e){
+  if(serial!==openSerial)return;
+  if(meta.sourceUrl){
+   active.remote=meta.sourceUrl;active.pdf=null;
+   $('pyp-source-content').hidden=false;
+   $('pyp-source-answer-panel').hidden=Boolean(meta.test);
+   message('Embedded preview unavailable. Use the "Open original PDF" link for reliable access.');
+   setQuestion(active.q);
+  }else message('Cannot open paper: '+(e.message||e),true);
+ }
 }
 function getProgress(id) {
  const paper=metaById[id];
