@@ -984,6 +984,23 @@
     window.addEventListener('beforeunload', () => { if (run) saveProgress(); });
   }
 
+  // Import cloud AI sets into the same on-device quiz engine after sign-in.
+  let lastCloudUid=null;
+  window.addEventListener('aakash:account-state',async event=>{
+    const uid=window.AakashAccount?.getState?.()?.uid;
+    if(!event.detail?.signedIn||!uid||lastCloudUid===uid)return;
+    lastCloudUid=uid;
+    try{
+      const restored=await generator?.restoreFromCloud?.();
+      if(restored){
+        generator.loadSaved().forEach(registerGenerated);
+        if($('#screen-home')&&!$('#screen-home').hidden){
+          renderCards();renderResume();renderHomeStats();
+        }
+      }
+    }catch(error){console.warn('Optional AI set restore unavailable',error)}
+  });
+
   /* ------------------------------------------------------------------- boot */
   wire();
   route();
