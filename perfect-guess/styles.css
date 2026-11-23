@@ -808,3 +808,15 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
     align-items: flex-start;
   }
 }
+
+/* Optional public leaderboard (private best remains separate). */
+.pg-public-leaderboard{border:1px solid var(--line,#d5dacf);border-radius:18px;padding:18px 20px;background:var(--card,#fff);display:grid;gap:10px}
+.pg-public-leaderboard .history-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pg-public-leaderboard .history-head h2{font-size:1rem;margin:0}
+#pg-leaderboard-status{font-size:.76rem;line-height:1.45;color:var(--muted,#65736a);margin:4px 0}
+#pg-leaderboard-list{list-style:decimal inside;padding:0;margin:0;display:grid;gap:5px}
+#pg-leaderboard-list li{display:flex;justify-content:space-between;gap:8px;font-size:.81rem;border-bottom:1px solid #7772;padding:6px 0}
+#pg-leaderboard-list strong{font-variant-numeric:tabular-nums}
+#pg-share-best{font:inherit;font-size:.83rem;font-weight:750;color:#f6f8ed;background:#203c2f;border:1px solid #46755a;border-radius:9px;padding:11px 12px;cursor:pointer}
+#pg-share-best:disabled{opacity:.5;cursor:not-allowed}
+.pg-public-leaderboard>.metric-note{line-height:1.55;font-size:.74rem;margin:0}
