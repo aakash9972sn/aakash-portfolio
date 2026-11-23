@@ -204,6 +204,19 @@ async function handler(req,env){
  }
  return error('Unsupported Worker route. Use the full Node backend for this feature.',503);
 }
+/* Best-effort per-isolate budget. Cloudflare distributed deployments must also
+ * configure a platform-wide WAF/rate-limit rule for real cost protection. */
+const aiBudget = new Map();
+function aiRequestAllowed(request,env){
+ const ip=request.headers.get('CF-Connecting-IP')||'unknown';
+ const cap=Math.max(1,Math.min(120,Number(env.AI_REQUESTS_PER_MINUTE)||12));
+ const now=Date.now();
+ const row=aiBudget.get(ip)||{start:now,n:0};
+ if(now-row.start>60000){row.start=now;row.n=0}
+ row.n++;aiBudget.set(ip,row);
+ if(aiBudget.size>5000)for(const [key,v]of aiBudget)if(now-v.start>120000)aiBudget.delete(key);
+ return row.n<=cap;
+}
 export default {
  async fetch(request,env){
   const origin=request.headers.get('Origin');
@@ -215,6 +228,12 @@ export default {
    'Access-Control-Allow-Headers':'Content-Type,Accept,Authorization'
   };
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
+  if(new URL(request.url).pathname.startsWith('/api/ai/')&&!aiRequestAllowed(request,env)){
+   const response=error('AI request budget reached. Retry shortly.',429);
+   for(const [key,value]of Object.entries(cors))response.headers.set(key,value);
+   response.headers.set('Retry-After','60');
+   return response;
+  }
   try{
    const response=await handler(request,env);
    for(const [key,value]of Object.entries(cors))response.headers.set(key,value);
