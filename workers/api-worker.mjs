@@ -64,7 +64,7 @@ function osmAddress(v){
   addressLine:String([a.house_number,a.road||a.suburb||a.neighbourhood].filter(Boolean).join(' ')||name.split(',').slice(0,2).join(',')).slice(0,220),
   city:String(a.city||a.town||a.village||a.county||'').slice(0,80),
   state:String(a.state||'').slice(0,80),
-  pincode:/^[1-9]\\d{5}$/.test(a.postcode||'')?a.postcode:''
+  pincode:/^[1-9]\d{5}$/.test(a.postcode||'')?a.postcode:''
  };
 }
 async function osmLookup(endpoint,env){
