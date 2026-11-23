@@ -890,3 +890,11 @@ p { margin: 0; }
   background:var(--gold); color:var(--gold-ink); font:inherit; font-weight:700; font-size:.86rem; }
 .pyp-bulk-status { color:var(--muted); font-size:.81rem; overflow-wrap:anywhere; }
 @media(max-width:600px) { .pyp-bulk-import-btn { width:100%; } }
+
+/* Source-accurate vector diagrams: sharp at every resolution in tests/reviews. */
+.pyp-question-figure { box-sizing:border-box; width:100%; max-width:100%; margin:15px 0 18px;
+  display:flex; justify-content:center; align-items:center; overflow:hidden; }
+.pyp-question-figure[hidden] { display:none !important; }
+.pyp-question-figure img { display:block; width:min(100%,420px); max-height:480px;
+  object-fit:contain; background:#fff; border:1px solid #dedede; border-radius:10px; padding:8px; }
+@media(max-width:600px) { .pyp-question-figure img { width:100%; max-height:390px; } }
