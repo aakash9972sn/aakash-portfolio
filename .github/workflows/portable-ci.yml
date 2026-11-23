@@ -1,0 +1,36 @@
+name: Portable Portfolio CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build, test and secret-safety checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install reproducibly (without private credentials)
+        run: npm ci
+      - name: Syntax/build validation
+        run: npm run build
+      - name: Test suite
+        run: npm test
+      - name: Cloudflare Worker ESM validation
+        run: node --check workers/api-worker.mjs
+      - name: Prevent accidental .env or service-account commits
+        shell: bash
+        run: |
+          if git ls-files | grep -E '(^|/)(\.env|\.env\.local|service-account\.json)$'; then
+            echo "::error::Private credential file was tracked by git"
+            exit 1
+          fi
+          echo "No credential files tracked."
