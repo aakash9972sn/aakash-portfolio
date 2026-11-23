@@ -315,6 +315,7 @@ app.get('/api/health', (req, res) => {
   const mapsConfigured = Boolean(getMapsApiKey());
   res.json({
     ok: true,
+    provider: 'google-gemini',
     configured,
     mapsConfigured,
     model: MODEL_ID,
