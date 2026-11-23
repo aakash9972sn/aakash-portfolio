@@ -821,3 +821,66 @@ p { margin: 0; }
 #q-text mjx-container, .opt-text mjx-container,
 .ai-inline-question mjx-container, .ai-review-short-explanation mjx-container,
 .ai-coach-output mjx-container { vertical-align:middle; }
+
+
+/* Original image-PDF paper library, local attachment & question-by-question viewing. */
+.pyp-original-library { margin:22px 0 26px; }
+.pyp-original-title h3 { margin:6px 0 12px; font-size:1.2rem; }
+.pyp-original-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr)); gap:12px; margin:18px 0; }
+.pyp-original-card { padding:16px; border:1px solid var(--line); border-radius:14px; background:var(--surface); display:flex; flex-direction:column; gap:8px; min-width:0; }
+.pyp-original-card h4 { margin:0; font-size:.98rem; }
+.pyp-original-card p { color:var(--muted); margin:0; font-size:.79rem; line-height:1.5; }
+.pyp-original-card small { color:var(--text); font-size:.72rem; }
+.pyp-original-card button, .pyp-original-question-btn, .pyp-review-original-btn {
+  border:1px solid var(--line-strong); border-radius:9px; background:var(--surface-2); color:var(--text);
+  padding:10px 12px; cursor:pointer; font:inherit; font-weight:700; font-size:.82rem;
+}
+.pyp-original-card button { margin-top:auto; text-align:center; }
+.pyp-original-question-btn { display:block; width:fit-content; max-width:100%; margin:8px 0 14px; color:var(--text); }
+.pyp-original-question-btn[hidden] { display:none !important; }
+.pyp-review-original-btn { display:block; }
+#ai-study-coach.is-test-review .pyp-review-original-btn { grid-column:1 / -1; }
+.pyp-original-dialog { box-sizing:border-box; width:min(1080px,calc(100vw - 22px)); max-width:none;
+  height:min(94dvh,1100px); max-height:none; padding:0; border:1px solid var(--line);
+  border-radius:16px; background:var(--surface); color:var(--text); overflow-y:auto; overscroll-behavior:contain; }
+.pyp-original-dialog::backdrop { background:rgba(0,0,0,.75); }
+.pyp-source-head { display:flex; justify-content:space-between; gap:14px; align-items:start; padding:16px 20px; border-bottom:1px solid var(--line); }
+.pyp-source-head small { color:var(--muted); font-size:.67rem; letter-spacing:.06em; }
+.pyp-source-head h2 { font-size:1.1rem; margin:5px 0 0; overflow-wrap:anywhere; }
+.pyp-source-head button { flex:none; border:1px solid var(--line); border-radius:8px; background:var(--surface-2); color:var(--text); font-size:1.5rem; width:40px; height:40px; cursor:pointer; }
+.pyp-source-warning { background:var(--surface-2); padding:10px 18px; margin:0; font-size:.78rem; line-height:1.5; border-bottom:1px solid var(--line); }
+.pyp-source-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:14px 20px 0; }
+.pyp-source-toolbar button, .pyp-source-navigation button { border:1px solid var(--line-strong); background:var(--surface-2); color:var(--text);
+  border-radius:8px; padding:10px 12px; font-size:.8rem; font-weight:700; cursor:pointer; }
+.pyp-source-toolbar small { overflow-wrap:anywhere; min-width:0; }
+#pyp-source-message { padding:8px 20px; margin:5px 0; line-height:1.5; font-size:.84rem; }
+#pyp-source-message.is-error { color:#c0392b; }
+#pyp-source-content { padding:0 14px 24px; }
+.pyp-source-navigation { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center;
+  gap:8px; margin:10px 5px; }
+.pyp-source-navigation button:first-child { justify-self:start; }
+.pyp-source-navigation button:last-child { justify-self:end; }
+.pyp-source-navigation b { font-size:.82rem; text-align:center; white-space:nowrap; }
+.pyp-source-navigation button:disabled { opacity:.4; cursor:not-allowed; }
+.pyp-source-hint { color:var(--muted); font-size:.76rem; margin:8px; }
+.pyp-source-canvas-box { background:#ededed; border-radius:10px; display:flex; justify-content:center; align-items:flex-start;
+  overflow:auto; padding:12px; min-height:250px; }
+#pyp-source-canvas { max-width:100%; height:auto; display:block; background:white; box-shadow:0 2px 16px #0002; }
+.pyp-source-answer-panel { padding:18px 10px; }
+.pyp-source-answer-panel h3 { margin:0 0 8px; font-size:1rem; }
+.pyp-source-answer-panel p { color:var(--muted); font-size:.82rem; line-height:1.5; }
+#pyp-source-choices { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0; }
+#pyp-source-choices button { cursor:pointer; min-width:46px; padding:12px 14px; border:1px solid var(--line-strong); border-radius:8px;
+  font-weight:800; color:var(--text); background:var(--surface-2); }
+#pyp-source-choices button.is-selected { border-color:#16865f; background:rgba(22,134,95,.15); }
+#pyp-source-progress { color:var(--muted); font-size:.78rem; }
+@media(max-width:600px) {
+  .pyp-original-dialog { width:100vw; max-width:100vw; height:97dvh; max-height:97dvh; border-radius:12px 12px 0 0; }
+  .pyp-source-head { padding:13px; }
+  .pyp-source-toolbar { padding:12px 13px 0; }
+  #pyp-source-message { padding:9px 13px; }
+  .pyp-source-navigation { gap:4px; }
+  .pyp-source-navigation button { font-size:.7rem; padding:10px 6px; }
+  .pyp-source-navigation b { font-size:.72rem; }
+  .pyp-source-canvas-box { padding:5px; }
+}
