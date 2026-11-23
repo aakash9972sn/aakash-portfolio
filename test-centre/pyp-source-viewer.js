@@ -8,7 +8,7 @@ const metaById=Object.fromEntries(entries.map(x=>[x.id,x]));
 const $=id=>document.getElementById(id);
 const DBNAME='tclab.original-papers.v1';
 let dbPromise,pdfLibPromise,active,renderSerial=0,selectedId;
-const input=document.createElement('input');input.type='file';input.accept='application/pdf,.pdf';input.hidden=true;input.id='pyp-original-file-input';document.body.appendChild(input);
+const input=document.createElement('input');input.type='file';input.accept='application/pdf,.pdf';input.multiple=true;input.hidden=true;input.id='pyp-original-file-input';document.body.appendChild(input);
 function db(){
  if(dbPromise)return dbPromise;
  dbPromise=new Promise((resolve,reject)=>{
@@ -164,8 +164,28 @@ async function setPage(page){
  }catch(e){if(serial===renderSerial)message('Cannot render PDF page: '+e.message,true)}
 }
 input.addEventListener('change',async()=>{
- const file=input.files?.[0],id=selectedId,meta=metaById[id];input.value='';
- if(!file||!meta)return;
+ const selected=[...(input.files||[])],id=selectedId,meta=metaById[id];input.value='';
+ if(!selected.length)return;
+ if(!meta){
+  const status=$('pyp-bulk-pdf-status');const ok=[],failed=[];
+  for(const file of selected){
+   const paper=entries.find(p=>p.file.toLowerCase()===file.name.toLowerCase());
+   if(!paper){failed.push(file.name+' (unknown filename)');continue}
+   try{
+    if(file.size>32*1024*1024)throw Error('larger than 32 MB');
+    if(new TextDecoder().decode(await file.slice(0,5).arrayBuffer())!=='%PDF-')throw Error('not a PDF');
+    const lib=await pdfjs();
+    const pdf=await lib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+    if(pdf.numPages!==paper.totalPages)throw Error('page count differs: '+pdf.numPages+' vs '+paper.totalPages);
+    await write({id:paper.id,blob:file,name:file.name});
+    ok.push(paper.title);
+   }catch(e){failed.push(file.name+' ('+e.message+')')}
+  }
+  if(status)status.textContent=ok.length+' source PDF(s) attached to this browser.'+
+   (failed.length?' Could not import: '+failed.join('; '):'');
+  await refresh();return;
+ }
+ const file=selected[0];
  try{
   if(file.size>32*1024*1024)throw Error('This browser viewer supports PDFs up to 32 MB.');
   if(new TextDecoder().decode(await file.slice(0,5).arrayBuffer())!=='%PDF-')throw Error('Not a PDF file.');
@@ -181,7 +201,10 @@ function list(){
  const target=$('pyp-original-library');if(!target)return;
  target.innerHTML='<span class="section-kicker">ORIGINAL PAPER ARCHIVE</span><h3>10 image-based source PDFs · original diagrams and tables</h3>'+
   '<p class="muted">Attach the matching source PDF once to this browser. The PDF stays on your device. Four additional papers are available for unscored question-by-question practice; without verified answer keys, they cannot receive marks.</p>'+
+  '<button type="button" class="pyp-bulk-import-btn" id="pyp-bulk-import">Attach all 10 original PDFs at once</button>'+
+  '<p class="pyp-bulk-status" id="pyp-bulk-pdf-status" role="status"></p>'+
   '<div class="pyp-original-grid" id="pyp-original-grid"></div>';
+ $('pyp-bulk-import').addEventListener('click',()=>{selectedId=null;input.click()});
  const grid=$('pyp-original-grid');
  for(const m of entries){
   const card=document.createElement('article');card.className='pyp-original-card';
