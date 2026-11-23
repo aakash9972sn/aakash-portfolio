@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#F6F7F4">
+<meta name="description" content="Educational Figure Studio: create or edit diagrams with server-side Gemini, or export an offline block-diagram template.">
+<title>Figure Studio — AAKASH Labs</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script src="theme-sync.js"></script>
+<link rel="stylesheet" href="figure-studio.css">
+<script src="ai-config.js?v=20261123-portable1" defer></script>
+<script src="figure-studio.js" defer></script>
+</head>
+<body>
+<header class="lab-header"><a href="./index.html">← Portfolio</a><strong>AAKASH / FIGURE STUDIO</strong><a href="./test-centre/">Test Centre ↗</a></header>
+<main class="studio">
+  <div class="studio-heading"><span>EDUCATIONAL DIAGRAM LAB</span><h1>Create or refine a clear technical figure</h1>
+    <p>Text prompts and optional reference sketches go to the configured Gemini backend—not to the browser API. Never submit private documents or API keys. Image generation depends on your account tier.</p>
+  </div>
+  <div class="studio-layout">
+    <form id="figure-form" class="studio-panel">
+      <label for="figure-prompt">Diagram or image request</label>
+      <textarea id="figure-prompt" required minlength="8" maxlength="1000" rows="6" placeholder="Draw a clean, labelled ESP32-S3 + PN532 RFID reader block diagram on a pure-white background."></textarea>
+      <div class="presets" aria-label="Example figure prompts">
+        <button type="button" data-preset="A labelled, electrically accurate high-level block diagram of an ESP32-S3 connected to two PN532 NFC modules and a DS3231 RTC. Crisp vector-like educational style.">RFID architecture</button>
+        <button type="button" data-preset="A simple textbook illustration of a 3.3 V regulator supplying an ESP32-S3 development board, with voltage and current arrows; do not invent numerical ratings.">Power diagram</button>
+        <button type="button" data-preset="A neat educational illustration of a MOSFET common-source amplifier, clearly labelled gate, drain, source, coupling capacitors and resistor names.">Amplifier</button>
+      </div>
+      <label for="figure-reference">Optional reference sketch (PNG/JPEG/WebP, max 5 MB)</label>
+      <input id="figure-reference" type="file" accept="image/png,image/jpeg,image/webp">
+      <div class="studio-actions">
+        <button type="submit" id="figure-submit">Generate / edit with Gemini</button>
+        <button type="button" id="figure-template">Offline block diagram template</button>
+      </div>
+      <p class="studio-notice" id="figure-status" role="status" aria-live="polite">Use Gemini for generation/editing or the no-key template for a simple placeholder figure.</p>
+      <small>API unavailable? The offline template is a diagram layout aid, not an AI-rendered or fact-checked circuit.</small>
+    </form>
+    <section class="studio-panel preview" aria-label="Generated figure preview">
+      <div class="preview-head"><h2>Preview</h2><button type="button" id="figure-download" disabled>Download PNG</button></div>
+      <div id="figure-preview" class="preview-stage"><p>Generated or edited PNG appears here.</p></div>
+      <p id="figure-caption">Choose a prompt to begin.</p>
+    </section>
+  </div>
+</main>
+<footer class="lab-footer">No user images are saved to the portfolio server. Verify all scientific details before publication.</footer>
+</body>
+</html>
