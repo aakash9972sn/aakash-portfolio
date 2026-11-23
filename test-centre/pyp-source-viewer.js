@@ -82,7 +82,11 @@ async function open(id,q=1){
  const meta=metaById[id];if(!meta)return;
  const d=dialog();if(!d.open)d.showModal();
  const old=active,keep=old?.id===id?old.pdf:null;
- if(old?.pdf&&old.id!==id)old.pdf.destroy().catch(()=>{});
+ if(old&&old.id!==id){
+   renderSerial++;
+   if(renderTask){try{renderTask.cancel()}catch{}renderTask=null;}
+   if(old.pdf)old.pdf.destroy().catch(()=>{});
+ }
  active={id,meta,q:Math.max(1,Math.min(meta.count,Number(q)||1)),pdf:keep,page:1};
  $('pyp-source-name').textContent=meta.title;
  $('pyp-source-content').hidden=true;
