@@ -911,3 +911,15 @@ p { margin: 0; }
 .pyp-source-palette button.is-answered { background:rgba(27,154,100,.15); border-color:#259968; }
 .pyp-source-palette button.is-current { outline:2px solid var(--text); outline-offset:2px; }
 @media(max-width:600px) { .pyp-source-palette { grid-template-columns:repeat(5,minmax(0,1fr)); } }
+
+/* Public-source PDF viewer: inline preview with reliable external-opening fallback. */
+#pyp-source-remote-frame { width:100%; height:min(72dvh,900px); min-height:440px;
+  border:0; display:block; flex:1 1 100%; border-radius:8px; background:white; }
+#pyp-source-remote-frame[hidden], #pyp-source-canvas[hidden] { display:none !important; }
+.pyp-source-toolbar a { display:inline-flex; align-items:center; justify-content:center; border-radius:9px;
+  background:var(--gold); color:var(--gold-ink); font:inherit; font-size:.84rem; font-weight:750;
+  padding:10px 14px; text-decoration:none; min-height:42px; }
+.pyp-source-toolbar a:hover { text-decoration:underline; }
+.pyp-source-toolbar a[hidden] { display:none !important; }
+@media(max-width:600px){ #pyp-source-remote-frame{height:66dvh;min-height:380px;}
+  .pyp-source-toolbar a,.pyp-source-toolbar button{width:100%;text-align:center;} }
