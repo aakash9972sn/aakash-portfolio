@@ -884,3 +884,9 @@ p { margin: 0; }
   .pyp-source-navigation b { font-size:.72rem; }
   .pyp-source-canvas-box { padding:5px; }
 }
+
+.pyp-bulk-import-btn { display:inline-flex; align-items:center; justify-content:center; cursor:pointer;
+  margin:8px 0; padding:11px 16px; max-width:100%; border:0; border-radius:9px;
+  background:var(--gold); color:var(--gold-ink); font:inherit; font-weight:700; font-size:.86rem; }
+.pyp-bulk-status { color:var(--muted); font-size:.81rem; overflow-wrap:anywhere; }
+@media(max-width:600px) { .pyp-bulk-import-btn { width:100%; } }
