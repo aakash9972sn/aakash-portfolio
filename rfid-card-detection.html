@@ -23,6 +23,13 @@
   <script src="project-gallery.js?v=20261118-1" defer></script>
   <link rel="stylesheet" href="project-code.css?v=20261118-2">
   <script src="project-code.js?v=20261118-1" defer></script>
+  <link rel="stylesheet" href="src/3d/workbench.css?v=20261123-three1">
+  <script type="importmap">
+  {"imports":{
+    "three":"https://cdn.jsdelivr.net/npm/three@0.181.2/build/three.module.js",
+    "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.181.2/examples/jsm/"
+  }}
+  </script>
 </head>
 <body class="report-page theme-rfid">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -38,7 +45,7 @@
     </div>
   </header>
   <nav class="report-subnav" aria-label="On this page"><div class="wrap"><a href="#overview">Overview</a><a href="#gallery">Images</a><a href="#approach">The approach</a><a href="#hardware">Hardware</a><a href="#wiring">Connections</a><a href="#software">Software &amp; code</a><a href="#testing">Validation</a><a href="#learning">Learning</a><a href="#resources">Report</a></div></nav>
-  <main id="main">
+  <div class="wrap" style="margin:12px auto 4px"><button type="button" class="hardware-workbench-trigger" data-workbench-open>◈ Explore interactive 3D hardware board</button><p style="font-size:12px;opacity:.75;margin:0 0 12px">Procedural educational PCB model · mouse drag to rotate, scroll to zoom. No measured hardware claim.</p></div><main id="main">
 <section class="report-hero wrap" id="overview" aria-labelledby="page-title">
   <div class="report-meta"><span class="pill level">FOUNDATION PROJECT</span><span class="pill">EMBEDDED SYSTEMS</span><span class="pill">AAKASH · DTU ECE</span></div>
   <div class="report-hero-grid"><div>
@@ -184,5 +191,27 @@ LEDs off · no buzzer indication.</output></div></div><h3>Registration and repea
 <script src="ai-config.js?v=20261123-portable1" defer></script>
 <script src="ai-assistant.js?v=20261123-portable2" defer></script>
   <script src="ai-tools.js?v=20261123-portable2" defer></script>
+
+  <dialog id="hardware-workbench" class="hardware-workbench-dialog" aria-labelledby="hardware-workbench-title">
+    <header class="hardware-workbench-header">
+      <div><small>PROCEDURAL 3D · INTERACTIVE LAB</small><h2 id="hardware-workbench-title">RFID / ESP32-S3 hardware workbench</h2></div>
+      <button type="button" class="hardware-workbench-close" data-workbench-close aria-label="Close 3D hardware preview">×</button>
+    </header>
+    <div class="hardware-workbench-stage" data-workbench-stage role="region" aria-label="Rotatable three-dimensional procedural PCB scene"></div>
+    <footer class="hardware-workbench-footer">
+      <p data-workbench-status role="status">3D preview is an illustrative engineering visualization, not a fabricated or measured device.</p>
+      <div class="hardware-workbench-meta">
+        <button type="button" class="hardware-workbench-toggle" data-workbench-toggle-dock aria-expanded="false">Controls ▾</button>
+        <div data-workbench-dock class="hardware-workbench-dock" hidden>
+          <label><input type="checkbox" data-workbench-spin> Auto rotate</label>
+          <label><input type="checkbox" data-workbench-labels checked> Silkscreen</label>
+          <label><input type="checkbox" data-workbench-wire> Wireframe</label>
+          <button type="button" data-workbench-reset>Reset view</button>
+        </div>
+      </div>
+    </footer>
+  </dialog>
+
+  <script type="module" src="src/3d/workbench.js?v=20261123-three1"></script>
 </body>
 </html>
