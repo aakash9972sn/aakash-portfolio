@@ -87,6 +87,16 @@ const STUDY_SYSTEM_INSTRUCTION = `You are Aakash Gemini, the Test Centre study a
 The Test Centre explicitly supports CUET PG Life Sciences (SCQP17) and Zoology (SCQP28), with a separate syllabus registry and Gemini syllabus-driven MCQ mock generation. Its imported PYP bank contains 575 questions across six papers: CUET PG Life Sciences 2025 (75), Life Sciences 2023 Shift 2 (100) and Shift 3 (100), Zoology 2023 Shift 1 (100), Zoology 2022 (100), and CUCET Life Sciences 2021 (100). Of these, 28 source-flagged uncertain questions are review-only and excluded from scored attempts. 2023 answer keys came from user-provided CSVs and are not independently verified against official NTA answer keys. These PYPs are stored separately from EXAM_DATA; the absence of CUET in EXAM_DATA must NEVER be interpreted as CUET content being unavailable.
 Distinguish built-in previous-year papers from generated questions, which require the hosted Gemini backend. Use textbook-style LaTeX for mathematical, chemical, and scientific expressions: inline \\( ... \\), display \\[ ... \\]; for example \\(\\frac{a+b}{c}\\), \\(NH_3\\), \\(sp^3\\). Keep ordinary prose as plain text; no HTML, markdown code fences, or raw equations outside math delimiters. If asked for navigation, point students to the CUET PG track and its PYP or AI mock interface. Match the user's language and avoid unsupported claims.`;
 
+
+const BLUNDER_SYSTEM_INSTRUCTION =
+  'You are the Blunder grocery storefront helper. Use only supplied public catalogue and basket context. ' +
+  'Explain food pairings and products in the visitor\'s language. Never invent live inventory, availability, delivery promises, prices or merchant actions. ' +
+  'The storefront is a DEMO: no real order has been placed, paid, dispatched or delivered.';
+function systemForPage(appId) {
+  if (appId === 'study') return STUDY_SYSTEM_INSTRUCTION;
+  if (appId === 'blunder') return BLUNDER_SYSTEM_INSTRUCTION;
+  return PORTFOLIO_SYSTEM_INSTRUCTION;
+}
 function createGeminiClient() {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -485,8 +495,8 @@ app.post('/api/ai/chat/stream', async (req, res) => {
       model: chooseModel(modelPreset),
       contents: buildConversationContents(question, history, context || pageContext || {}),
       config: {
-        systemInstruction: clientApp === 'study' ? STUDY_SYSTEM_INSTRUCTION : PORTFOLIO_SYSTEM_INSTRUCTION,
-        ...(grounded ? {tools:[{googleSearch:{}}]} : {thinkingConfig:{thinkingLevel:ThinkingLevel.MINIMAL}})
+        systemInstruction: systemForPage(clientApp),
+        ...(grounded ? {tools:[{googleSearch:{}}]} : {thinkingConfig:{thinkingLevel:modelPreset==='deep'?ThinkingLevel.HIGH:ThinkingLevel.MINIMAL}})
       },
     });
     const text = (response.text || '').trim();
@@ -525,7 +535,7 @@ app.post('/api/ai/chat', async (req, res) => {
       model: chooseModel(modelPreset),
       contents: buildConversationContents(question, history, context || pageContext || {}),
       config: {
-        systemInstruction: clientApp === 'study' ? STUDY_SYSTEM_INSTRUCTION : PORTFOLIO_SYSTEM_INSTRUCTION,
+        systemInstruction: systemForPage(clientApp),
         ...(grounded ? {tools: [{googleSearch:{}}]} :
           {thinkingConfig: {thinkingLevel: modelPreset === 'deep' ? ThinkingLevel.HIGH : ThinkingLevel.MINIMAL}}),
       },
