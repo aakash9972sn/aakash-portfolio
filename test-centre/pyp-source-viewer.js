@@ -200,7 +200,7 @@ function drawChoices(){
  renderQuestionPalette();
 }
 function setQuestion(q){
- if(!active?.pdf)return;
+ if(!active?.pdf && !active?.remote)return;
  const x=active; x.q=Math.min(x.meta.count,Math.max(1,q));
  $('pyp-source-question').textContent='Q'+x.q+'/'+x.meta.count;
  $('pyp-source-prev-q').disabled=x.q===1;
@@ -214,12 +214,22 @@ function setQuestion(q){
  drawChoices();
 }
 async function setPage(page){
- if(!active?.pdf)return;
+ if(!active?.pdf && !active?.remote)return;
  const x=active;
- x.page=Math.min(x.pdf.numPages,Math.max(1,page));
- $('pyp-source-page').textContent='Page '+x.page+'/'+x.pdf.numPages;
+ const count=x.pdf?.numPages||x.meta.totalPages;
+ x.page=Math.min(count,Math.max(1,page));
+ $('pyp-source-page').textContent='Page '+x.page+'/'+count;
  $('pyp-source-prev-page').disabled=x.page===1;
- $('pyp-source-next-page').disabled=x.page===x.pdf.numPages;
+ $('pyp-source-next-page').disabled=x.page===count;
+ if(x.remote){
+  const iframe=$('pyp-source-remote-frame');
+  $('pyp-source-canvas').hidden=true;
+  iframe.hidden=false;
+  iframe.src=x.remote+'#page='+x.page+'&view=FitH';
+  return;
+ }
+ $('pyp-source-canvas').hidden=false;
+ $('pyp-source-remote-frame').hidden=true;
  const serial=++renderSerial;
  if(renderTask){try{renderTask.cancel()}catch{}renderTask=null;}
  try{
