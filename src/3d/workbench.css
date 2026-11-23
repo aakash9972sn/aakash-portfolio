@@ -1,0 +1,33 @@
+
+/* Hardware Workbench: accessible modal, procedural Three.js canvas and controls. */
+.hardware-workbench-trigger{display:inline-flex;gap:9px;align-items:center;justify-content:center;font:inherit;font-weight:800;font-size:14px;cursor:pointer;
+ background:linear-gradient(135deg,#172d25,#315a4a);border:1px solid #759786;color:#f4fffa;border-radius:12px;padding:13px 18px;margin:13px 0 18px}
+.hardware-workbench-trigger:hover{filter:brightness(1.13);transform:translateY(-1px)}
+.hardware-workbench-trigger:focus-visible,.hardware-workbench-close:focus-visible,.hardware-workbench-dock button:focus-visible{outline:3px solid #f5bd27;outline-offset:3px}
+.hardware-workbench-dialog{position:fixed;box-sizing:border-box;width:min(1220px,calc(100vw - 22px));height:min(88dvh,900px);max-height:none;max-width:none;
+ border:1px solid #5a796c;border-radius:18px;background:#101b18;color:#eaf3ee;padding:0;overflow:hidden;box-shadow:0 32px 100px #0008}
+.hardware-workbench-dialog::backdrop{background:#020904c9;backdrop-filter:blur(7px)}
+.hardware-workbench-header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 18px;background:#172820;border-bottom:1px solid #476359}
+.hardware-workbench-header h2{font:800 clamp(16px,2vw,23px)/1.2 system-ui;margin:3px 0}
+.hardware-workbench-header small{font:700 10px system-ui;letter-spacing:.15em;color:#a9d6ba}
+.hardware-workbench-close,.hardware-workbench-dock button{font:700 13px system-ui;background:#263b32;color:#f0fff5;border:1px solid #597667;border-radius:9px;padding:9px 13px;cursor:pointer}
+.hardware-workbench-close{font-size:22px;line-height:1;min-width:40px;min-height:40px}
+.hardware-workbench-stage{position:absolute;inset:85px 0 92px;background:#e5ebe5}
+.hardware-workbench-stage canvas{display:block;width:100%!important;height:100%!important;touch-action:none}
+.hardware-workbench-footer{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;gap:10px;
+ background:#172820;border-top:1px solid #476359;padding:10px 16px;min-height:73px}
+.hardware-workbench-footer p{font:500 12px/1.5 system-ui;color:#c2d7cd;margin:0;flex:1}
+.hardware-workbench-dock{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+.hardware-workbench-dock label{font:600 12px system-ui;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.hardware-workbench-dock input{accent-color:#f5bc42}
+.hardware-workbench-dock[hidden]{display:none!important}
+.hardware-workbench-toggle{font:700 12px system-ui;background:#22382d;color:#fff;border:1px solid #63856f;border-radius:7px;padding:9px 11px;cursor:pointer}
+.hardware-workbench-meta{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+@media(max-width:720px){
+.hardware-workbench-dialog{width:100vw;max-width:100vw;height:97dvh;border-radius:12px 12px 0 0}
+.hardware-workbench-stage{inset:75px 0 180px}
+.hardware-workbench-footer{align-items:stretch;flex-direction:column;gap:8px}
+.hardware-workbench-meta{justify-content:space-between}
+.hardware-workbench-dock{max-height:92px;overflow-y:auto}
+.hardware-workbench-header{padding:12px}
+}
