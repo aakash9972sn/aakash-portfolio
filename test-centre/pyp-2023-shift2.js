@@ -155,7 +155,7 @@
       "e": "Source note: Option 3 as printed in the paper reads (A)-(I),(B)-(III),(C)-(IV),(D)-(I) - correct matching is A-II B-III C-IV D-I which is option 1"
     },
     {
-      "q": "If (x-1)/x = 5, then the value of 1 + 1/x^2 is:",
+      "q": "If \\(\\frac{x-1}{x}=5\\), then the value of \\(1+\\frac{1}{x^2}\\) is:",
       "o": [
         "19",
         "17",
@@ -168,15 +168,15 @@
       "sourceAnswer": "2. 17",
       "sourceNote": "1/x = -4 so 1/x^2 = 16",
       "unscored": false,
-      "e": "Source note: 1/x = -4 so 1/x^2 = 16"
+      "e": "From \\(\\frac{x-1}{x}=1-\\frac1x=5\\), we get \\(\\frac1x=-4\\). Hence \\(1+\\frac{1}{x^2}=1+16=17\\)."
     },
     {
-      "q": "If AD = CD = BD, then the area of the shaded region OACBO is: (Given pi = 22/7) [figure: triangle OAB on diameter AB=3 m with semicircle ACB below]",
+      "q": "If \\(AD=CD=BD\\), find the shaded area \\(OACBO\\). Given \\(\\pi=\\frac{22}{7}\\) and \\(AB=3\\,\\mathrm{m}\\).",
       "o": [
-        "161/28 m^2",
-        "81/14 m^2",
-        "79/14 m^2",
-        "6.5 m^2"
+        "\\(\\frac{161}{28}\\,\\mathrm{m}^2\\)",
+        "\\(\\frac{81}{14}\\,\\mathrm{m}^2\\)",
+        "\\(\\frac{79}{14}\\,\\mathrm{m}^2\\)",
+        "\\(6.5\\,\\mathrm{m}^2\\)"
       ],
       "a": 1,
       "t": "Part A · General Aptitude",
@@ -184,7 +184,9 @@
       "sourceAnswer": "2. 81/14 m^2",
       "sourceNote": "Triangle (base 3, height 1.5) + semicircle (r=1.5) = 81/14",
       "unscored": false,
-      "e": "Source note: Triangle (base 3, height 1.5) + semicircle (r=1.5) = 81/14"
+      "e": "The shaded area is triangle \\(AOB\\) plus semicircle \\(ACB\\). Since \\(r=AD=BD=CD=1.5\\,\\mathrm{m}\\), the triangle area is \\(\\frac12(3)(1.5)=\\frac94\\,\\mathrm{m}^2\\), and the semicircle area is \\(\\frac12\\cdot\\frac{22}{7}\\cdot(1.5)^2=\\frac{99}{28}\\,\\mathrm{m}^2\\). Total \\(=\\frac{81}{14}\\,\\mathrm{m}^2\\).",
+      "image": "media/ls2023-shift2-q12.svg",
+      "imageAlt": "Shaded triangle AOB above a semicircle ACB, AB 3 m, upper-right square, D at midpoint of AB, AD = CD = BD."
     },
     {
       "q": "Two pipes can fill a tank separately in 20 minutes and 60 minutes respectively. What portion of the tank can be filled by both pipes in 12 minutes?",
