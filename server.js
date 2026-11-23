@@ -706,6 +706,44 @@ app.post('/api/ai/study-doubt', async (req, res) => {
   }
 });
 
+/* Keep backend sources private even though static pages share this repo root. */
+const PRIVATE_ROOT_FILES = new Set([
+  '/server.js','/package.json','/package-lock.json','/bun.lock',
+  '/dockerfile','/.dockerignore','/.gitignore','/.nojekyll',
+  '/render.yaml','/vercel.json','/wrangler.toml','/security_spec.md',
+  '/firebase.json','/firestore.rules'
+]);
+const PRIVATE_PATH_PREFIXES = [
+  '/node_modules/','/src/db/','/src/security/','/src/routes/',
+  '/src/live-relay.js','/scripts/','/tests/','/.git/',
+  '/.github/','/api/','/workers/'
+];
+function canonicalFrontendURL(){
+  const value=String(process.env.FRONTEND_CANONICAL_URL||
+    'https://aakash9972sn.github.io/aakash-portfolio').replace(/\/+$/,'');
+  try{
+    const url=new URL(value);
+    if(url.protocol!=='https:'&&!(url.protocol==='http:'&&url.hostname==='localhost'))return null;
+    if(url.username||url.password||url.search||url.hash)return null;
+    return url.origin+url.pathname.replace(/\/+$/,'');
+  }catch{return null}
+}
+app.use((req,res,next)=>{
+  const p=String(req.path||'').toLowerCase();
+  if(PRIVATE_ROOT_FILES.has(p)||p.startsWith('/.env')||
+     PRIVATE_PATH_PREFIXES.some(prefix=>p.startsWith(prefix)))
+    return res.status(404).end();
+  // Canonical HTML navigation for the API-host browser. APIs and assets stay
+  // here; regular local npm start still serves all frontend routes.
+  const host=String(req.headers.host||'').split(':')[0].toLowerCase();
+  const canonical=canonicalFrontendURL();
+  const htmlPath=p==='/'||p.endsWith('/')||p.endsWith('.html');
+  if(canonical&&host.endsWith('.onrender.com')&&
+     (req.method==='GET'||req.method==='HEAD')&&htmlPath)
+    return res.redirect(302,canonical+req.originalUrl);
+  return next();
+});
+
 app.use(
   express.static(__dirname, {
     dotfiles: 'ignore',
