@@ -14,7 +14,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="../theme-sync.js?v=20261121-t1"></script>
-  <link rel="stylesheet" href="styles.css?v=20261123-original3">
+  <link rel="stylesheet" href="styles.css?v=20261122-math4">
+  <link rel="stylesheet" href="gate-pyp.css">
 </head>
 <body>
 
@@ -130,6 +131,32 @@
           </div>
 
           <div id="resume-banner" hidden></div>
+
+          <section class="gate-pyp" id="gate-pyp" aria-labelledby="gate-pyp-title" hidden>
+            <header class="gate-pyp-header">
+              <div>
+                <span class="section-kicker">GATE EC · 2007–2026</span>
+                <h2 id="gate-pyp-title">Previous-year questions</h2>
+              </div>
+              <a href="../assets/gate-ec/EC-GATE-2027-syllabus.pdf" target="_blank" rel="noopener">2027 syllabus PDF ↗</a>
+            </header>
+            <div class="tc-view-pills" role="group" aria-label="Browse GATE papers">
+              <button type="button" class="ws-pill is-active" data-gate-mode="topic" aria-pressed="true">Topic-wise</button>
+              <button type="button" class="ws-pill" data-gate-mode="unit" aria-pressed="false">Unit-wise</button>
+              <button type="button" class="ws-pill" data-gate-mode="paper" aria-pressed="false">Question paper-wise</button>
+            </div>
+            <div class="gate-pyp-filters">
+              <label id="gate-group-field"><span id="gate-group-label">Topic</span><select id="gate-group"></select></label>
+              <label>Year<select id="gate-year"><option value="">All years</option></select></label>
+            </div>
+            <p id="gate-summary" class="gate-pyp-summary" role="status"></p>
+            <div id="gate-results"></div>
+            <button type="button" class="ws-pill" id="gate-more" hidden>Show more questions</button>
+            <details>
+              <summary>About the question index</summary>
+              <p>Topic and unit tags are automatically assigned from PDF text and scan OCR. Some questions may be misclassified or listed under Unclassified. Use the original PDFs for the full wording, figures and exam instructions.</p>
+            </details>
+          </section>
 
           <section id="ai-generator" class="ai-generator" aria-label="AI test generator"></section>
 
@@ -273,7 +300,8 @@
   <script src="ai-config.js?v=20261122-archive575-1"></script>
   <script src="ai-coach.js?v=20261123-original3"></script>
   <script src="ai-generator.js?v=20261121-history3"></script>
-  <script src="app.js?v=20261123-original3"></script>
+  <script src="gate-pyp.js" defer></script>
+  <script src="app.js?v=20261123-gate-pyp"></script>
   <script src="../ai-assistant.js?v=20261122-math4" defer></script>
 </body>
 </html>

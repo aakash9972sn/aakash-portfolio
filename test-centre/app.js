@@ -164,9 +164,10 @@
     if ($('#hero-cta-sub')) $('#hero-cta-sub').textContent = meta.ctaSub;
     if ($('#rail-sub')) $('#rail-sub').textContent = meta.railSub;
     if ($('#catalog-heading')) $('#catalog-heading').textContent = meta.catalogHeading;
-    const isCuet = filterExam === 'cuet-pg';
-    $$('[data-view="pyp"]').forEach((btn) => { btn.hidden = !isCuet; });
-    if (!isCuet && workspaceView === 'pyp') workspaceView = 'all';
+    $$('[data-view="pyp"]').forEach((btn) => {
+      btn.hidden = filterExam === 'neet';
+      btn.textContent = filterExam === 'gate' ? 'GATE EC PYQs' : 'CUET PG Papers';
+    });
     setWorkspaceView(workspaceView);
   }
 
@@ -882,7 +883,7 @@
   /* ------------------------------------------------------------------- workspace & theme */
   let workspaceView = 'all';
   function setWorkspaceView(view) {
-    const allowPyp = filterExam === 'cuet-pg';
+    const allowPyp = filterExam !== 'neet';
     workspaceView = ['all', 'tests', 'ai'].includes(view) || (view === 'pyp' && allowPyp) ? view : 'all';
     $$('[data-view]').forEach((btn) => {
       const on = btn.dataset.view === workspaceView;
@@ -893,7 +894,10 @@
     const pypSec = $('.pyp-library');
     const catSec = $('#tests-catalog');
     if (aiSec) aiSec.hidden = !(workspaceView === 'all' || workspaceView === 'ai');
-    if (pypSec) pypSec.hidden = !(allowPyp && (workspaceView === 'all' || workspaceView === 'pyp'));
+    const showPyp = workspaceView === 'all' || workspaceView === 'pyp';
+    if (pypSec) pypSec.hidden = !(filterExam === 'cuet-pg' && showPyp);
+    const gatePyp = $('#gate-pyp');
+    if (gatePyp) gatePyp.hidden = !(filterExam === 'gate' && showPyp);
     if (catSec) catSec.hidden = !(workspaceView === 'all' || workspaceView === 'tests');
   }
 

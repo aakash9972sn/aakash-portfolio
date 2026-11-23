@@ -1,0 +1,49 @@
+.gate-pyp {
+  padding: clamp(16px, 3vw, 26px);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.gate-pyp-header, .gate-pyp-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.gate-pyp-header h2 { margin: 0; font-size: clamp(1.2rem, 3vw, 1.65rem); }
+.gate-pyp a { color: var(--text); text-underline-offset: .18em; }
+.gate-pyp .tc-view-pills { flex-wrap: wrap; margin-bottom: 16px; }
+.gate-pyp .ws-pill { min-height: 40px; }
+.gate-pyp-filters { justify-content: flex-start; }
+.gate-pyp-filters label { display: grid; gap: 4px; min-width: 0; font-size: .82rem; }
+.gate-pyp-filters label[hidden] { display: none; }
+.gate-pyp-filters select {
+  min-height: 40px;
+  max-width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+}
+
+.gate-pyp-summary, .gate-pyp details, .gate-pyp-row small { color: var(--muted); font-size: .85rem; }
+.gate-pyp-rows { display: grid; gap: 6px; list-style: none; padding: 0; margin: 8px 0; }
+.gate-pyp-row {
+  display: grid;
+  gap: 3px;
+  min-height: 44px;
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+
+.gate-pyp details { margin-top: 16px; }
+.gate-pyp summary { cursor: pointer; }
