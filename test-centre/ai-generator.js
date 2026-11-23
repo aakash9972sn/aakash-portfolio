@@ -51,7 +51,24 @@
   }
 
   function removeSaved(id) {
-    return writeSaved(loadSaved().filter((t) => t.id !== id));
+    const changed=writeSaved(loadSaved().filter((t) => t.id !== id));
+    if(changed)window.AakashAccount?.remove?.('generatedSets',id).catch(()=>{});
+    return changed;
+  }
+  async function restoreFromCloud() {
+    if(!window.AakashAccount?.getState?.()?.signedIn)return 0;
+    const cloud=await window.AakashAccount.list('generatedSets');
+    if(!Array.isArray(cloud))return 0;
+    const saved=loadSaved(),byId=new Map(saved.map(item=>[item.id,item]));
+    let restored=0;
+    for(const row of cloud.slice(-30)){
+      let item;
+      try{item=JSON.parse(row.testJson)}catch{continue}
+      if(!validTest(item)||byId.has(item.id))continue;
+      byId.set(item.id,item);restored++;
+    }
+    if(restored)writeSaved([...byId.values()].slice(-MAX_SAVED));
+    return restored;
   }
 
   function endpoint() {
@@ -539,6 +556,10 @@
             throw new Error('Could not save tests. Please free browser storage and retry.');
           }
           register(item);
+          // Browser remains usable when Spark quota, permissions or network fail.
+          window.AakashAccount?.save?.('generatedSets',item.id,{
+            examId:item.examId,subjectId:item.subjectId,title:item.test.title,item
+          }).catch(()=>{});
           created++;
           freshlyCreated.push(item);
           renderReadyPanel(freshlyCreated);
@@ -569,5 +590,5 @@
     }
   }
 
-  window.TestCentreAIGenerator = { loadSaved, mount, removeSaved, setExam };
+  window.TestCentreAIGenerator = { loadSaved, mount, removeSaved, setExam, restoreFromCloud };
 })();
