@@ -124,7 +124,9 @@ async function open(id,q=1){
    setQuestion(active.q);
    try{
     const lib=await pdfjs();
-    const pdf=await lib.getDocument({url:meta.sourceUrl}).promise;
+    const apiBase=String(window.API_BASE_URL||'').replace(/\/$/,'');
+    const proxyUrl=apiBase+'/api/pyp-source/'+encodeURIComponent(id);
+    const pdf=await lib.getDocument({url:proxyUrl,withCredentials:false}).promise;
     if(serial!==openSerial){pdf.destroy().catch(()=>{});return}
     if(pdf.numPages!==meta.totalPages)throw Error('Remote PDF page count differs from original.');
     active.pdf=pdf;active.remote=null;
