@@ -213,10 +213,14 @@ function setQuestion(q){
  $('pyp-source-prev-q').disabled=x.q===1;
  $('pyp-source-next-q').disabled=x.q===x.meta.count;
  const mapped=x.meta.pages[x.q-1];
+ // One older (2022 Zoology) source has an undecodable text layer, so its
+ // question-to-page map is not exact. Never send every Q to the first page.
+ const estimate=Math.max(2,Math.min(x.meta.totalPages,
+  Math.round(2+(x.q-1)*(x.meta.totalPages-3)/Math.max(1,x.meta.count-1))));
  $('pyp-source-page-hint').textContent=mapped
-  ? 'Mapped to the original PDF page. Use Page ± if the question or its options extend onto another page.'
-  : 'This source PDF has unreadable text encoding. Locate the question with the page controls.';
- setPage(mapped||1);
+  ? 'Original PDF page mapped for this question. Use Page ± if the question or options continue onto another page.'
+  : 'Approximate PDF page only — this older scan has no reliable question-page index. Use Page ± to find the printed question number.';
+ setPage(mapped||estimate);
  renderQuestionPalette();
  drawChoices();
 }
