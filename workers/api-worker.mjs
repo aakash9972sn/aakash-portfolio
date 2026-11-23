@@ -88,6 +88,19 @@ async function osmLookup(endpoint,env){
  osmQueue=job.catch(()=>{});
  return job;
 }
+// Public source-PDF passthrough for static deployments without Node.
+const PYP_SOURCE_PATHS=Object.freeze({
+ 'cuet-pg-life-sciences-2025':'pyqs/cuet-pg-life-sciences-2025.pdf',
+ 'cuet-pg-life-sciences-2024':'pyqs/cuet-pg-life-sciences-2024.pdf',
+ 'cuet-pg-life-sciences-2023-shift2':'pyqs/cuet-pg-life-sciences-2023-english-shift-2.pdf',
+ 'cuet-pg-life-sciences-2023-shift3':'pyqs/cuet-pg-life-sciences-2023-english-shift-3.pdf',
+ 'cuet-pg-life-sciences-2022-shift1':'PYQP/CUET-PG-life-science-question-paper-2022-shift-1.pdf',
+ 'cuet-pg-zoology-2024':'pyqs/cuet-pg-zoology-2024.pdf',
+ 'cuet-pg-zoology-2023-shift3':'pyqs/cuet-pg-zoology-2023-english-shift-3.pdf',
+ 'cuet-pg-zoology-2023-shift1':'pyqs/cuet-pg-zoology-2023-english-shift-1.pdf',
+ 'cuet-pg-zoology-2022':'PYQP/CUET-PG-zoology-question-paper-2022-shift-1.pdf',
+ 'cucet-life-sciences-2021':'PYQP/CUCET-Life%20Sciences-2021-shift-2-previous-year-paper.pdf'
+});
 async function handler(req,env){
  const url=new URL(req.url),path=url.pathname;
  if(req.method==='GET'&&path==='/api/health')
@@ -98,6 +111,22 @@ async function handler(req,env){
   return json({configured:!!env.GOOGLE_MAPS_BROWSER_KEY,apiKey:env.GOOGLE_MAPS_BROWSER_KEY||'',provider:env.GOOGLE_MAPS_BROWSER_KEY?'google':'openstreetmap'});
  if(req.method==='GET'&&path==='/api/leaderboard/perfect-guess')
   return json({available:false,leaders:[],message:'Public PostgreSQL leaderboard requires the full Node API. Local/Firebase best still works.'});
+ if(req.method==='GET'&&path.startsWith('/api/pyp-source/')){
+  const id=decodeURIComponent(path.slice('/api/pyp-source/'.length));
+  if(!Object.prototype.hasOwnProperty.call(PYP_SOURCE_PATHS,id))return error('Unknown paper.',404);
+  try{
+   const url='https://pathfinderacademy.in/assets/downloads/'+PYP_SOURCE_PATHS[id];
+   const upstream=await fetch(url,{headers:{Accept:'application/pdf'},redirect:'error',
+     signal:AbortSignal.timeout(25000)});
+   if(!upstream.ok||!upstream.body)return error('Source PDF is unavailable.',502);
+   if(Number(upstream.headers.get('content-length')||0)>25*1024*1024)
+    return error('Source PDF is too large.',413);
+   return new Response(upstream.body,{status:200,headers:{
+    'Content-Type':'application/pdf','Cache-Control':'public,max-age=86400',
+    'Content-Disposition':'inline; filename="'+id+'.pdf"'
+   }});
+  }catch{return error('Could not load the original PDF. Use the source link.',502)}
+ }
  if(req.method!=='POST')return error('Route not found on this Worker adapter.',404);
  if(path==='/api/osm/search'||path==='/api/osm/reverse'){
   if(Number(req.headers.get('content-length')||0)>1600)return error('Map request too large.',413);
