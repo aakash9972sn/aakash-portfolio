@@ -1,5 +1,5 @@
 // Same-origin Gemini backend routes (handled securely on server.js)
-window.TEST_CENTRE_AI_ENDPOINT = /(^|\.)github\.io$/i.test(location.hostname) ? 'https://aakash-portfolio-g3fb.onrender.com/api' : '/api';
+window.TEST_CENTRE_AI_ENDPOINT = (window.API_BASE_URL || '') + '/api';
 
 window.AAKASH_AI = {
   endpoint: `${window.TEST_CENTRE_AI_ENDPOINT}/ai/chat/stream`,
