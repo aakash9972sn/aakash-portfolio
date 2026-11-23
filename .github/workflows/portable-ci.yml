@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 jobs:
   verify:
@@ -23,7 +24,15 @@ jobs:
       - name: Syntax/build validation
         run: npm run build
       - name: Test suite
-        run: npm test
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee /tmp/portfolio-test-output.log
+      - name: Report failing test names to commit status (push only)
+        if: ${{ failure() && github.event_name == 'push' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/report-ci-failures.cjs
       - name: Cloudflare Worker ESM validation
         run: node --check workers/api-worker.mjs
       - name: Prevent accidental .env or service-account commits
