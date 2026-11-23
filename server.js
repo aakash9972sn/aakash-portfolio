@@ -7,6 +7,7 @@ if (typeof process.loadEnvFile === 'function' && fs.existsSync(path.join(__dirna
 }
 const { GoogleGenAI, ThinkingLevel, Type } = require('@google/genai');
 const { registerPortableRoutes, sources } = require('./src/routes/portable-api');
+const { registerPypPDFRoute } = require('./src/routes/pyp-pdf');
 const { attachLiveRelay } = require('./src/live-relay');
 const {mountOSM} = require('./src/routes/osm');
 const { isConfigured: postgresConfigured } = require('./src/db');
@@ -308,6 +309,7 @@ app.use('/api/ai/transcribe', express.json({limit:'9mb'}));
 app.use('/api/ai',aiRateLimit);
 app.use(express.json({limit:'128kb'}));
 registerPortableRoutes(app, express, createGeminiClient);
+registerPypPDFRoute(app);
 mountOSM(app);
 
 app.get('/api/health', (req, res) => {
