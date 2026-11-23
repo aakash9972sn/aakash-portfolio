@@ -258,7 +258,7 @@
   pmrem?.dispose();pmrem=null;
   environment?.dispose?.();environment=null;
   renderer?.dispose();renderer?.forceContextLoss();renderer?.domElement?.remove();renderer=null;
-  root=null;scene=null;camera=null;loaded=null;playhead=0;
+  root=null;scene=null;camera=null;loaded=null;
  }
  button.addEventListener('click',open);
  dialog.querySelector('[data-workbench-close]')?.addEventListener('click',()=>dialog.close());
