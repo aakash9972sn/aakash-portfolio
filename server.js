@@ -98,6 +98,9 @@ function systemForPage(appId) {
   return PORTFOLIO_SYSTEM_INSTRUCTION;
 }
 function createGeminiClient() {
+  // Injectable only by server-side code (never through a request). This permits
+  // offline CI tests of Gemini routing without a key or external API calls.
+  if (typeof app.locals.aiFactory === 'function') return app.locals.aiFactory();
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     const err = new Error('GEMINI_API_KEY is not configured on the server.');
