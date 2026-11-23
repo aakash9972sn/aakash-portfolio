@@ -58,6 +58,26 @@
   $('.privacy').textContent =
     config.privacy || 'Questions use public page context only and stay in memory for this session.';
 
+  let latestGrounding = [];
+  function showCitations(container,refs) {
+    if(!container || !Array.isArray(refs) || !refs.length)return;
+    const block=document.createElement('div');
+    block.className='ai-grounding';
+    const label=document.createElement('b');label.textContent='Sources used';
+    block.appendChild(label);
+    const list=document.createElement('ul');
+    for(const ref of refs.slice(0,8)){
+      if(typeof ref.url!=='string')continue;
+      let href;
+      try{href=new URL(ref.url);if(href.protocol!=='https:')continue}catch{continue}
+      const li=document.createElement('li'),a=document.createElement('a');
+      a.href=href.href;a.target='_blank';a.rel='noopener noreferrer';
+      a.textContent=String(ref.title||href.hostname).slice(0,110);
+      li.appendChild(a);list.appendChild(li);
+    }
+    block.appendChild(list);
+    container.appendChild(block);
+  }
   let history = [];
   let busy = false;
   let controller = null;
@@ -128,7 +148,11 @@
   }
 
   async function requestAnswer(payload, signal, onChunk) {
-    const response = await fetch(config.endpoint, {
+    latestGrounding=[];
+    const url=payload.verifyWithWebSearch
+      ? (window.API_BASE_URL||'')+'/api/ai/chat'
+      : config.endpoint;
+    const response = await fetch(url, {
       method: 'POST',
       credentials: 'same-origin',
       cache: 'no-store',
@@ -163,6 +187,7 @@
       if (typeof data?.answer !== 'string' || !data.answer.trim()) {
         throw new Error('No answer came back. Please try again.');
       }
+      latestGrounding=Array.isArray(data.sources)?data.sources:[];
       onChunk(data.answer);
       return data.answer;
     }
@@ -193,6 +218,7 @@
         onChunk(fullText);
       }
       if (data.done) {
+        latestGrounding=Array.isArray(data.sources)?data.sources:[];
         done = true;
       }
     }
@@ -260,6 +286,8 @@
           question,
           context,
           app: config.app || 'portfolio',
+          verifyWithWebSearch: Boolean($('#ai-verify-search')?.checked),
+          modelPreset: $('#ai-model-preset')?.value === 'deep' ? 'deep' : 'fast',
           history: history.slice(-6).map((m) => ({
             role: m.role,
             content: m.content.slice(0, 1200),
@@ -287,6 +315,7 @@
 
       // Render once after the streamed text is complete (partial TeX may be invalid).
       if (window.TestCentreMath?.enabled()) window.TestCentreMath.renderShadow(assistantParagraph);
+      showCitations(assistantParagraph?.parentElement,latestGrounding);
 
       history.push(
         { role: 'user', content: question },
@@ -334,5 +363,9 @@
   window.addEventListener('hashchange', availability);
   availability();
 
-  window.AakashAssistant = Object.freeze({ open });
+  window.AakashAssistant = Object.freeze({
+    open,
+    setPrompt(text){open();input.value=String(text||'').slice(0,700);input.focus();},
+    getRoot(){return root;}
+  });
 })();
