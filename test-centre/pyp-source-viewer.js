@@ -7,7 +7,7 @@ const entries=window.PYPOriginalSourceManifest||[];
 const metaById=Object.fromEntries(entries.map(x=>[x.id,x]));
 const $=id=>document.getElementById(id);
 const DBNAME='tclab.original-papers.v1';
-let dbPromise,pdfLibPromise,active,renderSerial=0,renderTask=null,selectedId;
+let dbPromise,pdfLibPromise,active,renderSerial=0,renderTask=null,selectedId,openSerial=0;
 const input=document.createElement('input');input.type='file';input.accept='application/pdf,.pdf';input.multiple=true;input.hidden=true;input.id='pyp-original-file-input';document.body.appendChild(input);
 function db(){
  if(dbPromise)return dbPromise;
@@ -55,15 +55,15 @@ function dialog(){
  d=document.createElement('dialog');d.id='pyp-original-dialog';d.className='pyp-original-dialog';
  d.innerHTML=[
   '<header class="pyp-source-head"><div><small>ORIGINAL IMAGE-BASED PAPER</small><h2 id="pyp-source-name"></h2></div><button type="button" id="pyp-source-close" aria-label="Close original PDF">×</button></header>',
-  '<p class="pyp-source-warning">Source PDFs are kept only on your device. Uploaded question keys are not independently verified.</p>',
-  '<div class="pyp-source-toolbar"><button id="pyp-source-attach" type="button">Choose / replace original PDF</button><small id="pyp-source-filename"></small></div>',
+  '<p class="pyp-source-warning">Original papers load from public sources; attaching a local PDF is optional. Supplied answer keys have not been independently verified.</p>',
+  '<div class="pyp-source-toolbar"><a id="pyp-source-external" href="#" target="_blank" rel="noopener noreferrer">Open original PDF ↗</a><button id="pyp-source-attach" type="button">Use local PDF (optional)</button><small id="pyp-source-filename"></small></div>',
   '<p id="pyp-source-message" role="status"></p>',
   '<div id="pyp-source-content" hidden>',
   '<nav class="pyp-source-navigation" aria-label="Question navigation"><button id="pyp-source-prev-q" type="button">← Question</button><b id="pyp-source-question"></b><button id="pyp-source-next-q" type="button">Question →</button></nav>',
   '<button type="button" id="pyp-source-palette-toggle" class="pyp-source-palette-toggle" aria-controls="pyp-source-palette" aria-expanded="false">Question palette</button>',
   '<div id="pyp-source-palette" class="pyp-source-palette" hidden></div>',
   '<nav class="pyp-source-navigation" aria-label="PDF page navigation"><button id="pyp-source-prev-page" type="button">← Page</button><b id="pyp-source-page"></b><button id="pyp-source-next-page" type="button">Page →</button></nav>',
-  '<p id="pyp-source-page-hint" class="pyp-source-hint"></p><div class="pyp-source-canvas-box"><canvas id="pyp-source-canvas"></canvas></div>',
+  '<p id="pyp-source-page-hint" class="pyp-source-hint"></p><div class="pyp-source-canvas-box"><canvas id="pyp-source-canvas"></canvas><iframe id="pyp-source-remote-frame" title="Original question paper PDF" referrerpolicy="no-referrer" hidden></iframe></div>',
   '<section id="pyp-source-answer-panel" class="pyp-source-answer-panel"><h3>Unscored practice answer</h3><p>No verified answer key is included for this paper. Select an option to save your practice response locally; marks will not be calculated.</p><div id="pyp-source-choices"></div><small id="pyp-source-progress"></small></section>',
   '</div>'
  ].join('');
