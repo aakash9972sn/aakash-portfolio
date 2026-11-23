@@ -82,6 +82,7 @@ async function open(id,q=1){
  const meta=metaById[id];if(!meta)return;
  const d=dialog();if(!d.open)d.showModal();
  const old=active,keep=old?.id===id?old.pdf:null;
+ if(old?.pdf&&old.id!==id)old.pdf.destroy().catch(()=>{});
  active={id,meta,q:Math.max(1,Math.min(meta.count,Number(q)||1)),pdf:keep,page:1};
  $('pyp-source-name').textContent=meta.title;
  $('pyp-source-content').hidden=true;
@@ -181,6 +182,7 @@ input.addEventListener('change',async()=>{
     const pdf=await lib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
     if(pdf.numPages!==paper.totalPages)throw Error('page count differs: '+pdf.numPages+' vs '+paper.totalPages);
     await write({id:paper.id,blob:file,name:file.name});
+    await pdf.destroy(); // Do not retain all ten parsed PDFs in memory on a phone.
     ok.push(paper.title);
    }catch(e){failed.push(file.name+' ('+e.message+')')}
   }
