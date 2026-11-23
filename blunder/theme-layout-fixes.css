@@ -285,3 +285,21 @@ html[data-theme="dark"] .blunder-back-link:focus-visible {
   outline: 3px solid #d8f36a;
   outline-offset: 2px;
 }
+
+@media (max-width:370px) {
+  /* Keep every control accessible on very narrow phones instead of letting
+     the account/basket push Portfolio or Search beyond the viewport. */
+  .site-header .header-main.wrap {
+    grid-template-columns: auto minmax(0,1fr);
+    grid-template-areas:
+      "brand brand"
+      "actions actions"
+      "portfolio search";
+  }
+  .site-header .header-main > .header-actions {
+    width: 100%;
+    justify-self: stretch;
+    justify-content: space-between;
+  }
+  .site-header .header-actions .icon-button { width: 34px; }
+}
