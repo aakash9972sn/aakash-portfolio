@@ -4,6 +4,7 @@ const path = require('path');
 const { GoogleGenAI, ThinkingLevel, Type } = require('@google/genai');
 const { registerPortableRoutes, sources } = require('./src/routes/portable-api');
 const { attachLiveRelay } = require('./src/live-relay');
+const {mountOSM} = require('./src/routes/osm');
 const { isConfigured: postgresConfigured } = require('./src/db');
 
 const app = express();
@@ -264,6 +265,7 @@ app.use('/api/ai/image', express.json({limit:'8mb'}));
 app.use('/api/ai/transcribe', express.json({limit:'9mb'}));
 app.use(express.json({limit:'128kb'}));
 registerPortableRoutes(app, express, createGeminiClient);
+mountOSM(app);
 
 app.get('/api/health', (req, res) => {
   const configured = Boolean(process.env.GEMINI_API_KEY);
