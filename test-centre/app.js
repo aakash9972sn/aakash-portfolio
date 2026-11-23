@@ -545,6 +545,7 @@
     $('#q-source-note').hidden = !q.unscored;
     $('#q-source-note').textContent = q.unscored ? 'Review-only: the source flags a disputed answer key. This question does not affect your score.' : '';
     $('#q-text').textContent = q.q;
+    window.PYPSource?.syncQuestion(run.test.id, i + 1);
     const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
     $('#q-options').innerHTML = q.o.map((opt, oi) => {
       const selected = run.responses[i] === oi;
