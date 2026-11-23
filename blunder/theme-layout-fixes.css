@@ -249,3 +249,39 @@ html[data-theme="dark"] .quantity output {
   .site-header .header-actions .icon-button { width: 28px; }
   .site-header .header-actions .bag-trigger { padding: 5px; }
 }
+
+/* Pastel category tiles intentionally stay pale: use a dark foreground even in
+ * dark mode, just like printed product labels and the pale grocery artwork. */
+html[data-theme="dark"] .category-card {
+  color: #233b29;
+}
+html[data-theme="dark"] .category-card small,
+html[data-theme="dark"] .category-card strong,
+html[data-theme="dark"] .category-card b {
+  color: #233b29;
+}
+html[data-theme="dark"] .category-card.cat-green { background:#e5ecd9; }
+html[data-theme="dark"] .category-card.cat-peach { background:#f1e5db; }
+html[data-theme="dark"] .category-card.cat-blue { background:#e6eaf0; }
+html[data-theme="dark"] .category-card.cat-sand { background:#ece8d9; }
+/* Light image backdrops, order counters and checkout widgets require explicit
+ * foregrounds rather than the page-level dark-mode --ink (off-white). */
+html[data-theme="dark"] .product-picture,
+html[data-theme="dark"] .product-label,
+html[data-theme="dark"] .product-picture button,
+html[data-theme="dark"] .detail-art {
+  color: #203627;
+}
+html[data-theme="dark"] .checkout-summary,
+html[data-theme="dark"] .basket-summary,
+html[data-theme="dark"] .payment-option,
+html[data-theme="dark"] .lookup-form,
+html[data-theme="dark"] .coupon-section {
+  color: #ecf4e9;
+}
+html[data-theme="dark"] .search-clear:focus-visible,
+html[data-theme="dark"] .add-button:focus-visible,
+html[data-theme="dark"] .blunder-back-link:focus-visible {
+  outline: 3px solid #d8f36a;
+  outline-offset: 2px;
+}
