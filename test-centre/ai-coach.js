@@ -284,6 +284,16 @@
           '<div class="ai-review-detailed">' +
           '<button type="button" class="btn-ai-doubt">Explain all four options with Gemini</button>' +
           '<div class="ai-coach-output" hidden aria-live="polite"></div></div>';
+        if (typeof q.image === 'string' && /^media\/[\w/-]+\.svg$/.test(q.image)) {
+          const figure = document.createElement('figure');
+          figure.className = 'pyp-question-figure';
+          const img = document.createElement('img');
+          img.src = q.image;
+          img.alt = q.imageAlt || 'Original question diagram';
+          img.loading = 'lazy';
+          figure.appendChild(img);
+          article.querySelector('h4')?.insertAdjacentElement('afterend', figure);
+        }
         if (window.PYPSource?.exists(result.testId)) {
           const original = document.createElement('button');
           original.type = 'button';
