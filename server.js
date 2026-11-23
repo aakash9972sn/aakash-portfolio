@@ -2,11 +2,16 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const { GoogleGenAI, ThinkingLevel, Type } = require('@google/genai');
+const { registerPortableRoutes, sources } = require('./src/routes/portable-api');
+const { attachLiveRelay } = require('./src/live-relay');
+const { isConfigured: postgresConfigured } = require('./src/db');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = '0.0.0.0';
-const MODEL_ID = 'gemini-3.1-flash-lite';
+const MODEL_ID = process.env.GEMINI_MODEL_FAST || process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
+const DEEP_MODEL_ID = process.env.GEMINI_MODEL_DEEP || 'gemini-2.5-pro';
+const chooseModel = preset => preset === 'deep' ? DEEP_MODEL_ID : MODEL_ID;
 
 function getMapsApiKey() {
   return String(
@@ -19,7 +24,7 @@ function getMapsApiKey() {
 
 function getAllowedOrigins() {
   const raw = String(
-    process.env.ALLOWED_ORIGINS || 'https://aakash9972sn.github.io,http://localhost:3000,http://127.0.0.1:3000'
+    process.env.CORS_ORIGIN || process.env.ALLOWED_ORIGINS || 'https://aakash9972sn.github.io,http://localhost:3000,http://127.0.0.1:3000'
   );
   return new Set(
     raw
@@ -239,14 +244,14 @@ app.use('/api', (req, res, next) => {
   if (origin) {
     const cleanOrigin = String(origin).replace(/\/+$/, '');
     if (
-      ALLOWED_ORIGINS.has('*') ||
-      ALLOWED_ORIGINS.has(cleanOrigin) ||
-      cleanOrigin.endsWith('.run.app')
+      ALLOWED_ORIGINS.has(cleanOrigin)
     ) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Vary', 'Origin');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization');
+    } else {
+      return res.status(403).json({ error: 'This browser origin is not allowed by CORS_ORIGIN.' });
     }
   }
   if (req.method === 'OPTIONS') {
@@ -254,6 +259,7 @@ app.use('/api', (req, res, next) => {
   }
   return next();
 });
+registerPortableRoutes(app, express, createGeminiClient);
 app.use(express.json({ limit: '128kb' }));
 
 app.get('/api/health', (req, res) => {
@@ -264,14 +270,20 @@ app.get('/api/health', (req, res) => {
     configured,
     mapsConfigured,
     model: MODEL_ID,
+    deepModel: DEEP_MODEL_ID,
+    postgresConfigured: postgresConfigured(),
+    liveEnabled: process.env.ENABLE_LIVE_AUDIO === 'true' && configured,
   });
 });
 
 app.get('/api/maps/config', (req, res) => {
-  const apiKey = getMapsApiKey();
+  // Browser keys are public by design but MUST be HTTP-referrer restricted.
+  // Never expose a server-side Geocoding/Maps Grounding secret.
+  const apiKey = process.env.GOOGLE_MAPS_BROWSER_KEY || '';
   res.json({
     configured: Boolean(apiKey),
     apiKey,
+    provider: apiKey ? 'google' : 'openstreetmap',
   });
 });
 
@@ -410,7 +422,7 @@ app.post('/api/ai/shop-assistant', async (req, res) => {
 });
 
 app.post('/api/ai/chat/stream', async (req, res) => {
-  const { question, history, context, pageContext, app: clientApp } = req.body || {};
+  const { question, history, context, pageContext, app: clientApp, modelPreset, verifyWithWebSearch } = req.body || {};
   if (typeof question !== 'string' || question.trim().length < 2 || question.length > 700) {
     return res.status(400).json({ error: 'Please enter a question between 2 and 700 characters.' });
   }
@@ -433,12 +445,13 @@ app.post('/api/ai/chat/stream', async (req, res) => {
   });
 
   try {
+    const grounded = verifyWithWebSearch === true;
     const response = await generateWithRetry(ai, {
-      model: MODEL_ID,
+      model: chooseModel(modelPreset),
       contents: buildConversationContents(question, history, context || pageContext || {}),
       config: {
         systemInstruction: clientApp === 'study' ? STUDY_SYSTEM_INSTRUCTION : PORTFOLIO_SYSTEM_INSTRUCTION,
-        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
+        ...(grounded ? {tools:[{googleSearch:{}}]} : {thinkingConfig:{thinkingLevel:ThinkingLevel.MINIMAL}})
       },
     });
     const text = (response.text || '').trim();
@@ -447,7 +460,7 @@ app.post('/api/ai/chat/stream', async (req, res) => {
     }
     if (!clientClosed) {
       res.write(`data: ${JSON.stringify({ text })}\n\n`);
-      res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+      res.write(`data: ${JSON.stringify({ done: true, sources: grounded ? sources(response) : [] })}\n\n`);
       res.end();
     }
   } catch (error) {
@@ -465,26 +478,28 @@ app.post('/api/ai/chat/stream', async (req, res) => {
 });
 
 app.post('/api/ai/chat', async (req, res) => {
-  const { question, history, context, pageContext, app: clientApp } = req.body || {};
+  const { question, history, context, pageContext, app: clientApp, modelPreset, verifyWithWebSearch } = req.body || {};
   if (typeof question !== 'string' || question.trim().length < 2 || question.length > 700) {
     return res.status(400).json({ error: 'Please enter a question between 2 and 700 characters.' });
   }
 
   try {
     const ai = createGeminiClient();
+    const grounded = verifyWithWebSearch === true;
     const response = await generateWithRetry(ai, {
-      model: MODEL_ID,
+      model: chooseModel(modelPreset),
       contents: buildConversationContents(question, history, context || pageContext || {}),
       config: {
         systemInstruction: clientApp === 'study' ? STUDY_SYSTEM_INSTRUCTION : PORTFOLIO_SYSTEM_INSTRUCTION,
-        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
+        ...(grounded ? {tools: [{googleSearch:{}}]} :
+          {thinkingConfig: {thinkingLevel: modelPreset === 'deep' ? ThinkingLevel.HIGH : ThinkingLevel.MINIMAL}}),
       },
     });
     const answer = (response.text || '').trim();
     if (!answer) {
       return res.status(502).json({ error: 'AI returned an empty response. Please retry.' });
     }
-    return res.json({ answer });
+    return res.json({ answer, sources: grounded ? sources(response) : [] });
   } catch (error) {
     console.error('Gemini chat error:', error);
     const status = extractErrorStatus(error);
@@ -665,6 +680,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, HOST, () => {
+const server = app.listen(PORT, HOST, () => {
   console.log(`Server listening on http://${HOST}:${PORT}`);
 });
+attachLiveRelay(server, ALLOWED_ORIGINS);
+
