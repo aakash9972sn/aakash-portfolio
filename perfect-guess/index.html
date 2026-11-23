@@ -139,6 +139,13 @@
           <button type="button" class="btn-sync" id="open-account-btn">Sign in / Sync</button>
         </div>
 
+        <section class="pg-public-leaderboard" aria-labelledby="pg-public-leaderboard-title">
+          <div class="history-head"><h2 id="pg-public-leaderboard-title">Community leaderboard</h2><span class="metric-note">Optional</span></div>
+          <p id="pg-leaderboard-status" role="status">Loading available scores…</p>
+          <ol id="pg-leaderboard-list"></ol>
+          <button type="button" id="pg-share-best" disabled>Share my best publicly</button>
+          <p class="metric-note">Only your signed-in name and score are shared when you choose Share. Client-reported results are not anti-cheat verified. Without a PostgreSQL backend, your private Firebase best still works.</p>
+        </section>
         <div class="history-card">
           <div class="history-head">
             <h2>Attempt Log</h2>
@@ -161,5 +168,6 @@
   <script src="../ai-config.js?v=20261123-portable1" defer></script>
   <script src="../ai-assistant.js?v=20261123-portable2" defer></script>
   <script src="../ai-tools.js?v=20261123-portable2" defer></script>
+  <script src="leaderboard.js?v=20261123-leaderboard1" defer></script>
 </body>
 </html>
