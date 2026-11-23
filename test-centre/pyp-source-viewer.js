@@ -116,7 +116,12 @@ async function open(id,q=1){
     active.pdf=pdf;
    }
   }else if(meta.sourceUrl){
+   // Display the original at once, even when PDF.js/CORS/CDN is slow.
    active.remote=meta.sourceUrl;
+   $('pyp-source-content').hidden=false;
+   $('pyp-source-answer-panel').hidden=Boolean(meta.test);
+   message('Original PDF opened from its public source. If the preview is blocked, use the direct PDF link above.');
+   setQuestion(active.q);
    try{
     const lib=await pdfjs();
     const pdf=await lib.getDocument({url:meta.sourceUrl}).promise;
