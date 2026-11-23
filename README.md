@@ -102,7 +102,7 @@ npm run lint
 node --check workers/api-worker.mjs
 ~~~
 
-The workflow .github/workflows/portable-ci.yml checks npm ci, build, tests, Worker syntax and secret-file tracking on every push. A syntax check is **not** a substitute for real browser, billing and API-entitlement verification.
+The workflows `.github/workflows/ci.yml` and `.github/workflows/portable-ci.yml` check `npm ci`, build, tests, Worker syntax and secret-file tracking on pushes. A syntax check is **not** a substitute for real browser, billing and API-entitlement verification.
 
 ### 2. PostgreSQL (optional, portable)
 
@@ -118,7 +118,7 @@ The workflow .github/workflows/portable-ci.yml checks npm ci, build, tests, Work
 2. Firebase Console → Authentication → Sign-in method → enable Google. Authentication → Settings → Authorized domains → add localhost, **aakash9972sn.github.io**, and any custom hostname. Add only hostnames, never https:// or /aakash-portfolio/.
 3. Firestore → Rules → publish the checked-in firestore.rules to the exact database selected in firebase-applet-config.json. **Committing rules to GitHub does NOT deploy them to Firebase.** Firebase CLI deployment also requires checking the selected project and database.
 4. Test Google login/profile, Best Guess, Test Centre attempts/sets, preferences/default, and optionally savedAddresses/home on a second device. Generated sets restore via the signed-in account when permissions allow.
-5. Blunder saves addresses in cloud only when the user explicitly opts in. Demo orders can store non-sensitive demo summaries. If Firestore is unavailable or Spark quotas are reached, local results and baskets remain usable.
+5. Blunder saves addresses in cloud only when the user explicitly opts in. Demo orders can store non-sensitive demo summaries; client-written statuses are restricted to `demo_*` (not real delivery events). If Firestore is unavailable or Spark quotas are reached, local results and baskets remain usable.
 6. Set backend FIREBASE_PROJECT_ID to the project in the public config; signed ID tokens are checked for signature, issuer, audience and expiration.
 
 ### 4. Render deployment — full Node experience
@@ -126,7 +126,7 @@ The workflow .github/workflows/portable-ci.yml checks npm ci, build, tests, Work
 1. Push to GitHub and connect this repo as a Render Node 22+ Web Service.
 2. Build command: npm ci && npm run build && npm test. Start command: npm start.
 3. Configure GEMINI_API_KEY privately and optional DATABASE_URL, FIREBASE_PROJECT_ID, GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_BROWSER_KEY, ENABLE_LIVE_AUDIO and ENABLE_MAPS_GROUNDING.
-4. CORS_ORIGIN must be exact origins separated by commas, e.g. https://aakash9972sn.github.io,https://your-domain.example,http://localhost:3000. No wildcard and no repo path.
+4. Set `AI_REQUESTS_PER_MINUTE` (default 12) to cap requests per process. Also configure host/CDN global rate limiting for multi-instance deployments. `CORS_ORIGIN` must be exact origins separated by commas, e.g. https://aakash9972sn.github.io,https://your-domain.example,http://localhost:3000. No wildcard and no repo path.
 5. Check HTTPS /api/health and /api/public-config. GOOGLE_MAPS_BROWSER_KEY, if enabled, is returned to the browser **only** when restricted by Google Cloud HTTP referrers and allowed APIs. Keep GOOGLE_MAPS_API_KEY server-only.
 6. Enable Live mic only when Gemini Live access is allowed for your key/model and you accept its rate limits and costs.
 7. Render free-tier availability, sleeping and pricing may change; verify current terms before relying on 24/7 service.
@@ -135,14 +135,14 @@ The workflow .github/workflows/portable-ci.yml checks npm ci, build, tests, Work
 
 **Vercel Node:** api/index.js and vercel.json export/rewrite the same Express application. Set Node 22+ and the same env vars. The persistent /ws/live relay needs a long-running Node host; Vercel function limits may restrict audio or image tasks.
 
-**Cloudflare Workers (reduced adapter):** workers/api-worker.mjs + wrangler.toml implement Gemini REST chat, search grounding, study MCQs/doubts, image generation, transcription and public config without Node. Deploy after setting CORS_ORIGIN and the GEMINI_API_KEY secret:
+**Cloudflare Workers (reduced adapter):** `workers/api-worker.mjs` + `wrangler.toml` implement Gemini REST chat, search grounding, study MCQs/doubts, image generation, transcription, free OpenStreetMap search/reverse geocoding, and public config without Node. Deploy after setting CORS_ORIGIN and the GEMINI_API_KEY secret:
 
 ~~~bash
 npx wrangler secret put GEMINI_API_KEY
 npx wrangler deploy
 ~~~
 
-The Cloudflare Worker does **not** provide the native Node WebSocket relay, persistent PostgreSQL TCP, authenticated Postgres user data or real checkout. Those routes return clear unavailable errors; use a Node host for full features.
+The Cloudflare Worker does **not** provide the native Node WebSocket relay, persistent PostgreSQL TCP, authenticated Postgres user data or real checkout. The OSM public endpoint has usage policies and is not a bulk autocomplete provider; cache and rate limits are best-effort per Worker instance. Those routes return clear unavailable errors; use a Node host for full features.
 
 ### 6. GitHub Pages frontend
 
@@ -163,10 +163,11 @@ The Cloudflare Worker does **not** provide the native Node WebSocket relay, pers
 | Audio transcription | /api/ai/transcribe | Browser speech recognition where supported |
 | Live WebSocket relay | /ws/live (long-running Node only) | Browser speech / SpeechSynthesis |
 | Maps grounding | /api/ai/maps-assist | OSM/Leaflet/manual address |
+| Free map search and pin reverse lookup | /api/osm/search, /api/osm/reverse | OSM/Nominatim with caching, plus manual address |
 | Google Maps browser key | /api/maps/config | Leaflet/OSM/Nominatim |
 | Community scoreboard | /api/leaderboard/perfect-guess | Local/Firebase private best |
 | Exam analytics | /api/analytics/attempt | Existing Firestore/local results |
 | Consented transcripts | /api/transcripts | In-memory chat only |
 | Real merchant orders | /api/store/orders | Explicitly disabled/demo-only |
 
-The word "free" refers to fallback software, **not** an unlimited guaranteed free vendor API entitlement. Do not make unsupported claims about purchase fulfilment or verified rankings.
+**Production boundaries:** real Blunder purchases remain disabled until merchant inventory, payments and delivery are operational. Cloud-based Firebase rules must be deployed separately, and live Gemini/Maps/Live Audio access depends on the host and API tier. Request budgets are process-local unless a shared gateway limiter is configured. The word "free" refers to fallback software, **not** an unlimited guaranteed free vendor API entitlement. Do not make unsupported claims about purchase fulfilment or verified rankings.
