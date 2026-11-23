@@ -1,6 +1,10 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+if (typeof process.loadEnvFile === 'function' && fs.existsSync(path.join(__dirname, '.env'))) {
+  // Node 22+ built-in .env loading. Hosting provider env variables take precedence.
+  process.loadEnvFile(path.join(__dirname, '.env'));
+}
 const { GoogleGenAI, ThinkingLevel, Type } = require('@google/genai');
 const { registerPortableRoutes, sources } = require('./src/routes/portable-api');
 const { attachLiveRelay } = require('./src/live-relay');
@@ -685,8 +689,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-const server = app.listen(PORT, HOST, () => {
-  console.log(`Server listening on http://${HOST}:${PORT}`);
-});
-attachLiveRelay(server, ALLOWED_ORIGINS);
+// Import as an Express handler under serverless Node (e.g. Vercel); the
+// long-running WS relay is supported only when this process owns the listener.
+if (require.main === module && !process.env.VERCEL) {
+  const server = app.listen(PORT, HOST, () => {
+    console.log(`Server listening on http://${HOST}:${PORT}`);
+  });
+  attachLiveRelay(server, ALLOWED_ORIGINS);
+}
+module.exports = app;
 
