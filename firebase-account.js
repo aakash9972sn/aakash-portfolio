@@ -712,6 +712,18 @@
     }
   }
 
+  async function remove(collection,id) {
+    if (!auth?.currentUser || !['generatedSets','savedAddresses','bookmarks'].includes(collection)) return false;
+    try {
+      const ref=fs.doc(db,'users',auth.currentUser.uid,collection,sanitizeId(id));
+      await fs.deleteDoc(ref);
+      return true;
+    } catch(error) {
+      console.warn('Cloud deletion unavailable:',error);
+      return false;
+    }
+  }
+
   function signInError(error) {
     const code = error?.code || 'auth/sdk-unavailable';
     const messages = {
@@ -848,6 +860,7 @@
 
   window.AakashAccount = {
     save,
+    remove,
     async getIdToken() {
       return auth?.currentUser ? auth.currentUser.getIdToken() : null;
     },
@@ -1237,6 +1250,13 @@
       message('Saved data could not be loaded. Please retry.');
     }
   };
+
+  // Preferences are synced only after the user has signed in.
+  window.addEventListener('aakash:theme-change', (event) => {
+    if (!auth?.currentUser) return;
+    const theme=event.detail?.theme === 'dark' ? 'dark' : 'light';
+    save('preferences','default',{theme,language:'en'}).catch(()=>{});
+  });
 
   // Restore existing session automatically if user previously signed in
   try {
