@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const origin = String(window.BLUNDER_AI_API_ORIGIN || window.BLUNDER_API_ORIGIN || (/(^|\.)github\.io$/i.test(location.hostname) ? 'https://aakash-portfolio-g3fb.onrender.com' : '')).replace(/\/+$/, '');
+  const origin = window.API_BASE_URL || '';
 
   window.AAKASH_AI = {
     endpoint: `${origin}/api/ai/shop-assistant`,
