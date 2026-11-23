@@ -259,8 +259,11 @@ app.use('/api', (req, res, next) => {
   }
   return next();
 });
+// Media endpoints accept bounded base64; all other API JSON bodies stay capped at 128 KB.
+app.use('/api/ai/image', express.json({limit:'8mb'}));
+app.use('/api/ai/transcribe', express.json({limit:'9mb'}));
+app.use(express.json({limit:'128kb'}));
 registerPortableRoutes(app, express, createGeminiClient);
-app.use(express.json({ limit: '128kb' }));
 
 app.get('/api/health', (req, res) => {
   const configured = Boolean(process.env.GEMINI_API_KEY);
