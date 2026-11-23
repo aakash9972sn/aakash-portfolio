@@ -33,6 +33,9 @@
   let geocoder = null;
   let autocompleteEl = null;
   let mapsAvailable = false;
+  let leafletMap = null;
+  let leafletPin = null;
+  let leafletLoader = null;
 
   try {
     selected = JSON.parse(sessionStorage.getItem("blunder:delivery-location"));
@@ -239,6 +242,43 @@
     }
   }
 
+  /* No-card Leaflet / OpenStreetMap fallback: real map and draggable pin. */
+  async function ensureLeaflet() {
+    const div=$("#delivery-map");
+    if(!div)return;
+    if(leafletMap){requestAnimationFrame(()=>leafletMap.invalidateSize());return}
+    if(!leafletLoader){
+      leafletLoader=new Promise((resolve,reject)=>{
+        const link=document.createElement("link");
+        link.rel="stylesheet";
+        link.href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css";
+        document.head.appendChild(link);
+        const tag=document.createElement("script");
+        tag.src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js";
+        tag.onload=()=>window.L?resolve(window.L):reject(Error("Leaflet unavailable"));
+        tag.onerror=()=>reject(Error("Free OpenStreetMap viewer could not load"));
+        document.head.appendChild(tag);
+      }).catch(e=>{leafletLoader=null;throw e});
+    }
+    const L=await leafletLoader;
+    leafletMap=L.map(div,{zoomControl:true,scrollWheelZoom:false})
+      .setView([point?.latitude??DTU_HUB.lat,point?.longitude??DTU_HUB.lng],point?16:13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+      maxZoom:19,
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'
+    }).addTo(leafletMap);
+    L.circle([DTU_HUB.lat,DTU_HUB.lng],{radius:COVERAGE_RADIUS_M,color:"#446b3b",fillOpacity:.055,weight:2})
+      .addTo(leafletMap);
+    L.marker([DTU_HUB.lat,DTU_HUB.lng]).addTo(leafletMap).bindPopup("DTU Store Hub — reference point only");
+    leafletMap.on("click",event=>choosePoint({latitude:event.latlng.lat,longitude:event.latlng.lng}));
+    if(point)placeDeliveryMarker(point,"Delivery pin","",false);
+    $("#map-unavailable")?.setAttribute("hidden","");
+    const privacy=$(".map-privacy");
+    if(privacy)privacy.textContent="Free OpenStreetMap tiles + Leaflet map and Nominatim address search. © OpenStreetMap contributors. Your GPS is requested only when you choose Use my location. Delivery availability is not guaranteed.";
+    status("Free OpenStreetMap mode. Tap map to place a delivery pin, or search for a nearby address.");
+    requestAnimationFrame(()=>leafletMap.invalidateSize());
+  }
+
   /* ---------------------------------------------------- Google Maps SDK */
   function loadGoogleMapsBootstrap(apiKey) {
     if (window.google?.maps?.importLibrary) return Promise.resolve();
@@ -316,8 +356,17 @@
   }
 
   function placeDeliveryMarker(coords, labelText = "Delivery pin", subText = "", zoomTo = false) {
-    if (!map || !deliveryMarker) return;
     const pos = { lat: Number(coords.latitude ?? coords.lat), lng: Number(coords.longitude ?? coords.lng) };
+    if (leafletMap && window.L) {
+      if (!leafletPin) {
+        leafletPin = L.marker([pos.lat,pos.lng],{draggable:true}).addTo(leafletMap);
+        leafletPin.on('dragend',()=>{const p=leafletPin.getLatLng();choosePoint({latitude:p.lat,longitude:p.lng})});
+      }
+      leafletPin.setLatLng([pos.lat,pos.lng]).bindPopup(labelText).openPopup();
+      if (zoomTo) leafletMap.setView([pos.lat,pos.lng],16);
+      return;
+    }
+    if (!map || !deliveryMarker) return;
     deliveryMarker.position = pos;
     deliveryMarker.map = map;
     map.panTo(pos);
@@ -330,6 +379,12 @@
     const mapDiv = $("#delivery-map");
     const unavailableEl = $("#map-unavailable");
     if (!mapDiv) return;
+    if (leafletMap) {
+      mapsAvailable = true;
+      if(unavailableEl)unavailableEl.hidden=true;
+      requestAnimationFrame(()=>leafletMap.invalidateSize());
+      return;
+    }
     if (map) {
       mapsAvailable = true;
       if (unavailableEl) unavailableEl.hidden = true;
@@ -346,8 +401,7 @@
       const cfg = await res.json();
       if (!cfg?.configured || !cfg?.apiKey) {
         mapsAvailable = false;
-        if (unavailableEl) unavailableEl.hidden = false;
-        status("Google Maps key is not configured on this host. Enter your address manually below.");
+        await ensureLeaflet();
         return;
       }
 
@@ -494,7 +548,8 @@
       if (/429|QUOTA|RESOURCE_EXHAUSTED|OVER_QUERY_LIMIT/i.test(msg)) {
         window.dispatchEvent(new CustomEvent("gmp-quota-exceeded"));
       }
-      status("Interactive map preview unavailable right now. You can still search or enter your address manually.");
+      try{await ensureLeaflet()}
+      catch {status("Map tiles are unavailable. You can still search and enter your delivery address manually.");}
     }
   }
 
@@ -520,7 +575,8 @@
       return callbacks.request(kind, payload, signal);
     }
     const origin = String(window.BLUNDER_API_ORIGIN || "").replace(/\/+$/, "");
-    const res = await fetch(`${origin}/api/maps/${kind}`, {
+    const provider = !geocoder ? 'osm' : 'maps';
+    const res = await fetch(`${origin}/api/${provider}/${kind}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -761,7 +817,7 @@
     setFields(initial);
     if ($("#location-search")) $("#location-search").value = "";
     if ($("#location-results")) $("#location-results").hidden = true;
-    status("Search via Google Places, drop a pin on the map, or use GPS.");
+    status("Search a place, tap the map to pin a location, or use GPS.");
     updateCoordinatesUI(initial.point || null);
     await ensureMap();
     if (map && initial.point) {
@@ -769,6 +825,10 @@
     } else if (map) {
       map.setCenter(DTU_HUB);
       map.setZoom(13);
+    } else if (leafletMap) {
+      leafletMap.invalidateSize();
+      if(initial.point)placeDeliveryMarker(initial.point,"Saved delivery point","",true);
+      else leafletMap.setView([DTU_HUB.lat,DTU_HUB.lng],13);
     }
     if (initial.pincode) showAvailability();
   }
@@ -791,11 +851,13 @@
     updateCoordinatesUI(null);
     setFields();
     if (deliveryMarker) deliveryMarker.map = null;
+    if (leafletPin) {leafletMap?.removeLayer(leafletPin);leafletPin=null;}
     if (infoWindow) infoWindow.close();
     if (map) {
       map.setCenter(DTU_HUB);
       map.setZoom(13);
     }
+    if (leafletMap) leafletMap.setView([DTU_HUB.lat,DTU_HUB.lng],13);
     try {
       sessionStorage.removeItem("blunder:delivery-location");
     } catch {}
