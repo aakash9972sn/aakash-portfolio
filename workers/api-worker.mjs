@@ -52,6 +52,42 @@ function instruction(app){
  if(app==='blunder')return 'You are the Blunder grocery demo assistant. Discuss catalogue, cooking and delivery information. Never claim a real order/payment/delivery, or invent prices.';
  return 'You are a concise helpful portfolio guide for a Delhi Technological University ECE student. Only use provided page context for personal facts. Format equations as LaTeX in \\( ... \\).';
 }
+// Free OSM fallback for GitHub Pages + Workers: cached, conservative traffic.
+// The public Nominatim instance prohibits bulk autocomplete; invoke on explicit
+// searches or pin selection only. Hosting should enforce a shared rate limit.
+let osmLastRequest = 0;
+let osmQueue = Promise.resolve();
+function osmAddress(v){
+ const a=v.address||{},name=String(v.display_name||'').slice(0,350);
+ return {
+  lat:Number(v.lat),lng:Number(v.lon),formattedAddress:name,
+  addressLine:String([a.house_number,a.road||a.suburb||a.neighbourhood].filter(Boolean).join(' ')||name.split(',').slice(0,2).join(',')).slice(0,220),
+  city:String(a.city||a.town||a.village||a.county||'').slice(0,80),
+  state:String(a.state||'').slice(0,80),
+  pincode:/^[1-9]\\d{5}$/.test(a.postcode||'')?a.postcode:''
+ };
+}
+async function osmLookup(endpoint,env){
+ const cached=typeof caches!=='undefined'&&caches.default?
+  await caches.default.match(endpoint):null;
+ if(cached) return cached.json();
+ const job=osmQueue.then(async()=>{
+  const delay=Math.max(0,1100-(Date.now()-osmLastRequest));
+  if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
+  osmLastRequest=Date.now();
+  const response=await fetch(endpoint,{headers:{
+   'Accept':'application/json',
+   'User-Agent':String(env.OSM_USER_AGENT||'AakashPortfolio/1.0 (public educational site; contact: portfolio maintainer)')
+  },signal:AbortSignal.timeout(8000)});
+  if(!response.ok)throw Error('OpenStreetMap search is temporarily unavailable');
+  const data=await response.json();
+  if(typeof caches!=='undefined'&&caches.default)
+    await caches.default.put(endpoint,new Response(JSON.stringify(data),{headers:{'Cache-Control':'public,max-age=43200','Content-Type':'application/json'}})).catch(()=>{});
+  return data;
+ });
+ osmQueue=job.catch(()=>{});
+ return job;
+}
 async function handler(req,env){
  const url=new URL(req.url),path=url.pathname;
  if(req.method==='GET'&&path==='/api/health')
@@ -63,6 +99,26 @@ async function handler(req,env){
  if(req.method==='GET'&&path==='/api/leaderboard/perfect-guess')
   return json({available:false,leaders:[],message:'Public PostgreSQL leaderboard requires the full Node API. Local/Firebase best still works.'});
  if(req.method!=='POST')return error('Route not found on this Worker adapter.',404);
+ if(path==='/api/osm/search'||path==='/api/osm/reverse'){
+  if(Number(req.headers.get('content-length')||0)>1600)return error('Map request too large.',413);
+  let b;try{b=await req.json()}catch{return error('Invalid map request.',400)}
+  try{
+   let endpoint;
+   if(path.endsWith('/search')){
+    const q=String(b.query||'').trim();
+    if(q.length<3||q.length>180)return error('Enter a location (3–180 characters).',400);
+    endpoint='https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=in&q='+encodeURIComponent(q);
+   }else{
+    const lat=Number(b.latitude??b.lat),lon=Number(b.longitude??b.lng);
+    if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)
+      return error('Invalid coordinates.',400);
+    endpoint='https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=1&zoom=18&lat='+lat.toFixed(6)+'&lon='+lon.toFixed(6);
+   }
+   const result=await osmLookup(endpoint,env);
+   if(path.endsWith('/search'))return json({results:Array.isArray(result)?result.map(osmAddress).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng)):[],provider:'OpenStreetMap · Nominatim'});
+   return json({result:osmAddress(result),provider:'OpenStreetMap · Nominatim'});
+  }catch{return error('OpenStreetMap is temporarily unavailable. Enter address manually.',503)}
+ }
  if(['/api/store/orders','/api/orders'].includes(path))
   return error('Real Blunder checkout is disabled. Local demo-only checkout remains available.',503);
  if(path==='/api/analytics/attempt'||path==='/api/transcripts'||path==='/api/leaderboard/perfect-guess')
