@@ -1029,6 +1029,13 @@
       if (!order?.demo) return;
       const updated = { ...order, stage: Math.min(4, (order.stage || 0) + 1), updatedAt: new Date().toISOString() };
       persistDemoOrder(updated);
+      // Only demo state is mirrored to the signed-in user's private collection.
+      // Never claim this is a merchant or courier status update.
+      window.AakashAccount?.save?.('orders',updated.id,{
+        orderId:updated.id,title:'Blunder demo order',
+        status:['demo_received','demo_confirmed','demo_packed','demo_dispatched','demo_delivered'][updated.stage],
+        total:updated.total
+      }).catch(()=>{});
       showDemoOrder(updated);
       return;
     }
