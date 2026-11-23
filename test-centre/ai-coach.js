@@ -284,6 +284,14 @@
           '<div class="ai-review-detailed">' +
           '<button type="button" class="btn-ai-doubt">Explain all four options with Gemini</button>' +
           '<div class="ai-coach-output" hidden aria-live="polite"></div></div>';
+        if (window.PYPSource?.exists(result.testId)) {
+          const original = document.createElement('button');
+          original.type = 'button';
+          original.className = 'pyp-review-original-btn';
+          original.textContent = 'View original PDF · Q' + (i + 1);
+          original.addEventListener('click', () => window.PYPSource.open(result.testId, i + 1));
+          article.querySelector('.ai-review-actions')?.appendChild(original);
+        }
         const shortButton = article.querySelector('.ai-short-explanation-btn');
         const shortPanel = article.querySelector('.ai-review-short-explanation');
         shortPanel.textContent = q.unscored
