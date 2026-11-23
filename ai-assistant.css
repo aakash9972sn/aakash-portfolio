@@ -571,3 +571,24 @@ footer {
 mjx-container { max-width: 100%; vertical-align: middle; }
 mjx-container[display="true"] { display: block; overflow-x: auto; overflow-y: hidden; padding: 4px 0; text-align: center; }
 .message p { overflow-wrap: anywhere; }
+
+
+/* Voice, file-transcription, search grounding and model tools (Shadow DOM). */
+.ai-tools{border-top:1px solid var(--border);padding:10px 16px 4px;display:grid;gap:8px;background:var(--surface);max-width:100%;box-sizing:border-box}
+.ai-tool-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.ai-tool-search,.ai-model-choice{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text);font-weight:650}
+.ai-tool-search{margin-right:auto}
+.ai-tool-search input{accent-color:var(--accent);width:15px;height:15px}
+.ai-model-choice select{background:var(--surface-elevated);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px}
+.ai-tool-buttons{display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:6px}
+.ai-tool-buttons button{font:inherit;font-size:11px;line-height:1.3;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface-elevated);color:var(--text);padding:9px 5px;min-height:36px;white-space:normal;overflow-wrap:anywhere;transition:background .15s}
+.ai-tool-buttons button:hover{background:var(--surface-hover)}
+.ai-tool-buttons button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.ai-tool-buttons button:disabled{opacity:.55;cursor:wait}
+.ai-tools-status{font-size:11px;color:var(--muted);line-height:1.45;margin:0;overflow-wrap:anywhere}
+.ai-tools-status:empty{display:none}
+.ai-grounding{border:1px solid var(--border);background:var(--surface-elevated);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:12px;line-height:1.5}
+.ai-grounding>b{display:block;margin-bottom:6px}
+.ai-grounding ul{padding-left:18px;margin:0;display:grid;gap:4px}
+.ai-grounding a{color:var(--sage);text-decoration:underline;text-decoration-thickness:1px;overflow-wrap:anywhere}
+@media(max-width:480px){.ai-tools{padding:8px 10px}.ai-tool-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}.ai-tool-buttons button{font-size:10.5px;padding:8px 3px}}
