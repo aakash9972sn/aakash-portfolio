@@ -41,6 +41,30 @@ function getAllowedOrigins() {
 
 const ALLOWED_ORIGINS = getAllowedOrigins();
 
+/* Per-process budget for paid model requests. A single client cannot exhaust
+ * the free Gemini quota by repeatedly calling different /api/ai routes.
+ * For distributed deployments, add a shared gateway quota at the host/CDN.
+ */
+const aiRequestBudget = new Map();
+function aiRateLimit(req,res,next){
+  const cap=Math.max(1,Math.min(120,Number(process.env.AI_REQUESTS_PER_MINUTE)||12));
+  const originIp=String(req.ip||req.socket?.remoteAddress||'unknown');
+  const now=Date.now();
+  const entry=aiRequestBudget.get(originIp)||{since:now,count:0};
+  if(now-entry.since>=60000){entry.since=now;entry.count=0;}
+  entry.count++;
+  aiRequestBudget.set(originIp,entry);
+  if(aiRequestBudget.size>10000){
+    for(const [key,value] of aiRequestBudget)if(now-value.since>120000)aiRequestBudget.delete(key);
+  }
+  if(entry.count>cap){
+    res.setHeader('Retry-After',String(Math.max(1,Math.ceil((entry.since+60000-now)/1000))));
+    return res.status(429).json({error:'AI request budget reached. Please retry in a minute.'});
+  }
+  return next();
+}
+
+
 const PORTFOLIO_SYSTEM_INSTRUCTION = `You are the fast AI portfolio & study assistant for AAKASH, a B.Tech Electronics & Communication Engineering (ECE) student at Delhi Technological University (DTU, Class of 2028).
 Answer clearly, accurately, and concisely in English or Hindi/Hinglish matching the visitor's language.
 Write clean plain text (avoid markdown syntax such as ** or ###).
@@ -267,6 +291,8 @@ app.use('/api', (req, res, next) => {
 // Media endpoints accept bounded base64; all other API JSON bodies stay capped at 128 KB.
 app.use('/api/ai/image', express.json({limit:'8mb'}));
 app.use('/api/ai/transcribe', express.json({limit:'9mb'}));
+// Quota protection is applied before any optional paid Gemini call.
+app.use('/api/ai',aiRateLimit);
 app.use(express.json({limit:'128kb'}));
 registerPortableRoutes(app, express, createGeminiClient);
 mountOSM(app);
