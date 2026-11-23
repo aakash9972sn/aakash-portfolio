@@ -583,6 +583,11 @@
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
     };
     persistDemoOrder(order);
+    // Only a non-fulfillable DEMO summary is synced; no street address,
+    // contact information, payment token or merchant-side order is created.
+    window.AakashAccount?.save?.('orders',order.id,{
+      orderId:order.id,title:'Blunder demo order',status:'demo_received',total:order.total
+    }).catch(()=>{});
     state.cart = [];
     state.quote = null;
     state.coupon = "";
