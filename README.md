@@ -40,7 +40,7 @@ For a project use `type: 'project'`, a playable/live website in `href`, and an a
 - `workshops/`: existing alternate routes retained.
 - `assets/`: portrait and workshop material.
 
-No build step, package installation or backend is needed. To preview locally, run `python3 -m http.server 8000` from the repository root. Collection data uses a regular script so it works without fetching a JSON file. Workshop equations are native MathML; the source TeX is retained in each annotation. Fonts are served locally, so the presentation does not depend on Google Fonts or a CDN.
+Use npm start for the complete Express site plus optional APIs. A basic static HTTP server previews HTML only; it cannot run the AI backend. Collection data uses a regular script so it works without fetching a JSON file. Workshop equations are native MathML; the source TeX is retained in each annotation. Fonts are served locally, so the presentation does not depend on Google Fonts or a CDN.
 
 Run the attendance calculation tests with `node --test tests/attendance.test.cjs`. They cover multiple visits, month boundaries, timezone offsets, missing scans, repeated entries, rejected credentials, independent people and custom reporting windows. Browser verification should also cover search/filter/reset, the mobile menu, all four attendance examples, workshop calculators, note galleries and modal focus restoration.
 
@@ -67,16 +67,106 @@ Each engineering case study has its own image gallery and full-report reader. `p
 
 The RFID and Smart ID pages show source code directly with Copy and Download controls. Files live in assets/code/. The UNO sketch is a reference implementation; the ESP32-S3 file is initialization only, with hardware integration pending. The Python file runs with the standard library; the JavaScript file exports the same analytics function used by the interactive case study. Keep the displayed code and downloaded files in sync.
 
-## AI portfolio guide
+## Portable app architecture
 
-The Ask AI panel is available on the home page and project/workshop pages. It uses
-the public project registry and selected published technical notes; it does not
-read demo attendance records or browser storage. Questions and public context go
-to the Cloudflare endpoint in `ai-config.js` only when the visitor asks. Responses
-are displayed as plain text and chat history is kept in memory.
+The static pages (Portfolio, Test Centre, Perfect Guess, Blunder, engineering reports and Figure Studio) work on any static host. One shared **public API_BASE_URL** in ai-config.js points them to the Express API or a compatible serverless adapter. Secrets are stored only in backend environment variables.
 
-The shared Worker at `aakash9972sn/newTest/worker/src/index.js` requires deployment
-of its version 2 `assistant` action. This workspace cannot deploy it without the
-owner's Cloudflare login. The endpoint URL being configured does not prove live
-service availability. See that repository's `AI-SETUP.md` for exact dashboard/CLI
-steps. Core navigation continues to work when AI is unavailable.
+- server.js plus src/routes/portable-api.js: Gemini multi-turn chat, grounding, image generation/editing, transcription, maps, optional database and user-authenticated writes.
+- src/db/index.js + src/db/schema.sql: standard PostgreSQL (Neon, Supabase, Cloud SQL, self-hosted) with parameterized SQL, not a platform-only connector. Schema includes leaderboards, test analytics, future merchant orders and opt-in transcripts.
+- src/security/firebase-token.js: verifies Firebase bearer IDs with Google public keys. UID comes from the token, not a user-supplied form field.
+- firebase-account.js + firestore.rules: owner-only users/{uid}/testAttempts, generatedSets, preferences, savedAddresses, orders, bookmarks and profile. Firestore is optional and cannot replace the local fallback.
+- ai-assistant.js + ai-tools.js: page-role chatbot, history, fast/deep preset, Search Grounding citations, mic Live audio, browser speech and upload transcription.
+- figure-studio.html: image creation and reference-image editing; PNG export; labelled offline placeholder diagram when Gemini image access is unavailable.
+- src/3d/workbench.js: pinned ESM Three.js conceptual RFID/ESP32-S3 board on engineering pages with copper antenna, real mesh groups, lights, controls, responsive sizing and GPU cleanup. No remote HDR required.
+- blunder/location.js: Google Maps JS with restricted **public** browser key or free Leaflet + OpenStreetMap tiles and server-throttled Nominatim. Manual address entry always works.
+- **Real Blunder orders remain disabled.** SQL tables and a demo order timeline are not a merchant inventory, payment or delivery system. The backend returns a clear 503 for real checkout.
+
+### 1. Run locally (Node 22+)
+
+~~~bash
+git clone https://github.com/aakash9972sn/aakash-portfolio.git
+cd aakash-portfolio
+npm ci
+cp .env.example .env
+# Windows: copy .env.example .env
+# Put secrets only in .env, not browser code
+npm start
+~~~
+
+Visit http://localhost:3000/ or /test-centre/, /blunder/, /perfect-guess/, /figure-studio.html. Node reads an optional local .env file using process.loadEnvFile(). Host-supplied environment values take precedence.
+
+~~~bash
+npm run build
+npm test
+npm run lint
+node --check workers/api-worker.mjs
+~~~
+
+The workflow .github/workflows/portable-ci.yml checks npm ci, build, tests, Worker syntax and secret-file tracking on every push. A syntax check is **not** a substitute for real browser, billing and API-entitlement verification.
+
+### 2. PostgreSQL (optional, portable)
+
+1. Provision any PostgreSQL 14+ URL; put it in DATABASE_URL in the Node host's environment (not in the frontend). Use DATABASE_SSL=require for cloud TLS or DATABASE_SSL=disable for trusted local-only databases.
+2. Run npm run db:migrate. src/db/schema.sql uses portable PostgreSQL and ordinary indexes/constraints.
+3. GET /api/leaderboard/perfect-guess supports optional public rankings. Without DATABASE_URL it returns available:false; personal best still persists in the browser and Firebase.
+4. POST /api/analytics/attempt and /api/transcripts require a signed Firebase token. The transcript endpoint additionally requires explicit consent:true. Chat history is not written to the database automatically.
+5. Public leaderboard and submitted analytics are currently **client-reported and not anti-cheat verified**. Do not use for official competition or prizes until scores are verified server-side.
+
+### 3. Firebase Google Sign-In & Firestore Spark
+
+1. firebase-applet-config.json is a public Firebase web config. Firebase Admin service-account keys and private ID tokens must never be committed.
+2. Firebase Console → Authentication → Sign-in method → enable Google. Authentication → Settings → Authorized domains → add localhost, **aakash9972sn.github.io**, and any custom hostname. Add only hostnames, never https:// or /aakash-portfolio/.
+3. Firestore → Rules → publish the checked-in firestore.rules to the exact database selected in firebase-applet-config.json. **Committing rules to GitHub does NOT deploy them to Firebase.** Firebase CLI deployment also requires checking the selected project and database.
+4. Test Google login/profile, Best Guess, Test Centre attempts/sets, preferences/default, and optionally savedAddresses/home on a second device. Generated sets restore via the signed-in account when permissions allow.
+5. Blunder saves addresses in cloud only when the user explicitly opts in. Demo orders can store non-sensitive demo summaries. If Firestore is unavailable or Spark quotas are reached, local results and baskets remain usable.
+6. Set backend FIREBASE_PROJECT_ID to the project in the public config; signed ID tokens are checked for signature, issuer, audience and expiration.
+
+### 4. Render deployment — full Node experience
+
+1. Push to GitHub and connect this repo as a Render Node 22+ Web Service.
+2. Build command: npm ci && npm run build && npm test. Start command: npm start.
+3. Configure GEMINI_API_KEY privately and optional DATABASE_URL, FIREBASE_PROJECT_ID, GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_BROWSER_KEY, ENABLE_LIVE_AUDIO and ENABLE_MAPS_GROUNDING.
+4. CORS_ORIGIN must be exact origins separated by commas, e.g. https://aakash9972sn.github.io,https://your-domain.example,http://localhost:3000. No wildcard and no repo path.
+5. Check HTTPS /api/health and /api/public-config. GOOGLE_MAPS_BROWSER_KEY, if enabled, is returned to the browser **only** when restricted by Google Cloud HTTP referrers and allowed APIs. Keep GOOGLE_MAPS_API_KEY server-only.
+6. Enable Live mic only when Gemini Live access is allowed for your key/model and you accept its rate limits and costs.
+7. Render free-tier availability, sleeping and pricing may change; verify current terms before relying on 24/7 service.
+
+### 5. Vercel or Cloudflare Workers
+
+**Vercel Node:** api/index.js and vercel.json export/rewrite the same Express application. Set Node 22+ and the same env vars. The persistent /ws/live relay needs a long-running Node host; Vercel function limits may restrict audio or image tasks.
+
+**Cloudflare Workers (reduced adapter):** workers/api-worker.mjs + wrangler.toml implement Gemini REST chat, search grounding, study MCQs/doubts, image generation, transcription and public config without Node. Deploy after setting CORS_ORIGIN and the GEMINI_API_KEY secret:
+
+~~~bash
+npx wrangler secret put GEMINI_API_KEY
+npx wrangler deploy
+~~~
+
+The Cloudflare Worker does **not** provide the native Node WebSocket relay, persistent PostgreSQL TCP, authenticated Postgres user data or real checkout. Those routes return clear unavailable errors; use a Node host for full features.
+
+### 6. GitHub Pages frontend
+
+1. Settings → Pages → deploy from main branch/root.
+2. Configure the **public** backend address using STATIC_API_ORIGIN in ai-config.js, a window.API_BASE_URL override before shared config loads, or a meta tag with name=api-base-url. On localhost its default is same-origin; on GitHub Pages it defaults to the example Render host.
+3. Update Firebase authorized domains, CORS_ORIGIN and Google Maps browser-key referrer restrictions for each actual custom/Pages hostname.
+4. Test Test Centre quizzes/reviews and cloud restore, Blunder with and without Google key, Figure Studio PNG, browser voice fallback, grounded citations, 3D scene and Perfect Guess leaderboard on desktop and mobile.
+5. Original scanned CUET PDF files uploaded to ChatGPT are **not automatically publicly hosted**. The current PDF viewer stores attached originals in each user's browser.
+6. CI verification and a Render LIVE deploy are useful, but neither verifies cloud quotas, Firebase rule publication or visual UI behavior by itself.
+
+### 7. API endpoints and free-tier fallbacks
+
+| Feature | API route | No-key / no-DB behavior |
+|---|---|---|
+| Multi-turn Gemini chat | /api/ai/chat, /api/ai/chat/stream | Normal pages stay usable |
+| Google Search grounding | /api/ai/chat + verifyWithWebSearch:true | Toggle off; never invent citations |
+| Figure generation / editing | /api/ai/image | Clearly labelled offline block diagram |
+| Audio transcription | /api/ai/transcribe | Browser speech recognition where supported |
+| Live WebSocket relay | /ws/live (long-running Node only) | Browser speech / SpeechSynthesis |
+| Maps grounding | /api/ai/maps-assist | OSM/Leaflet/manual address |
+| Google Maps browser key | /api/maps/config | Leaflet/OSM/Nominatim |
+| Community scoreboard | /api/leaderboard/perfect-guess | Local/Firebase private best |
+| Exam analytics | /api/analytics/attempt | Existing Firestore/local results |
+| Consented transcripts | /api/transcripts | In-memory chat only |
+| Real merchant orders | /api/store/orders | Explicitly disabled/demo-only |
+
+The word "free" refers to fallback software, **not** an unlimited guaranteed free vendor API entitlement. Do not make unsupported claims about purchase fulfilment or verified rankings.
