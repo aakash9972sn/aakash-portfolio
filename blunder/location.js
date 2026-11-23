@@ -843,6 +843,19 @@
       sessionStorage.setItem("blunder:delivery-location", JSON.stringify(selected));
     } catch {}
     callbacks.onSelect?.(getSelection(), "confirm");
+    const wantCloud=$("#location-cloud-save")?.checked;
+    const cloudMessage=$("#location-cloud-message");
+    if(wantCloud) {
+      if(!window.AakashAccount?.getState?.()?.signedIn) {
+        if(cloudMessage)cloudMessage.textContent='Sign in with Google before using cloud address backup. Address is still saved for this tab.';
+      } else {
+        window.AakashAccount.save('savedAddresses','home',{
+          label:'Home / delivery',address:selected.address,city:selected.city,
+          state:selected.state,pincode:selected.pincode
+        }).then(ok=>{if(cloudMessage)cloudMessage.textContent=ok?
+          'Address saved privately to your Google account.':'Cloud save unavailable. Address remains in this tab.';});
+      }
+    }
   }
 
   function clear() {
