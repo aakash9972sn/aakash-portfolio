@@ -7,7 +7,7 @@ const entries=window.PYPOriginalSourceManifest||[];
 const metaById=Object.fromEntries(entries.map(x=>[x.id,x]));
 const $=id=>document.getElementById(id);
 const DBNAME='tclab.original-papers.v1';
-let dbPromise,pdfLibPromise,active,renderSerial=0,selectedId;
+let dbPromise,pdfLibPromise,active,renderSerial=0,renderTask=null,selectedId;
 const input=document.createElement('input');input.type='file';input.accept='application/pdf,.pdf';input.multiple=true;input.hidden=true;input.id='pyp-original-file-input';document.body.appendChild(input);
 function db(){
  if(dbPromise)return dbPromise;
@@ -72,7 +72,7 @@ function dialog(){
  $('pyp-source-next-q').addEventListener('click',()=>setQuestion(active.q+1));
  $('pyp-source-prev-page').addEventListener('click',()=>setPage(active.page-1));
  $('pyp-source-next-page').addEventListener('click',()=>setPage(active.page+1));
- d.addEventListener('close',()=>{renderSerial++});
+ d.addEventListener('close',()=>{renderSerial++;if(renderTask){try{renderTask.cancel()}catch{}renderTask=null}});
  return d;
 }
 function message(text,error){
@@ -150,6 +150,7 @@ async function setPage(page){
  $('pyp-source-prev-page').disabled=x.page===1;
  $('pyp-source-next-page').disabled=x.page===x.pdf.numPages;
  const serial=++renderSerial;
+ if(renderTask){try{renderTask.cancel()}catch{}renderTask=null;}
  try{
   const pageObj=await x.pdf.getPage(x.page);
   if(serial!==renderSerial||x!==active)return;
@@ -160,8 +161,10 @@ async function setPage(page){
   const density=Math.min(2,window.devicePixelRatio||1);
   canvas.width=Math.ceil(viewport.width*density);canvas.height=Math.ceil(viewport.height*density);
   canvas.style.width=viewport.width+'px';canvas.style.height=viewport.height+'px';
-  await pageObj.render({canvasContext:canvas.getContext('2d',{alpha:false}),viewport,transform:[density,0,0,density,0,0]}).promise;
- }catch(e){if(serial===renderSerial)message('Cannot render PDF page: '+e.message,true)}
+  renderTask=pageObj.render({canvasContext:canvas.getContext('2d',{alpha:false}),viewport,transform:[density,0,0,density,0,0]});
+  await renderTask.promise;
+  if(serial===renderSerial)renderTask=null;
+ }catch(e){if(serial===renderSerial&&e.name!=='RenderingCancelledException')message('Cannot render PDF page: '+e.message,true)}
 }
 input.addEventListener('change',async()=>{
  const selected=[...(input.files||[])],id=selectedId,meta=metaById[id];input.value='';
