@@ -78,7 +78,7 @@ function dialog(){
  });
  $('pyp-source-prev-page').addEventListener('click',()=>setPage(active.page-1));
  $('pyp-source-next-page').addEventListener('click',()=>setPage(active.page+1));
- d.addEventListener('close',()=>{renderSerial++;if(renderTask){try{renderTask.cancel()}catch{}renderTask=null}});
+ d.addEventListener('close',()=>{renderSerial++;if(renderTask){try{renderTask.cancel()}catch{}renderTask=null}if(location.hash.startsWith('#/pdf/'))location.hash='#/';});
  return d;
 }
 function message(text,error){
@@ -118,6 +118,15 @@ async function open(id,q=1){
   message(meta.test?'This is the original source for an existing scored Test Centre paper. Answer questions using the regular test screen.':'Image-based unscored practice. No verified key or marks are available.');
   setQuestion(active.q);
  }catch(e){message('Cannot open PDF: '+(e.message||e),true)}
+}
+function getProgress(id) {
+ const paper=metaById[id];
+ if(!paper || paper.test) return 0;
+ try {
+  const answers=JSON.parse(localStorage.getItem('tclab.pdf.responses.'+id)||'{}');
+  if(!answers || typeof answers!=='object') return 0;
+  return Object.entries(answers).filter(([q,a])=>/^[1-9]\d*$/.test(q)&&Number(q)<=paper.count&&/^[A-D]$/.test(a)).length;
+ } catch { return 0; }
 }
 function localAnswers(){
  try{let v=JSON.parse(localStorage.getItem('tclab.pdf.responses.'+active.id)||'{}');return v&&typeof v==='object'?v:{}}catch{return{}}
@@ -270,7 +279,7 @@ function syncQuestion(id,q){
  b.hidden=!metaById[id];
  if(metaById[id]){b.textContent='View original PDF · Q'+q;b.onclick=()=>open(id,q)}
 }
-window.PYPSource=Object.freeze({open,syncQuestion,exists:id=>!!metaById[id]});
+window.PYPSource=Object.freeze({open,syncQuestion,getProgress,exists:id=>!!metaById[id]});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',list,{once:true});
 else list();
 })();
