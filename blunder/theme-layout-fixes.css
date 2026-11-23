@@ -1,0 +1,251 @@
+/* Blunder theme and navigation corrections.
+ * Scoped intentionally: the shared theme-switching CSS is used across other
+ * portfolio apps and should not inherit grocery-specific colors or layout.
+ */
+:root {
+  --blunder-light-control-text: #203627;
+}
+.blunder-back-link {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 39px;
+  padding: 8px 12px;
+  border: 1px solid #cbd6bf;
+  border-radius: 9px;
+  background: #f1f5ea;
+  color: #293f2e;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.blunder-back-link:hover,
+.blunder-back-link:focus-visible {
+  background: #e5ecd9;
+  border-color: #8da67e;
+}
+.site-header .header-main > *,
+.site-header .header-actions > * {
+  min-width: 0;
+}
+.site-header .header-actions {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+}
+.site-header .search {
+  min-width: 0;
+}
+html[data-theme="dark"] body:has(.site-header) {
+  --blunder-light-control-text: #183021;
+}
+html[data-theme="dark"] .blunder-back-link {
+  background: #1c3224;
+  border-color: #3c6149;
+  color: #f0f7ed;
+}
+html[data-theme="dark"] .blunder-back-link:hover {
+  background: #294532;
+}
+/* Controls placed over a light surface must use dark text, regardless of the
+ * --ink token used by the surrounding dark section. */
+html[data-theme="dark"] .add-button,
+html[data-theme="dark"] .quantity,
+html[data-theme="dark"] .quantity button,
+html[data-theme="dark"] .quantity output {
+  background: #eff5e8;
+  color: #17321f;
+  border-color: #afc59b;
+}
+html[data-theme="dark"] .add-button:hover,
+html[data-theme="dark"] .quantity button:hover {
+  background: #d8f36a;
+  color: #17321f;
+}
+html[data-theme="dark"] .product-label,
+html[data-theme="dark"] .wish-button:not([aria-pressed="true"]) {
+  background: #f8f9f0;
+  color: #243a29;
+}
+html[data-theme="dark"] .wish-button[aria-pressed="true"] {
+  background: #fae7e3;
+  color: #a93d34;
+}
+html[data-theme="dark"] .product-card {
+  background: #15251a;
+  border-color: #344b38;
+  color: #f4f8ef;
+}
+html[data-theme="dark"] .product-category,
+html[data-theme="dark"] .product-card .pack-size {
+  color: #b4c9b1;
+}
+html[data-theme="dark"] .product-card .product-price,
+html[data-theme="dark"] .product-card .product-name {
+  color: #f4f8ef;
+}
+html[data-theme="dark"] .product-card .product-price del {
+  color: #b7c8b2;
+}
+html[data-theme="dark"] .product-picture,
+html[data-theme="dark"] .detail-art {
+  color: #263d2b;
+}
+html[data-theme="dark"] .button-dark,
+html[data-theme="dark"] .bag-trigger,
+html[data-theme="dark"] .scene-shop,
+html[data-theme="dark"] .variant-options button[aria-pressed="true"] {
+  background: #d8f36a;
+  border-color: #d8f36a;
+  color: #163020;
+}
+html[data-theme="dark"] .button-dark:hover,
+html[data-theme="dark"] .bag-trigger:hover {
+  background: #c9e45d;
+  color: #163020;
+}
+html[data-theme="dark"] .button-lime,
+html[data-theme="dark"] .bag-trigger b {
+  background: #d8f36a;
+  color: #163020;
+}
+html[data-theme="dark"] .brand-ribbon {
+  background: #1a3022;
+  color: #f2f7e9;
+  border-color: #304a36;
+}
+html[data-theme="dark"] .brand-ribbon span {
+  color: #ecf4e2;
+}
+html[data-theme="dark"] .brand-ribbon b {
+  color: #a9d46a;
+}
+html[data-theme="dark"] .hero-description,
+html[data-theme="dark"] .section-intro p,
+html[data-theme="dark"] .story-copy p {
+  color: #bed2bf;
+}
+html[data-theme="dark"] .search-clear,
+html[data-theme="dark"] .nav-link,
+html[data-theme="dark"] .text-button,
+html[data-theme="dark"] .ten-link {
+  color: #eff6eb;
+}
+html[data-theme="dark"] .search input {
+  color: #f2f8ed;
+}
+html[data-theme="dark"] .search input::placeholder {
+  color: #b2c4b1;
+}
+html[data-theme="dark"] .small-dialog input,
+html[data-theme="dark"] .field input,
+html[data-theme="dark"] .field textarea,
+html[data-theme="dark"] .lookup-form input,
+html[data-theme="dark"] .coupon-row input,
+html[data-theme="dark"] .location-search-form input {
+  background: #edf4e9;
+  color: #1a3221;
+  border-color: #9fb99d;
+}
+html[data-theme="dark"] .location-search-form,
+html[data-theme="dark"] .location-results {
+  background: #edf4e9;
+  color: #1a3221;
+}
+html[data-theme="dark"] .location-search-form button {
+  background: #1c3725;
+  color: #f8faf3;
+}
+html[data-theme="dark"] .location-results button,
+html[data-theme="dark"] .location-results small {
+  color: #223a29;
+}
+html[data-theme="dark"] .location-results button:hover {
+  background: #dcebd6;
+}
+html[data-theme="dark"] .quantity output {
+  display: grid;
+  place-items: center;
+}
+@media (max-width: 900px) {
+  .site-header .header-main { gap: 10px; }
+  .site-header .header-actions { gap: 4px; }
+  .site-header .header-actions .account-launcher { padding: 5px 8px; }
+  .site-header .header-actions .account-launcher-label,
+  .site-header .header-actions .account-launcher-caret { display: none; }
+  .site-header .header-actions .account-launcher-avatar { width: 24px; height: 24px; }
+}
+@media (max-width: 640px) {
+  .site-header .header-main.wrap {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "brand actions"
+      "portfolio search";
+    align-items: center;
+    gap: 10px 8px;
+    padding-block: 10px;
+    min-height: 0;
+    width: calc(100% - 24px);
+  }
+  .site-header .header-main > .wordmark {
+    grid-area: brand;
+    justify-self: start;
+    font-size: clamp(24px, 7vw, 30px);
+  }
+  .site-header .header-main > .blunder-back-link {
+    grid-area: portfolio;
+    display: inline-flex !important;
+    align-self: stretch;
+    min-height: 38px;
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+  .site-header .header-main > .search {
+    grid-area: search;
+    order: initial;
+    flex-basis: auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 38px;
+  }
+  .site-header .header-main > .header-actions {
+    grid-area: actions;
+    margin: 0;
+    justify-self: end;
+    display: flex;
+    width: max-content;
+    max-width: 100%;
+    gap: 3px;
+  }
+  .site-header .header-actions .icon-button {
+    width: 32px;
+    height: 36px;
+  }
+  .site-header .header-actions .icon-button .icon { width: 18px; }
+  .site-header .header-actions .bag-trigger {
+    min-height: 36px;
+    padding: 6px;
+    gap: 5px;
+  }
+  .site-header .header-actions .bag-trigger .icon { width: 17px; }
+  .site-header .header-actions .bag-trigger b { min-width: 18px; width: 18px; }
+  .site-header .header-actions .account-launcher {
+    min-height: 34px;
+    padding: 4px 5px;
+    border-radius: 8px;
+  }
+  .site-header .header-actions .account-launcher-label,
+  .site-header .header-actions .account-launcher-caret { display: none !important; }
+  .site-header .header-actions .account-launcher-avatar { width: 23px; height: 23px; }
+  .site-header .search input { height: 36px; min-width: 0; }
+  .site-header .header-nav { min-height: 42px; }
+}
+@media (max-width: 370px) {
+  .site-header .header-main.wrap { gap: 8px 5px; width: calc(100% - 16px); }
+  .site-header .header-main > .wordmark { font-size: 24px; }
+  .site-header .header-actions { gap: 0; }
+  .site-header .header-actions .icon-button { width: 28px; }
+  .site-header .header-actions .bag-trigger { padding: 5px; }
+}
