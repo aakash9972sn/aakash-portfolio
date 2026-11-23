@@ -640,6 +640,29 @@
       if (data?.unitStats) payload.unitStats = safeStats(data.unitStats);
       return payload;
     }
+    if (collection === 'generatedSets') {
+      const json = typeof data?.testJson === 'string' ? data.testJson : JSON.stringify(data?.item || {});
+      if (json.length < 20 || json.length > 750000) return null;
+      return { uid, examId: String(data?.examId || '').slice(0, 60),
+        subjectId: String(data?.subjectId || '').slice(0, 100),
+        title: String(data?.title || 'AI generated test').slice(0, 160),
+        testJson: json };
+    }
+    if (collection === 'preferences') {
+      return { uid, theme: data?.theme === 'dark' ? 'dark' : 'light',
+        language: ['en','hi','hinglish'].includes(data?.language) ? data.language : 'en' };
+    }
+    if (collection === 'savedAddresses') {
+      const value = {
+        uid, label: String(data?.label || 'Saved address').slice(0, 50),
+        address: String(data?.address || '').slice(0, 220),
+        city: String(data?.city || '').slice(0, 80),
+        state: String(data?.state || '').slice(0, 80),
+        pincode: String(data?.pincode || '').slice(0, 6)
+      };
+      if (value.address.length < 5 || !/^[1-9]\d{5}$/.test(value.pincode) || !value.city || !value.state) return null;
+      return value;
+    }
     if (collection === 'orders') {
       const payload = {
         uid,
@@ -654,7 +677,7 @@
   }
 
   async function save(collection, id, data) {
-    if (!auth?.currentUser || !['testAttempts', 'bookmarks', 'orders'].includes(collection)) {
+    if (!auth?.currentUser || !['testAttempts', 'bookmarks', 'orders', 'generatedSets', 'preferences', 'savedAddresses'].includes(collection)) {
       return false;
     }
     const uid = auth.currentUser.uid;
@@ -825,6 +848,9 @@
 
   window.AakashAccount = {
     save,
+    async getIdToken() {
+      return auth?.currentUser ? auth.currentUser.getIdToken() : null;
+    },
     openDialog() {
       bar.showModal();
       prepareSignIn();
@@ -890,7 +916,7 @@
     },
     async list(collection) {
       if (!auth?.currentUser) return [];
-      if (!['testAttempts', 'bookmarks', 'orders'].includes(collection)) return [];
+      if (!['testAttempts', 'bookmarks', 'orders', 'generatedSets', 'preferences', 'savedAddresses'].includes(collection)) return [];
       const uid = auth.currentUser.uid;
       const path = `users/${uid}/${collection}`;
       try {
@@ -930,6 +956,20 @@
       }
       const score = Number(localStorage.getItem('bestScore'));
       if (score > 0) await this.bestGuess(score);
+      // Saved MCQ sets are opt-in cloud backups; no question attempts are lost
+      // when this operation fails (the browser keeps its local copy).
+      try {
+        const sets = JSON.parse(localStorage.getItem('tclab.ai.generated.v1') || '[]');
+        if (Array.isArray(sets)) {
+          for (const set of sets.slice(-30)) {
+            if (!/^ai-[a-z0-9-]+$/.test(set?.id || '')) continue;
+            await save('generatedSets', set.id, {
+              examId: set.examId, subjectId: set.subjectId,
+              title: set.test?.title, item: set
+            });
+          }
+        }
+      } catch {}
     },
   };
 
