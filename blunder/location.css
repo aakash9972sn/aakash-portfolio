@@ -562,3 +562,10 @@
     min-width: calc(50% - 8px);
   }
 }
+
+/* Zero-key map mode via Leaflet/OpenStreetMap. */
+#delivery-map.leaflet-container { background:#eef0e5; font-family:inherit; z-index:0; }
+#delivery-map .leaflet-control-attribution { font-size:10px; }
+.location-map-shell { isolation:isolate; }
+.location-map-shell #delivery-map { min-height:300px; }
+@media(max-width:600px){ .location-map-shell #delivery-map { min-height:270px; } }
