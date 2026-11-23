@@ -32,6 +32,7 @@ window.AAKASH_AI = {
         { exam: 'CUCET', year: 2021, subject: 'Life Sciences', questions: 100 },
       ],
       totalImportedPreviousYearQuestions: 575,
+      originalPdfArchive: '10 user-provided source PDFs (6 linked to scored paper sets; 4 with 350 questions available in original-PDF ungraded practice). PDFs must be attached on the device and remain in local browser storage.',
       note: '28 source-flagged questions across six imported papers are review-only and excluded from scoring; 2023 answer keys came from supplied CSVs and have not been independently verified against an official answer key.',
     },
     exams: (window.EXAM_DATA || []).map((exam) => ({
