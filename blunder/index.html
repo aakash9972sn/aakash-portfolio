@@ -618,7 +618,7 @@
             </div>
           </div>
           <p class="location-help">
-            Confirm the address below. The Google map shows the selected area;
+            Confirm the address below. The map shows the selected area;
             your house or flat number and PIN code are still required.
           </p>
           <p id="location-coordinates" class="location-coordinates" hidden></p>
@@ -681,6 +681,10 @@
               class="location-availability"
               role="status"
             ></p>
+            <label class="location-cloud-optin"><input type="checkbox" id="location-cloud-save">
+              Save this address privately to my signed-in Google account (optional)
+            </label>
+            <p id="location-cloud-message" role="status" class="location-cloud-message"></p>
             <div class="location-save-row">
               <button
                 id="location-confirm"
@@ -697,8 +701,7 @@
             </div>
           </form>
           <p class="location-session-note">
-            Your selected address stays in this tab. It is sent to the store
-            only when you place an order.
+            Your address stays in this tab unless you explicitly choose cloud save. Demo checkout sends nothing to a store.
           </p>
         </div>
       </div>
