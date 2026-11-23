@@ -4,9 +4,7 @@
 
   // GitHub Pages only serves static files; Gemini requests must reach the Render API.
   // Local and server-hosted deployments continue to use same-origin API routes.
-  const base = /(^|\.)github\.io$/i.test(location.hostname)
-    ? 'https://aakash-portfolio-g3fb.onrender.com'
-    : '';
+  const base = window.API_BASE_URL || '';
 
   async function parseJsonSafely(response, fallbackError) {
     const raw = await response.text();
