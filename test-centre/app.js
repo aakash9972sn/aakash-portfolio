@@ -545,6 +545,25 @@
     $('#q-source-note').hidden = !q.unscored;
     $('#q-source-note').textContent = q.unscored ? 'Review-only: the source flags a disputed answer key. This question does not affect your score.' : '';
     $('#q-text').textContent = q.q;
+    let figure = $('#q-figure');
+    if (!figure) {
+      figure = document.createElement('figure');
+      figure.id = 'q-figure';
+      figure.className = 'pyp-question-figure';
+      $('#q-text').insertAdjacentElement('afterend', figure);
+    }
+    const hasFigure = typeof q.image === 'string' && /^media\/[\w/-]+\.svg$/.test(q.image);
+    figure.hidden = !hasFigure;
+    if (hasFigure) {
+      figure.replaceChildren();
+      const img = document.createElement('img');
+      img.src = q.image;
+      img.alt = q.imageAlt || 'Figure for this question';
+      img.loading = 'lazy';
+      figure.appendChild(img);
+    } else {
+      figure.replaceChildren();
+    }
     window.PYPSource?.syncQuestion(run.test.id, i + 1);
     const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
     $('#q-options').innerHTML = q.o.map((opt, oi) => {
