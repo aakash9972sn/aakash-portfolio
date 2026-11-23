@@ -96,6 +96,14 @@
     const hash = location.hash || '#/';
     const tMatch = hash.match(/^#\/t\/(.+)$/);
     const rMatch = hash.match(/^#\/r\/(.+)$/);
+    const pdfMatch = hash.match(/^#\/pdf\/(.+)$/);
+    if (pdfMatch && findEntry(pdfMatch[1])?.test.pdfOnly) {
+      filterExam = 'cuet-pg';
+      store.set(EXAM_STORE_KEY, filterExam);
+      showHome();
+      window.PYPSource?.open(pdfMatch[1], 1);
+      return;
+    }
     if (tMatch && findEntry(tMatch[1])) { openTest(findEntry(tMatch[1])); return; }
     if (rMatch && findEntry(rMatch[1])) { showResult(findEntry(rMatch[1])); return; }
     showHome();
@@ -149,7 +157,8 @@
 
   function progressOf(id) {
     const entry = findEntry(id);
-    return entry ? Core.progress(store.get(PKEY(id), null), questionsOf(entry.test), entry.test.duration * 60) : null;
+    return entry && !entry.test.pdfOnly
+      ? Core.progress(store.get(PKEY(id), null), questionsOf(entry.test), entry.test.duration * 60) : null;
   }
 
   function renderTrackFocus() {
@@ -222,7 +231,9 @@
     const inProgress = scopedTests.filter((x) => progressOf(x.test.id)).length;
     const attempted = scopedTests.filter((x) => store.get(BKEY(x.test.id), null)).length;
     const subjectCount = scopedExams.reduce((n, e) => n + e.subjects.length, 0);
-    const questions = new Set(scopedTests.flatMap((x) => questionsOf(x.test).map((q) => JSON.stringify([q.q, q.o])))).size;
+    const digitized = new Set(scopedTests.flatMap((x) => questionsOf(x.test).map((q) => JSON.stringify([q.q, q.o])))).size;
+    const scanOnly = scopedTests.filter(x => x.test.pdfOnly).reduce((total, x) => total + x.test.questionCount, 0);
+    const questions = digitized + scanOnly;
     const stats = [
       { v: scopedTests.length, l: 'Tests' },
       { v: subjectCount, l: 'Subjects' },
@@ -315,6 +326,7 @@
     const term = searchTerm.trim().toLowerCase();
     return TESTS.filter((x) => {
       if (!matchesActiveTrack(x.exam.id)) return false;
+      if (workspaceView === 'pyp' && !x.test.pyp) return false;
       if (filterSubject !== 'all' && x.subject.id !== filterSubject) return false;
       if (!term) return true;
       const hay = (x.test.title + ' ' + x.subject.name + ' ' + x.exam.name + ' ' + (x.test.level || '')).toLowerCase();
@@ -361,32 +373,43 @@
 
   function cardHTML(x) {
     const test = x.test;
-    const qs = questionsOf(test).length;
-    const best = store.get(BKEY(test.id), null);
-    const prog = progressOf(test.id);
+    const pdf = Boolean(test.pdfOnly);
+    const qs = pdf ? Number(test.questionCount) : questionsOf(test).length;
+    const best = pdf ? null : store.get(BKEY(test.id), null);
+    const prog = pdf ? null : progressOf(test.id);
+    const pdfProgress = pdf ? (window.PYPSource?.getProgress?.(test.id) || 0) : 0;
     let status = '<span class="card-status">Not started</span>';
-    if (prog) {
+    if (pdf && pdfProgress) {
+      status = '<span class="card-status is-progress">In progress · ' + pdfProgress + '/' + qs + '</span>';
+    } else if (prog) {
       const done = prog.responses.filter((r) => r !== null && r !== undefined).length;
       status = '<span class="card-status is-progress">In progress · ' + done + '/' + qs + '</span>';
-    } else if (store.get(RKEY(test.id), null)) {
+    } else if (!pdf && store.get(RKEY(test.id), null)) {
       status = '<span class="card-status is-done">Submitted · review available</span>';
     } else if (best) {
       status = '<span class="card-status is-done">Best ' + best.score + '/' + best.total + '</span>';
     }
-    const submitted = store.get(RKEY(test.id), null);
-    const cta = submitted && !prog ? 'Review result' : prog ? 'Resume' : 'Start test';
+    const submitted = !pdf && store.get(RKEY(test.id), null);
+    const cta = pdf ? (pdfProgress ? 'Resume practice' : 'Start practice') :
+      submitted && !prog ? 'Review result' : prog ? 'Resume' : 'Start test';
+    const href = pdf ? '#/pdf/' + test.id : '#/' + (submitted && !prog ? 'r/' : 't/') + test.id;
+    const note = pdf
+      ? 'Original scan · No verified key · Ungraded practice'
+      : (test.reviewOnlyCount != null
+        ? 'Full paper · ' + test.reviewOnlyCount + ' source-flagged review-only questions'
+        : 'Full paper · 1 source-flagged review-only question');
     return '<article class="card" data-id="' + esc(test.id) + '" style="--card-accent:' + x.exam.accent + ';--card-accent2:' + x.exam.accent2 + '">' +
       '<div class="card-tags"><span class="tag tag-exam">' + esc(x.exam.name) + '</span><span class="tag">' + esc(x.subject.name) + '</span>' +
       (test.level ? '<span class="tag tag-level">' + esc(test.level) + '</span>' : '') + '</div>' +
       '<h3 class="card-title">' + esc(test.title) + '</h3>' +
-      (test.pyp ? '<p class="paper-date">' + esc(test.date) + '</p><p class="paper-note">Full paper · 1 disputed question excluded from score</p>' : '') +
+      (test.pyp ? '<p class="paper-date">' + esc(test.date) + '</p><p class="paper-note">' + esc(note) + '</p>' : '') +
       '<dl class="card-meta">' +
       '<div><dt>Questions</dt><dd>' + qs + '</dd></div>' +
       '<div><dt>Time</dt><dd>' + test.duration + ' min</dd></div>' +
-      '<div><dt>Marking</dt><dd>' + esc(markLabel(test)) + '</dd></div>' +
+      '<div><dt>Marking</dt><dd>' + (pdf ? 'Ungraded' : esc(markLabel(test))) + '</dd></div>' +
       '</dl>' +
       '<div class="card-foot">' + status +
-      '<a class="card-cta" href="#/' + (submitted && !prog ? 'r/' : 't/') + esc(test.id) + '">' + cta + '<span aria-hidden="true">→</span></a>' +
+      '<a class="card-cta" href="' + esc(href) + '">' + cta + '<span aria-hidden="true">→</span></a>' +
       '</div>' + (test.generated ? '<button type="button" class="ai-test-delete" data-delete-ai>Delete saved AI test</button>' : '') + '</article>';
   }
 
@@ -898,7 +921,8 @@
     if (pypSec) pypSec.hidden = !(filterExam === 'cuet-pg' && showPyp);
     const gatePyp = $('#gate-pyp');
     if (gatePyp) gatePyp.hidden = !(filterExam === 'gate' && showPyp);
-    if (catSec) catSec.hidden = !(workspaceView === 'all' || workspaceView === 'tests');
+    if (catSec) catSec.hidden = !(workspaceView === 'all' || workspaceView === 'tests' || workspaceView === 'pyp');
+    renderCards();
   }
 
   /* ------------------------------------------------------------------- wire */
