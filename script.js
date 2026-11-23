@@ -354,7 +354,7 @@ document.addEventListener('click', (event) => {
   if (!event.target.closest('.studio-topbar')) closeMenu();
 });
 
-matchMedia('(min-width: 761px)').addEventListener('change', closeMenu);
+matchMedia('(max-width: 1020px)').addEventListener('change', closeMenu);
 
 const yearEl = document.querySelector('#year');
 if (yearEl) yearEl.textContent = String(new Date().getFullYear());

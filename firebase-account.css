@@ -76,6 +76,7 @@
 }
 
 .account-launcher-label {
+  min-width: 0;
   max-width: 130px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -559,6 +560,12 @@
   .account-launcher-label {
     max-width: 90px;
   }
+  .site-home .account-launcher { gap: 4px; padding-inline: 6px; }
+  .site-home .account-launcher-label { max-width: 70px; }
+}
+
+@media (max-width: 360px) {
+  .site-home .account-launcher-label { max-width: 48px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

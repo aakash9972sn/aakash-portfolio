@@ -27,7 +27,7 @@
   const assetBase = new URL('.', document.currentScript?.src || location.href);
   const sheet = document.createElement('link');
   sheet.rel = 'stylesheet';
-  sheet.href = new URL('firebase-account.css?v=20261121-myresults1', assetBase).href;
+  sheet.href = new URL('firebase-account.css?v=20261123-layout1', assetBase).href;
   document.head.append(sheet);
 
   const SVG = {

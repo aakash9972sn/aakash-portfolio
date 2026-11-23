@@ -64,6 +64,11 @@
 [hidden] { display: none !important; }
 html { scroll-behavior: smooth; scroll-padding-top: 84px; }
 
+html, body.site-home {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 body.site-home {
   margin: 0;
   background-color: var(--bg);
@@ -134,6 +139,16 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   vertical-align: middle;
   flex-shrink: 0;
   transition: transform 0.18s var(--ease);
+}
+
+.wrap, .studio-main > *, .work-collection, .collection-grid,
+.collection-card, .dossier-section, .contact-strip {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.hero-editorial, .spotlight-card, .entry-description, .entry-stack, .toolkit-row span {
+  overflow-wrap: anywhere;
 }
 
 .wrap {
@@ -224,7 +239,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  flex-shrink: 0;
+  min-width: 0;
 }
 
 .github-nav {
@@ -270,6 +285,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 }
 
 .site-home .account-launcher {
+  min-width: 0;
   min-height: 38px;
   border-radius: var(--radius-sm);
   border-color: var(--silicon-line);
@@ -393,7 +409,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
 .hero-atelier {
   display: grid;
-  grid-template-columns: minmax(0, 1.24fr) minmax(340px, 0.96fr);
+  grid-template-columns: minmax(0, 1.24fr) minmax(0, 0.96fr);
   gap: 28px;
   align-items: stretch;
 }
@@ -648,6 +664,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
 .spot-pills {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: 5px;
   padding: 3px;
   background: #0B110F;
@@ -678,6 +695,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
 .spotlight-card {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
@@ -858,7 +876,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 }
 
 .collection-search {
-  min-width: 220px;
+  min-width: min(220px, 100%);
   max-width: 310px;
   flex: 1;
   min-height: 40px;
@@ -1004,6 +1022,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
 .collection-title {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
@@ -1046,7 +1065,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
 .projects-grid:not(.is-compact) .collection-card:first-child .entry-link {
   display: grid;
-  grid-template-columns: 1.06fr 1fr;
+  grid-template-columns: minmax(0, 1.06fr) minmax(0, 1fr);
 }
 .projects-grid:not(.is-compact) .collection-card:first-child .entry-art {
   height: 100%;
@@ -1073,7 +1092,6 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 }
 
 .collection-card {
-  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -1283,7 +1301,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 /* Plate 5: Blunder Store + Google Maps Zone */
 .plate-shop-body {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
   gap: 10px;
   align-items: center;
   flex: 1;
@@ -1520,7 +1538,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
 /* Compact Index Table View Mode */
 .collection-grid.is-compact {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -1623,6 +1641,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
 .dossier-tabs {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: 4px;
   padding: 4px;
   background: var(--bg);
@@ -1719,7 +1738,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
 .school-milestones {
   display: grid;
-  grid-template-columns: 1fr 1.3fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
   gap: 16px;
   margin-top: 12px;
   padding-top: 12px;
@@ -1769,7 +1788,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   font-size: 13px;
   color: var(--muted);
 }
-.footer-left { display: inline-flex; align-items: center; gap: 14px; }
+.footer-left { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 14px; }
 .footer .wordmark { font-size: 16px; }
 .footer-top-link {
   display: inline-flex;
@@ -1792,7 +1811,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
    8. Responsive Breakpoints
    ========================================================================== */
 @media (max-width: 1080px) {
-  .hero-atelier { grid-template-columns: 1fr; }
+  .hero-atelier { grid-template-columns: minmax(0, 1fr); }
   .projects-grid .collection-card,
   .projects-grid .collection-card:first-child,
   .projects-grid .collection-card:nth-child(2) { grid-column: span 6; }
@@ -1806,20 +1825,20 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
-  .workshops-grid { grid-template-columns: 1fr; }
-  .dossier-about-grid { grid-template-columns: 1fr; }
+  .workshops-grid { grid-template-columns: minmax(0, 1fr); }
+  .dossier-about-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
-@media (max-width: 760px) {
-  .wrap { width: calc(100% - 28px); }
+@media (max-width: 1020px) {
   .header-bar { gap: 12px; height: 60px; }
   .wordmark { margin-right: auto; }
   .menu-toggle { display: inline-flex; }
-  .github-nav { display: none; }
   .studio-topbar nav {
     display: none;
     position: absolute;
-    top: 60px;
+    top: 100%;
+    max-height: calc(100dvh - 60px);
+    overflow-y: auto;
     left: 14px;
     right: 14px;
     padding: 10px;
@@ -1835,10 +1854,13 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .studio-topbar nav a { padding: 11px 12px; border-radius: 8px; }
   .studio-topbar nav a::after { display: none; }
   .studio-topbar nav a:hover { background: var(--surface-2); }
+}
 
+@media (max-width: 760px) {
+  .wrap { width: calc(100% - 28px); }
   .hero-editorial { padding: 20px; }
-  .hero-metrics { grid-template-columns: 1fr; gap: 8px; }
-  .spotlight-top { grid-template-columns: 1fr; gap: 16px; padding: 18px; }
+  .hero-metrics { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .spotlight-top { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 18px; }
   .portrait-box { max-width: 240px; }
   .projects-grid .collection-card,
   .projects-grid .collection-card:first-child,
@@ -1854,14 +1876,36 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
     border-bottom: 1px solid var(--line);
   }
   .collection-grid.is-compact .entry-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "meta" "title" "desc" "action";
   }
   .collection-grid.is-compact .entry-description { white-space: normal; }
-  .education-list > li { grid-template-columns: 1fr; gap: 6px; }
-  .school-milestones { grid-template-columns: 1fr; }
+  .education-list > li { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .school-milestones { grid-template-columns: minmax(0, 1fr); }
   .dossier-head, .dossier-body, .contact-strip { padding: 20px; }
   .discipline-ribbon { display: none; }
+}
+
+@media (max-width: 600px) {
+  .studio-topbar .github-nav { display: none; }
+}
+
+@media (max-width: 480px) {
+  .header-bar, .header-actions { gap: 6px; }
+  .menu-toggle { gap: 4px; padding-inline: 8px; }
+  .studio-topbar .header-actions .theme-btn { padding-inline: 8px; }
+  .toolbar-right { flex-basis: 100%; min-width: 0; }
+  .collection-search { flex-basis: 100%; max-width: 100%; }
+}
+
+@media (max-width: 360px) {
+  .header-bar, .header-actions { gap: 4px; }
+  .menu-toggle .menu-label { display: none; }
+  .menu-toggle, .studio-topbar .header-actions .theme-btn {
+    justify-content: center;
+    width: 36px;
+    padding-inline: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
