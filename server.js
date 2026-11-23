@@ -711,12 +711,12 @@ const PRIVATE_ROOT_FILES = new Set([
   '/server.js','/package.json','/package-lock.json','/bun.lock',
   '/dockerfile','/.dockerignore','/.gitignore','/.nojekyll',
   '/render.yaml','/vercel.json','/wrangler.toml','/security_spec.md',
-  '/firebase.json','/firestore.rules'
+  '/firebase.json','/firestore.rules','/api/index.js'
 ]);
 const PRIVATE_PATH_PREFIXES = [
   '/node_modules/','/src/db/','/src/security/','/src/routes/',
   '/src/live-relay.js','/scripts/','/tests/','/.git/',
-  '/.github/','/api/','/workers/'
+  '/.github/','/workers/'
 ];
 function canonicalFrontendURL(){
   const value=String(process.env.FRONTEND_CANONICAL_URL||
