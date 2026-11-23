@@ -11,4 +11,13 @@ window.PYPOriginalSourceManifest = [
   {id:'cuet-pg-zoology-2023-shift1', title:'Zoology · 2023 · Shift 1', file:'cuet-pg-zoology-2023-english-shift-1.pdf', totalPages:131, count:100, duration:120, test:true, passagePage:2, pages:'2,3,3,4,4,8,8,9,10,11,12,13,13,15,17,18,19,20,21,22,23,24,25,25,26,28,29,30,31,32,33,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,59,60,61,63,65,67,68,69,71,72,73,75,76,77,79,81,83,85,87,89,91,92,93,95,97,99,101,103,105,107,108,109,110,112,114,116,118,119,120,121,124,124,125,128,128,129'},
   {id:'cuet-pg-zoology-2022', title:'Zoology · 2022 · Shift 1', file:'CUET-PG-zoology-question-paper-2022-shift-1.pdf', totalPages:77, count:100, duration:120, test:true, pages:''},
   {id:'cucet-life-sciences-2021', title:'CUCET Life Sciences · 2021 · Shift 2', file:'CUCET-Life Sciences-2021-shift-2-previous-year-paper.pdf', totalPages:54, count:100, duration:120, test:true, pages:'2,2,3,3,4,4,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,16,16,17,17,18,18,19,19,20,20,21,21,22,22,23,23,24,24,25,25,26,26,27,27,28,28,29,29,30,30,31,31,32,32,33,33,33,34,34,35,35,36,36,37,38,38,39,39,39,40,41,41,42,42,43,43,43,44,44,45,45,46,46,47,47,48,48,49,49,50,51,51,52,52'}
-].map(item=>({...item,pages:item.pages?item.pages.split(',').map(Number):[]}));
+].map(item=>({
+  ...item,
+  pages:item.pages?item.pages.split(',').map(Number):[],
+  // Original public PDFs were located and cross-checked by paper title/page count.
+  // Use the published source instead of demanding another upload from the student.
+  sourceUrl:'https://pathfinderacademy.in/assets/downloads/' +
+    (item.id==='cucet-life-sciences-2021'||item.id==='cuet-pg-zoology-2022'||
+     item.id==='cuet-pg-life-sciences-2022-shift1'?'PYQP/':'pyqs/') +
+    encodeURIComponent(item.file).replace(/%2F/g,'/')
+}));
