@@ -200,9 +200,11 @@
 
   function selectExamTrack(trackId, fromGenerator) {
     if (!TRACK_IDS.includes(trackId)) return;
+    const leavingCS = filterExam === 'gate-cs' && trackId !== 'gate-cs';
     filterExam = trackId;
     filterSubject = 'all';
     store.set(EXAM_STORE_KEY, filterExam);
+    if (leavingCS) { workspaceView = 'all'; showHome(); return; }
     renderTrackFocus();
     renderExamTabs();
     renderSubjectChips();
