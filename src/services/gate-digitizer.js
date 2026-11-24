@@ -33,7 +33,7 @@ function registerGateDigitizer(app, createClient, model) {
         httpOptions:{timeout:40000}, abortSignal:AbortSignal.timeout(40000)
       }
     });
-    const {applyDigitizedRecord} = await import('../../test-centre/gate-digitization.js');
+    const {applyDigitizedRecord} = await import('../../test-centre/gate-transcription.mjs');
     const {native, hasDiagram, usePrintedFigures, figureSvg, optionSvgs} = JSON.parse(response.text);
     const record = {native, hasDiagram, figureSvg, optionSvgs};
     if (usePrintedFigures === true) record.usePrintedFigures = true;
@@ -62,12 +62,15 @@ function registerGateDigitizer(app, createClient, model) {
       }
       return res.json(await (pending.get(key) || cache.get(key)));
     } catch (error) {
-      const timeout = ['AbortError','TimeoutError'].includes(error.name) || [408,504].includes(error.status);
-      const status = error.status === 429 ? 429 : timeout ? 504 : 502;
+      const upstream = Number(error.status || error.code);
+      const timeout = ['AbortError','TimeoutError'].includes(error.name) || [408,504].includes(upstream);
+      const status = upstream === 429 ? 429 : timeout ? 504 : upstream === 503 ? 503 : 502;
       const incomplete = error instanceof SyntaxError || error.message === 'Incomplete transcription';
       const message = incomplete ? 'The AI returned an incomplete transcription.' :
-        timeout ? 'Transcription timed out.' : status === 429 ? 'The AI request limit was reached.' : 'The transcription service is unavailable.';
-      console.warn('GATE transcription failed', {paperId, index, status, incomplete});
+        timeout ? 'Transcription timed out.' : status === 429 ? 'The AI request limit was reached.' :
+        [400,403,404].includes(upstream) ? 'The model rejected the transcription request (HTTP ' + upstream + ').' :
+        error.code === 'ENOENT' ? 'The server could not load this question image.' : 'The transcription service is unavailable.';
+      console.warn('GATE transcription failed', {paperId, index, status, incomplete, upstream:upstream || null, errorType:error.name});
       return res.status(status).json({error:message + ' Use the printed question or retry.'});
     }
   });

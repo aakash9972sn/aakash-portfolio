@@ -4,13 +4,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.join(__dirname, '..', 'test-centre');
-const load = filename => import('data:text/javascript;base64,' + fs.readFileSync(path.join(root, filename)).toString('base64'));
+const load = () => import('../test-centre/gate-transcription.mjs');
 const svg = '<svg xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="10" y2="10"/></svg>';
 const make = (type = 'MCQ') => ({question:{type, answers:type === 'NAT' ? [[1,2]] : ['A'], marks:2}});
 const sample = {native:['Stem','A','B','C','D'],hasDiagram:true,figureSvg:svg};
 
 test('digitized MCQ preserves official scoring metadata', async () => {
-  const {applyDigitizedRecord} = await load('gate-digitization.js');
+  const {applyDigitizedRecord} = await load();
   const entry = make();
   assert.equal(applyDigitizedRecord(entry, sample), true);
   assert.deepEqual(entry.question.answers,['A']);
@@ -18,12 +18,12 @@ test('digitized MCQ preserves official scoring metadata', async () => {
   assert.match(entry.question.digitizedFigure,/^data:image\/svg\+xml/);
 });
 test('valid NAT and diagram-only options are supported', async () => {
-  const {applyDigitizedRecord} = await load('gate-digitization.js');
+  const {applyDigitizedRecord} = await load();
   assert.equal(applyDigitizedRecord(make('NAT'),{native:['Calculate'],hasDiagram:false}),true);
   assert.equal(applyDigitizedRecord(make(),{native:['Stem','','B','C','D'],optionSvgs:[svg,null,null,null]}),true);
 });
 test('incomplete transcription cannot replace original content', async () => {
-  const {applyDigitizedRecord,svgImageSource} = await load('gate-digitization.js');
+  const {applyDigitizedRecord,svgImageSource} = await load();
   const entry = make();
   entry.question.native = ['Original'];
   assert.equal(applyDigitizedRecord(entry,sample),false);
@@ -41,7 +41,7 @@ test('incomplete transcription cannot replace original content', async () => {
 for (const id of ['EC2025','EC2026']) {
   const filename = path.join(root,'gate-digitized',id+'.json');
   test(id+' dataset covers all questions with original or imported native text', {skip:!fs.existsSync(filename) ? 'Upload the original AI Studio JSON dataset first' : false}, async () => {
-    const {applyDigitizedRecord} = await load('gate-digitization.js');
+    const {applyDigitizedRecord} = await load();
     const papers = JSON.parse(fs.readFileSync(path.join(root,'gate-pyp-index.json'),'utf8'));
     const paper = papers.find(p => p.id === id);
     const records = JSON.parse(fs.readFileSync(filename,'utf8'));
