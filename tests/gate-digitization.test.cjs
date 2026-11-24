@@ -33,6 +33,9 @@ test('incomplete transcription cannot replace original content', async () => {
     assert.equal(applyDigitizedRecord(fresh,record),false);
     assert.equal(fresh.question.native,undefined);
   }
+  const printed = make();
+  assert.equal(applyDigitizedRecord(printed,{native:sample.native,hasDiagram:true,usePrintedFigures:true}),true);
+  assert.equal(printed.question.usePrintedFigures,true);
   assert.equal(svgImageSource('<html>bad</html>'),'');
 });
 for (const id of ['EC2025','EC2026']) {

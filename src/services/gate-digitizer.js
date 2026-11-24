@@ -1,5 +1,16 @@
 const {readFile} = require('node:fs/promises');
 const path = require('node:path');
+const outputSchema = {
+  type:'OBJECT',
+  properties:{
+    native:{type:'ARRAY',items:{type:'STRING'}},
+    hasDiagram:{type:'BOOLEAN'},
+    usePrintedFigures:{type:'BOOLEAN'},
+    figureSvg:{type:'STRING',nullable:true},
+    optionSvgs:{type:'ARRAY',items:{type:'STRING',nullable:true},nullable:true}
+  },
+  required:['native','hasDiagram','usePrintedFigures']
+};
 const papers = require('../../test-centre/gate-pyp-index.json');
 
 // Only indexed, public exam images can be sent to the model.
@@ -14,14 +25,18 @@ function registerGateDigitizer(app, createClient, model) {
     const response = await createClient().models.generateContent({
       model,
       contents: [{role:'user', parts:[
-        {text:'Transcribe this ' + type + ' question verbatim. Return JSON with native (array of stem followed by four choices in printed order, stem only for NAT), hasDiagram (boolean), figureSvg (standalone SVG of a stem figure when present), optionSvgs (four SVG strings or null entries for option figures). Use delimited LaTeX in the stem and choice text. Inside SVG, use plain Unicode labels, fit all labels inside the viewBox, and reproduce the exact geometry, connections and dimensions. Preserve all printed labels and units. Never solve or include an answer key. If content cannot be transcribed faithfully, return {}.'},
+        {text:'Transcribe this ' + type + ' question verbatim. Return JSON with native (array of stem followed by four choices in printed order, stem only for NAT), hasDiagram (boolean), figureSvg (standalone SVG of a stem figure when present), optionSvgs (four SVG strings or null entries for option figures). Use delimited LaTeX in the stem and choice text. Inside SVG, use plain Unicode labels, fit all labels inside the viewBox, and reproduce the exact geometry, connections and dimensions. Preserve all printed labels and units. Never solve or include an answer key. Set usePrintedFigures to true if a diagram or graphical choice cannot be faithfully redrawn. In that case omit the uncertain SVG, transcribe the visible text, and refer to the corresponding printed option for a graphical choice. If the question text cannot be read, return an empty native array.'},
         {inlineData:{mimeType:'image/webp', data:image}}
       ]}],
-      config:{responseMimeType:'application/json', maxOutputTokens:8192, abortSignal:AbortSignal.timeout(25000)}
+      config:{
+        responseMimeType:'application/json', responseSchema:outputSchema, maxOutputTokens:8192,
+        httpOptions:{timeout:40000}, abortSignal:AbortSignal.timeout(40000)
+      }
     });
     const {applyDigitizedRecord} = await import('../../test-centre/gate-digitization.js');
-    const {native, hasDiagram, figureSvg, optionSvgs} = JSON.parse(response.text);
+    const {native, hasDiagram, usePrintedFigures, figureSvg, optionSvgs} = JSON.parse(response.text);
     const record = {native, hasDiagram, figureSvg, optionSvgs};
+    if (usePrintedFigures === true) record.usePrintedFigures = true;
     if (typeof hasDiagram !== 'boolean' || !applyDigitizedRecord({question:{type}}, record)) {
       throw new Error('Incomplete transcription');
     }
@@ -47,8 +62,13 @@ function registerGateDigitizer(app, createClient, model) {
       }
       return res.json(await (pending.get(key) || cache.get(key)));
     } catch (error) {
-      const status = error.status === 429 ? 429 : ['AbortError','TimeoutError'].includes(error.name) ? 504 : 502;
-      return res.status(status).json({error:'Transcription unavailable. Use the printed question or retry.'});
+      const timeout = ['AbortError','TimeoutError'].includes(error.name) || [408,504].includes(error.status);
+      const status = error.status === 429 ? 429 : timeout ? 504 : 502;
+      const incomplete = error instanceof SyntaxError || error.message === 'Incomplete transcription';
+      const message = incomplete ? 'The AI returned an incomplete transcription.' :
+        timeout ? 'Transcription timed out.' : status === 429 ? 'The AI request limit was reached.' : 'The transcription service is unavailable.';
+      console.warn('GATE transcription failed', {paperId, index, status, incomplete});
+      return res.status(status).json({error:message + ' Use the printed question or retry.'});
     }
   });
 }

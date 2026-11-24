@@ -17,12 +17,13 @@ export function applyDigitizedRecord(entry, record) {
       !record.native.every(s => typeof s === 'string' && s.length <= 20000) ||
       !record.native[0].trim()) return false;
   const figure = svgImageSource(record.figureSvg);
-  if (record.hasDiagram && !figure && !q.figure) return false;
+  if (record.hasDiagram && !figure && !q.figure && record.usePrintedFigures !== true) return false;
   const options = Array.isArray(record.optionSvgs) && record.optionSvgs.length === 4
     ? record.optionSvgs.map(svgImageSource) : [];
   if (q.type !== 'NAT' && record.native.slice(1).some((s,i) => !s.trim() && !options[i])) return false;
   q.native = record.native.slice();
   q.digitized = true;
+  if (record.usePrintedFigures === true) q.usePrintedFigures = true;
   if (figure && !q.figure) q.digitizedFigure = figure;
   if (options.some(Boolean)) q.digitizedOptions = options;
   return true;
@@ -62,6 +63,7 @@ function replaceTranscription(entry, record) {
   if (q.native && !q.digitized) return false;
   const replacement = {type:q.type, figure:q.figure};
   if (!applyDigitizedRecord({question:replacement}, record)) return false;
+  delete q.usePrintedFigures;
   delete q.digitizedOptions;
   delete q.digitizedFigure;
   Object.assign(q, replacement);
@@ -79,10 +81,13 @@ export async function requestTranscription(entry) {
   if (!requests.has(key)) {
     const task = (async () => {
       const res = await fetch((window.API_BASE_URL || '') + '/api/ai/gate-digitize', {
-        method:'POST', headers:{'Content-Type':'application/json'}, signal:AbortSignal.timeout(30000),
+        method:'POST', headers:{'Content-Type':'application/json'}, signal:AbortSignal.timeout(45000),
         body:JSON.stringify({paperId:entry.paper.id, index:entry.index, refresh:!!entry.question.digitized})
       });
-      if (!res.ok) throw new Error('Transcription unavailable');
+      if (!res.ok) {
+        const detail = await res.json().catch(() => ({}));
+        throw new Error(typeof detail.error === 'string' ? detail.error.slice(0,180) : 'Transcription unavailable. Use the printed question.');
+      }
       const record = await res.json();
       if (!replaceTranscription(entry, record)) throw new Error('Incomplete transcription');
       try { localStorage.setItem(key, JSON.stringify(record)); } catch { /* Available for this session. */ }

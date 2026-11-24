@@ -1,6 +1,6 @@
 import {attemptKey, loadPapers, makeSets, units} from './gate-library.js?v=archive4';
 
-import {loadDigitizedSet, restoreTranscription, requestTranscription} from './gate-digitization.js?v=studio4';
+import {loadDigitizedSet, restoreTranscription, requestTranscription} from './gate-digitization.js?v=studio6';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -138,7 +138,7 @@ async function showPrompt(entry) {
   const source = document.createElement(entry.question.native ? 'details' : 'div');
   if (entry.question.native) {
     const caption = document.createElement('summary');
-    const redrawn = Boolean(entry.question.digitizedFigure || entry.question.digitizedOptions);
+    const redrawn = Boolean(entry.question.digitizedFigure || entry.question.digitizedOptions || entry.question.usePrintedFigures);
     source.open = redrawn;
     caption.textContent = redrawn ? 'Printed question and original figures' :
       entry.question.digitized ? 'View original question (verify AI transcription)' : 'View original question';
@@ -536,8 +536,9 @@ async function questionAI(kind) {
       }});
       if (token === renderId) $('ai-note').textContent = 'AI explanation · ' + result.answer;
     }
-  } catch {
-    if (token === renderId) $('ai-note').textContent = 'AI is unavailable. The original question is available below the prompt.';
+  } catch (error) {
+    if (token === renderId) $('ai-note').textContent = kind === 'digitize' && error.name === 'Error'
+      ? error.message : 'AI is unavailable. Use the printed question or retry.';
   } finally { if (token === renderId) button.disabled = false; }
 }
 $('digitize').onclick = () => questionAI('digitize');
