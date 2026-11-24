@@ -11,7 +11,7 @@ const outputSchema = {
   },
   required:['native','hasDiagram','usePrintedFigures']
 };
-const papers = require('../../test-centre/gate-pyp-index.json');
+const papers = [...require('../../test-centre/gate-pyp-index.json'), ...require('../../test-centre/gate-ee-index.json')];
 
 // Only indexed, public exam images can be sent to the model.
 function registerGateDigitizer(app, createClient, model) {

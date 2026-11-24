@@ -7,6 +7,7 @@ on:
       - '.github/workflows/gate-ee-assets.yml'
       - 'scripts/import-gate-ee.py'
       - 'test-centre/gate-ee-index.json'
+      - 'test-centre/gate-ee-pending.json'
       - 'assets/gate-ee/*.pdf'
 permissions:
   contents: write
@@ -51,9 +52,9 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add test-centre/gate-papers/EE2024-*.json test-centre/gate-papers/EE2025-*.json
+          git add test-centre/gate-papers/EE*.json test-centre/gate-ee-index.json
           if git diff --cached --quiet; then echo "Assets already current"; exit 0; fi
-          git commit -m "Generate verified GATE EE 2024–2025 CBT question images"
+          git commit -m "Publish verified GATE EE CBT question images and index"
           git pull --rebase origin main
           git push origin HEAD:main
       - uses: actions/upload-artifact@v4

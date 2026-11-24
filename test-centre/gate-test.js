@@ -398,7 +398,7 @@ function showQuestion(focus = false) {
     '+' + entry.question.marks + ' for a correct answer · ' +
     (deduction ? '−' + Number(deduction.toFixed(3)) + ' for an incorrect answer' : 'No negative marking') +
     (entry.question.linkedPrevious && mode === 'paper' && entry.paper.year >= 2008 ? ' · Requires the preceding answer to be correct' : '');
-  $('digitize').hidden = isCS || isEE || Boolean(entry.question.native && !entry.question.digitized);
+  $('digitize').hidden = isCS || Boolean(entry.question.native && !entry.question.digitized);
   $('digitize').textContent = entry.question.digitized ? 'Re-transcribe with AI' : 'Transcribe with AI';
   $('digitize').disabled = false;
   $('explain').hidden = !attempt.finished || !entry.question.native;
@@ -616,7 +616,7 @@ palettePanel.addEventListener('close', () => {
 });
 mobile.addEventListener('change', syncPalette);
 try {
-  const papers = isEE ? await fetch('gate-ee-index.json?v=1').then(r=>{if(!r.ok)throw Error('EE index unavailable');return r.json();}) : isCS ? await fetch('gate-cs-index.json?v=3').then(r=>{if(!r.ok)throw Error('CS index unavailable');return r.json();}) : await loadPapers();
+  const papers = isEE ? await fetch('gate-ee-index.json?v=2').then(r=>{if(!r.ok)throw Error('EE index unavailable');return r.json();}) : isCS ? await fetch('gate-cs-index.json?v=3').then(r=>{if(!r.ok)throw Error('CS index unavailable');return r.json();}) : await loadPapers();
   if (!['paper','topic','unit'].includes(mode)) throw new Error();
   set = makeSets(papers, mode, year).find(item => item.id === setId);
   if (!set?.questions.length) throw new Error();

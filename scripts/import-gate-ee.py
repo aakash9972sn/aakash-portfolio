@@ -8,9 +8,17 @@ from PIL import Image
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 SOURCE=pathlib.Path(sys.argv[1]) if len(sys.argv)>1 else ROOT/'assets/gate-ee'
 OUT=ROOT/'test-centre/gate-papers'
-papers=json.loads((ROOT/'test-centre/gate-ee-index.json').read_text())
+INDEX=ROOT/'test-centre/gate-ee-index.json'
+current=json.loads(INDEX.read_text())
+pending_path=ROOT/'test-centre/gate-ee-pending.json'
+pending=json.loads(pending_path.read_text()) if pending_path.exists() else []
+papers=list({p['id']:p for p in current+pending}.values())
+papers.sort(key=lambda p:p['year'],reverse=True)
 generated={}
 for paper in papers:
+    # Keep existing verified image batches rather than downloading completed papers again.
+    if all((OUT/(paper['id']+'-'+str(i)+'.json')).is_file() for i in range(9)):
+        continue
     file=SOURCE/(paper['id']+'.pdf')
     if file.is_file():
         data=file.read_bytes()
@@ -36,7 +44,8 @@ for paper in papers:
         images=[]
         for q in paper['questions']:
             page,top,bottom=q['crop']
-            pix=doc[page-1].get_pixmap(matrix=fitz.Matrix(2.6,2.6),clip=fitz.Rect(71,top,524,bottom),alpha=False)
+            left,right=paper.get('xRange',[71,524])
+            pix=doc[page-1].get_pixmap(matrix=fitz.Matrix(2.6,2.6),clip=fitz.Rect(left,top,right,bottom),alpha=False)
             im=Image.frombytes('RGB',(pix.width,pix.height),pix.samples)
             buf=io.BytesIO();im.save(buf,'WEBP',quality=85,method=4)
             images.append(base64.b64encode(buf.getvalue()).decode())
@@ -46,4 +55,15 @@ for paper in papers:
 OUT.mkdir(parents=True,exist_ok=True)
 for name,data in generated.items():
     (OUT/name).write_text(data)
+# Publish only after every question batch exists.
+for p in papers:
+    for i in range(9):
+        path=OUT/(p['id']+'-'+str(i)+'.json')
+        batch=json.loads(path.read_text())
+        assert len(batch)==(1 if i==8 else 8)
+        for raw in batch:
+            with Image.open(io.BytesIO(base64.b64decode(raw,validate=True))) as picture:
+                assert picture.format=='WEBP'
+                picture.load()
+INDEX.write_text(json.dumps(papers,separators=(',',':')))
 print('Generated',len(generated),'batches for',len(papers),'complete papers')
