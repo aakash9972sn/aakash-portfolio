@@ -81,3 +81,18 @@
   .gate-pyp-summary { margin-left: 0; }
   .gate-pyp-filters label, .gate-pyp-filters select { width: 100%; }
 }
+
+/* Archive readability and responsive refinements from the reviewed design. */
+.gate-pyp-filters { align-items: end; }
+.gate-pyp-filters label { font-weight: 600; color: var(--muted); }
+.gate-pyp-filters select { max-width: min(320px, 100%); font-size: .86rem; }
+.gate-card-grid { grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); }
+.gate-card .card-meta { gap: 8px 16px; }
+.gate-card .card-foot { gap: 8px; }
+.gate-card-sub { margin: -4px 0 8px; font-family: var(--mono); font-size: .72rem; color: var(--muted); line-height: 1.45; }
+.gate-pagination span { font-variant-numeric: tabular-nums; }
+.gate-pagination button { font-weight: 600; }
+.gate-pyp details { padding-top: 12px; border-top: 1px solid var(--line); }
+.gate-pyp summary { font-weight: 700; color: var(--text); }
+.gate-empty-state { grid-column: 1 / -1; padding: 24px 16px; text-align: center; color: var(--muted); border: 1px dashed var(--line-strong); border-radius: 10px; background: var(--surface-2); font-size: .88rem; }
+@media (max-width: 600px) { .gate-pyp-filters select { max-width: none; } }
