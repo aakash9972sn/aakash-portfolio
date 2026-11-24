@@ -53,6 +53,34 @@
       <div id="image-scroll" tabindex="0" aria-label="Enlarged image"></div>
     </dialog>
   </main>
+  <!-- MathJax SVG renders LaTeX as textbook equations in questions and solutions. -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)'], ['
+  <script src="test-core.js"></script>
+  <script type="module" src="gate-test.js?v=studio1"></script>
+</body>
+</html>
+, '
+  <script src="test-core.js"></script>
+  <script type="module" src="gate-test.js?v=gate-reader1"></script>
+</body>
+</html>
+]], displayMath: [['\\[', '\\]'], ['$', '$']], processEscapes: true },
+      svg: { fontCache: 'local' },
+      options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] },
+      startup: {
+        ready: function () {
+          MathJax.startup.defaultReady();
+          MathJax.startup.promise.then(function () {
+            window.dispatchEvent(new Event('testcentre:math-ready'));
+          });
+        }
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+  <script src="math-render.js?v=20261122-math4"></script>
   <script src="syllabus-data.js"></script>
   <script src="test-core.js"></script>
   <script type="module" src="gate-test.js?v=gate-reader1"></script>
