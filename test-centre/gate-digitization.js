@@ -53,3 +53,41 @@ export async function loadDigitizedSet(set) {
   }
   return imported;
 }
+
+const requests = new Map();
+const storageKey = entry => 'tclab.gate.transcription.v1.' + entry.paper.id + '.' + entry.index;
+
+function replaceTranscription(entry, record) {
+  const q = entry.question;
+  if (q.native && !q.digitized) return false;
+  const replacement = {type:q.type, figure:q.figure};
+  if (!applyDigitizedRecord({question:replacement}, record)) return false;
+  delete q.digitizedOptions;
+  delete q.digitizedFigure;
+  Object.assign(q, replacement);
+  return true;
+}
+
+export function restoreTranscription(entry) {
+  try {
+    return replaceTranscription(entry, JSON.parse(localStorage.getItem(storageKey(entry))));
+  } catch { return false; }
+}
+
+export async function requestTranscription(entry) {
+  const key = storageKey(entry);
+  if (!requests.has(key)) {
+    const task = (async () => {
+      const res = await fetch((window.API_BASE_URL || '') + '/api/ai/gate-digitize', {
+        method:'POST', headers:{'Content-Type':'application/json'}, signal:AbortSignal.timeout(30000),
+        body:JSON.stringify({paperId:entry.paper.id, index:entry.index, refresh:!!entry.question.digitized})
+      });
+      if (!res.ok) throw new Error('Transcription unavailable');
+      const record = await res.json();
+      if (!replaceTranscription(entry, record)) throw new Error('Incomplete transcription');
+      try { localStorage.setItem(key, JSON.stringify(record)); } catch { /* Available for this session. */ }
+    })().finally(() => requests.delete(key));
+    requests.set(key, task);
+  }
+  return requests.get(key);
+}

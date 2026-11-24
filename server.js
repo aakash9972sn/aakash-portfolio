@@ -7,6 +7,7 @@ if (typeof process.loadEnvFile === 'function' && fs.existsSync(path.join(__dirna
 }
 const { GoogleGenAI, ThinkingLevel, Type } = require('@google/genai');
 const { registerPortableRoutes, sources } = require('./src/routes/portable-api');
+const {registerGateDigitizer} = require('./src/services/gate-digitizer');
 const { registerPypPDFRoute } = require('./src/routes/pyp-pdf');
 const { attachLiveRelay } = require('./src/live-relay');
 const {mountOSM} = require('./src/routes/osm');
@@ -85,7 +86,7 @@ Key portfolio details:
 Keep responses concise, helpful, and grounded in the published portfolio facts and current page context. Use textbook-style LaTeX for mathematical, chemical, and scientific expressions: inline \\( ... \\), display \\[ ... \\]; for example \\(\\frac{a+b}{c}\\), \\(NH_3\\), \\(sp^3\\). Keep ordinary prose as plain text; no HTML, markdown code fences, or raw equations outside math delimiters. Do not invent hardware test metrics that are not documented.`;
 
 const STUDY_SYSTEM_INSTRUCTION = `You are Aakash Gemini, the Test Centre study assistant for GATE ECE, NEET UG, and CUET PG. Answer accurately based on the supplied public catalogue context; never invent course availability, question counts or live API success.
-The Test Centre explicitly supports CUET PG Life Sciences (SCQP17) and Zoology (SCQP28), with a separate syllabus registry and Gemini syllabus-driven MCQ mock generation. Its imported PYP bank contains 575 questions across six papers: CUET PG Life Sciences 2025 (75), Life Sciences 2023 Shift 2 (100) and Shift 3 (100), Zoology 2023 Shift 1 (100), Zoology 2022 (100), and CUCET Life Sciences 2021 (100). Of these, 28 source-flagged uncertain questions are review-only and excluded from scored attempts. 2023 answer keys came from user-provided CSVs and are not independently verified against official NTA answer keys. These PYPs are stored separately from EXAM_DATA; the absence of CUET in EXAM_DATA must NEVER be interpreted as CUET content being unavailable.
+The Test Centre explicitly supports CUET PG Life Sciences (SCQP17) and Zoology (SCQP28), with a separate syllabus registry and Gemini syllabus-driven MCQ mock generation. Its imported PYP bank contains 575 questions across six papers (375 Life Sciences and 200 Zoology): CUET PG Life Sciences 2025 (75), Life Sciences 2023 Shift 2 (100) and Shift 3 (100), Zoology 2023 Shift 1 (100), Zoology 2022 (100), and CUCET Life Sciences 2021 (100). Of these, 28 source-flagged uncertain questions are review-only and excluded from scored attempts. 2023 answer keys came from user-provided CSVs and are not independently verified against official NTA answer keys. These PYPs are stored separately from EXAM_DATA; the absence of CUET in EXAM_DATA must NEVER be interpreted as CUET content being unavailable.
 Distinguish built-in previous-year papers from generated questions, which require the hosted Gemini backend. Use textbook-style LaTeX for mathematical, chemical, and scientific expressions: inline \\( ... \\), display \\[ ... \\]; for example \\(\\frac{a+b}{c}\\), \\(NH_3\\), \\(sp^3\\). Keep ordinary prose as plain text; no HTML, markdown code fences, or raw equations outside math delimiters. If asked for navigation, point students to the CUET PG track and its PYP or AI mock interface. Match the user's language and avoid unsupported claims.`;
 
 
@@ -310,6 +311,7 @@ app.use('/api/ai',aiRateLimit);
 app.use(express.json({limit:'128kb'}));
 registerPortableRoutes(app, express, createGeminiClient);
 registerPypPDFRoute(app);
+registerGateDigitizer(app, createGeminiClient, MODEL_ID);
 mountOSM(app);
 
 app.get('/api/health', (req, res) => {

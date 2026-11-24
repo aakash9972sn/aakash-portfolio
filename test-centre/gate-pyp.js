@@ -1,4 +1,4 @@
-import {inspectSavedAttempt, summarizeSet, loadPapers, makeSets, units} from './gate-library.js?v=archive3';
+import {inspectSavedAttempt, summarizeSet, loadPapers, makeSets, units} from './gate-library.js?v=archive4';
 
 const archive = document.getElementById('gate-pyp');
 const year = archive.querySelector('#gate-year');
@@ -130,6 +130,7 @@ modeButtons.forEach(button => button.addEventListener('click', () => {
 }));
 year.addEventListener('change', () => selectMode());
 group.addEventListener('change', () => { page = 0; renderPage(); });
+window.addEventListener('aakash:account-state', () => { if (papers.length) renderPage(); });
 window.addEventListener('pageshow', event => { if (event.persisted && papers.length) renderPage(); });
 
 summary.textContent = 'Loading practice tests…';

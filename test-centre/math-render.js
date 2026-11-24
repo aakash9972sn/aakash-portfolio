@@ -16,7 +16,14 @@
     scheduled = false;
     if (inProgress || !queued.size) return;
     inProgress = true;
-    const nodes = [...queued].filter(n => n.isConnected);
+    // MathJax must see a subtree once when both the runner and the observer queue it.
+    const nodes = [...queued].filter(node => {
+      if (!node.isConnected) return false;
+      for (let parent = node.parentElement; parent; parent = parent.parentElement) {
+        if (queued.has(parent)) return false;
+      }
+      return true;
+    });
     queued.clear();
     try {
       await window.MathJax.typesetPromise(nodes);

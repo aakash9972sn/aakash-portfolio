@@ -1,23 +1,26 @@
-import {attemptKey, loadPapers, makeSets, units} from './gate-library.js?v=reader1';
+import {attemptKey, loadPapers, makeSets, units} from './gate-library.js?v=archive4';
 
-import {loadDigitizedSet} from './gate-digitization.js?v=studio1';
+import {loadDigitizedSet, restoreTranscription, requestTranscription} from './gate-digitization.js?v=studio4';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const mode = params.get('mode');
 const year = params.get('year') || '';
 const setId = params.get('set');
-const key = attemptKey(mode, setId, year);
+let key;
+const snapshot = params.get('attempt');
+const historyKey = 'tclab.analysis.history.v1';
 const cachedImages = new Map();
 const numeric = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i;
 let set, attempt, clock, renderId = 0;
 let confirmAction;
 
 function freshAttempt() {
-  return {current:0, responses:{}, flags:{}, finished:false,
+  return {id:crypto.randomUUID(), current:0, responses:{}, flags:{}, finished:false,
     deadline:mode === 'paper' ? Date.now() + 180 * 60 * 1000 : null};
 }
 function save() {
+  if (snapshot) return;
   try { localStorage.setItem(key, JSON.stringify(attempt)); }
   catch { $('status').textContent = 'This browser could not save progress. Keep this tab open to finish.'; }
 }
@@ -49,6 +52,10 @@ function outcome(entry) {
     answers.includes(value);
   return correct ? 'correct' : 'incorrect';
 }
+function penalty(entry) {
+  const q = entry.question;
+  return q.type === 'MCQ' && !q.linkedPrevious ? q.marks / (entry.paper.year <= 2008 ? 4 : 3) : 0;
+}
 function keyLabel(question) {
   return question.answers.map(answer => {
     if (typeof answer === 'string') return answer.split('').join(' + ');
@@ -56,7 +63,7 @@ function keyLabel(question) {
   }).join(' or ');
 }
 
-async function questionImage(entry, index = entry.index) {
+function imageBatch(entry, index) {
   const part = entry.paper.id + '-' + Math.floor(index / 8);
   if (!cachedImages.has(part)) {
     if (cachedImages.size >= 4) cachedImages.delete(cachedImages.keys().next().value);
@@ -65,7 +72,10 @@ async function questionImage(entry, index = entry.index) {
       return res.json();
     }).catch(error => { cachedImages.delete(part); throw error; }));
   }
-  const batch = await cachedImages.get(part);
+  return cachedImages.get(part);
+}
+async function questionImage(entry, index = entry.index) {
+  const batch = await imageBatch(entry, index);
   const img = document.createElement('img');
   img.alt = 'Original question with its printed figures and answer choices, ' + entry.paper.name +
     ', ' + entry.paper.questions[index].number;
@@ -131,6 +141,8 @@ async function showPrompt(entry) {
     const img = await questionImage(entry);
     if (token !== renderId) return;
     stage.replaceChildren(imageView(img, 'image'));
+    const next = set.questions[attempt.current + 1];
+    if (next && !navigator.connection?.saveData) imageBatch(next, next.index).catch(() => {});
     if (entry.question.linkedPrevious) {
       const details = document.createElement('details');
       const summary = document.createElement('summary');
@@ -233,7 +245,7 @@ function matchesReview(entry) {
   return reviewFilter === 'all' || (reviewFilter === 'ungraded' ?
     result === 'ungraded' || result === 'linked' : result === reviewFilter);
 }
-function renderReviewTools(counts) {
+function renderReviewTools(counts, stats) {
   const attempted = counts.correct + counts.incorrect;
   const accuracy = attempted ? (100 * counts.correct / attempted).toFixed(1) + '%' : 'Not applicable';
   const panel = document.createElement('div');
@@ -260,8 +272,8 @@ function renderReviewTools(counts) {
   });
   field.append(filter);
   panel.append(field);
-  for (const [title,group] of [['Unit-wise performance',entry=>units.get(entry.question.unit)||entry.question.unit||'General'],
-    ['Topic-wise performance',entry=>entry.question.topic||'General']]) {
+  for (const [title,group,fieldName] of [['Unit-wise performance',entry=>units.get(entry.question.unit)||entry.question.unit||'General','unitStats'],
+    ['Topic-wise performance',entry=>entry.question.topic||'General','topicStats']]) {
     const groups = new Map();
     for (const entry of set.questions) {
       const name = group(entry);
@@ -269,6 +281,10 @@ function renderReviewTools(counts) {
       const status = outcome(entry);
       groups.get(name)[['correct','incorrect','skipped'].includes(status)?status:'excluded']++;
     }
+    stats[fieldName] = Object.fromEntries([...groups].map(([name, n]) => [name, {
+      correct:n.correct, wrong:n.incorrect, skipped:n.skipped, excluded:n.excluded,
+      total:n.correct + n.incorrect + n.skipped + n.excluded
+    }]));
     const details = document.createElement('details');
     const caption = document.createElement('summary');
     caption.textContent = title;
@@ -277,7 +293,7 @@ function renderReviewTools(counts) {
     wrap.style.overflowX = 'auto';
     const table = document.createElement('table');
     const head = table.createTHead().insertRow();
-    for (const label of ['Topic / unit','Correct','Incorrect','Skipped','Excluded']) {
+    for (const label of ['Topic / unit','Correct','Incorrect','Skipped','Excluded','Accuracy']) {
       const th = document.createElement('th');
       th.scope = 'col'; th.textContent = label; head.append(th);
     }
@@ -286,9 +302,20 @@ function renderReviewTools(counts) {
     for (const [name,n] of ordered) {
       const row = body.insertRow();
       const th = document.createElement('th'); th.scope='row'; th.textContent=name; row.append(th);
-      for (const value of [n.correct,n.incorrect,n.skipped,n.excluded]) row.insertCell().textContent=String(value);
+      const gradedResponses = n.correct + n.incorrect;
+      const groupAccuracy = gradedResponses ? (100 * n.correct / gradedResponses).toFixed(1) + '%' : '—';
+      for (const value of [n.correct, n.incorrect, n.skipped, n.excluded, groupAccuracy]) {
+        row.insertCell().textContent = String(value);
+      }
     }
     wrap.append(table); details.append(wrap); panel.append(details);
+  }
+  const weak = Object.entries(stats.topicStats).filter(([,n]) => n.wrong > 0)
+    .sort((a,b) => b[1].wrong - a[1].wrong || a[0].localeCompare(b[0])).slice(0,3);
+  if (weak.length) {
+    const note = document.createElement('p');
+    note.textContent = 'Topics to revisit: ' + weak.map(([name,n]) => name + ' (' + n.wrong + ' incorrect)').join(' · ');
+    panel.prepend(note);
   }
   $('gate-review-tools')?.remove();
   $('breakdown').after(panel);
@@ -326,6 +353,17 @@ function showQuestion(focus = false) {
   oldCell?.classList.remove('is-current');
   $('palette').children[attempt.current].setAttribute('aria-current','true');
   $('question-content').classList.toggle('with-diagram', Boolean(entry.question.figure || entry.question.digitizedFigure));
+  const deduction = penalty(entry);
+  $('marking').textContent = !entry.question.answers.length ? 'Review only · no scorable key' :
+    '+' + entry.question.marks + ' for a correct answer · ' +
+    (deduction ? '−' + Number(deduction.toFixed(3)) + ' for an incorrect answer' : 'No negative marking') +
+    (entry.question.linkedPrevious && mode === 'paper' && entry.paper.year >= 2008 ? ' · Requires the preceding answer to be correct' : '');
+  $('digitize').hidden = Boolean(entry.question.native && !entry.question.digitized);
+  $('digitize').textContent = entry.question.digitized ? 'Re-transcribe with AI' : 'Transcribe with AI';
+  $('digitize').disabled = false;
+  $('explain').hidden = !attempt.finished || !entry.question.native;
+  $('explain').disabled = false;
+  $('ai-note').textContent = '';
   showPrompt(entry);
   showControls(entry);
   window.TestCentreMath?.render?.($('question-content'));
@@ -352,36 +390,82 @@ function finish() {
   $('timer').textContent = 'Review';
   $('result').hidden = false;
   const counts = {correct:0, incorrect:0, skipped:0, ungraded:0, linked:0};
-  let marks = 0, maximum = 0;
+  let positive = 0, negative = 0, maximum = 0;
   for (const entry of set.questions) {
     const status = outcome(entry);
     counts[status]++;
     if (status === 'ungraded') continue;
     const weight = entry.question.marks;
     maximum += weight;
-    if (status === 'correct') marks += weight;
-    if (status === 'incorrect' && entry.question.type === 'MCQ' && !entry.question.linkedPrevious) {
-      marks -= weight / (entry.paper.year <= 2008 ? 4 : 3);
-    }
+    if (status === 'correct') positive += weight;
+    if (status === 'incorrect') negative += penalty(entry);
   }
-  $('marks').textContent = mode === 'paper' ? 'Practice marks: ' + Number(marks.toFixed(2)) + ' / ' + maximum : '';
+  const score = Number((positive - negative).toFixed(2));
+  $('marks').textContent = 'Practice marks: ' + score + ' / ' + maximum +
+    ' · Earned ' + positive + ' · Deductions ' + Number(negative.toFixed(2));
   const graded = set.questions.length - counts.ungraded;
   $('score').textContent = graded ? counts.correct + ' correct out of ' + graded + ' questions with scorable keys' :
     'Responses saved for self-review';
   $('breakdown').textContent = counts.incorrect + ' incorrect · ' + counts.skipped +
     ' skipped with keys · ' + counts.ungraded + ' ungraded' + (counts.linked ? ' · ' + counts.linked + ' dependent on a preceding answer' : '');
-  renderReviewTools(counts);
+  const stats = {};
+  renderReviewTools(counts, stats);
+  $('retake').hidden = Boolean(snapshot);
   $('status').textContent = 'Submitted · Review questions or filter mistakes and skipped questions.';
+  if (!snapshot) recordResult(counts, stats, score, maximum);
   showQuestion();
+}
+function recordResult(counts, stats, score, maximum) {
+  attempt.id ||= crypto.randomUUID();
+  attempt.submittedAt ||= Date.now();
+  save();
+  const ownerUid = window.AakashAccount?.getState()?.uid || null;
+  const row = {
+    ownerUid, testId:'gate-' + attempt.id, at:attempt.submittedAt, title:set.name,
+    exam:'GATE', examId:'gate', subject:'Electronics and Communication', subjectId:'gate-ec',
+    gate:{mode, set:setId, year, attempt:attempt.id}, score, total:maximum,
+    correct:counts.correct, wrong:counts.incorrect, unattempted:counts.skipped,
+    excluded:counts.linked + counts.ungraded,
+    accuracy:Number((100 * counts.correct / (counts.correct + counts.incorrect || 1)).toFixed(1)), ...stats
+  };
+  try {
+    const rows = JSON.parse(localStorage.getItem(historyKey) || '[]');
+    const earlier = rows.filter(item => item.ownerUid === ownerUid && item.gate?.mode === mode &&
+      item.gate.set === setId && (mode === 'paper' || item.gate.year === year) && item.at < row.at)
+      .sort((a,b) => a.at - b.at).slice(-4);
+    if (earlier.length) {
+      const trend = document.createElement('details');
+      const label = document.createElement('summary');
+      label.textContent = 'Recent scores for this set';
+      const list = document.createElement('ol');
+      for (const result of [...earlier,row]) {
+        const item = document.createElement('li');
+        item.textContent = new Date(result.at).toLocaleString() + ' · ' + result.score + ' / ' + result.total;
+        list.append(item);
+      }
+      trend.append(label,list);
+      $('gate-review-tools').append(trend);
+    }
+    localStorage.setItem(key + '.' + attempt.id, JSON.stringify(attempt));
+    if (rows.some(item => item.testId === row.testId && item.ownerUid === ownerUid)) return;
+    rows.push(row);
+    localStorage.setItem(historyKey, JSON.stringify(rows));
+    if (ownerUid) window.AakashAccount.save('testAttempts', row.testId + '-' + row.at, row);
+  } catch { $('status').textContent = 'Attempt history could not be saved on this device.'; }
 }
 function tick() {
   const seconds = window.TestCentreCore.remaining(attempt.deadline);
   if (seconds === 0) { finish(); return; }
+  if (seconds <= 300 && !$('timer').classList.contains('low-time')) {
+    $('timer').classList.add('low-time');
+    $('status').textContent = 'Five minutes or less remaining. Responses submit when the timer expires.';
+  }
   $('timer').textContent = Math.floor(seconds / 3600) + ':' +
     String(Math.floor(seconds / 60) % 60).padStart(2,'0') + ':' + String(seconds % 60).padStart(2,'0');
 }
 function start() {
   clearInterval(clock);
+  $('timer').classList.remove('low-time');
   $('result').hidden = true;
   reviewFilter = 'all';
   $('gate-review-tools')?.remove();
@@ -420,6 +504,30 @@ $('next').onclick = () => {
   if (i >= 0) jump(i);
   else if (!attempt.finished) askSubmit();
 };
+async function questionAI(kind) {
+  const entry = set.questions[attempt.current];
+  const token = renderId;
+  const button = $(kind);
+  button.disabled = true;
+  $('ai-note').textContent = kind === 'digitize' ? 'Transcribing the printed question…' : 'Preparing an explanation…';
+  try {
+    if (kind === 'digitize') {
+      await requestTranscription(entry);
+      if (token === renderId) showQuestion();
+    } else {
+      const result = await window.HostedAI.request({action:'doubt', question:{
+        exam:'GATE', subject:entry.question.topic, question:entry.question.native[0],
+        options:entry.question.native.slice(1), userDoubt:'Explain this question. Recorded key: ' +
+          (keyLabel(entry.question) || 'unavailable') + '. My response: ' + (response(entry) || 'skipped')
+      }});
+      if (token === renderId) $('ai-note').textContent = 'AI explanation · ' + result.answer;
+    }
+  } catch {
+    if (token === renderId) $('ai-note').textContent = 'AI is unavailable. The original question is available below the prompt.';
+  } finally { if (token === renderId) button.disabled = false; }
+}
+$('digitize').onclick = () => questionAI('digitize');
+$('explain').onclick = () => questionAI('explain');
 $('flag').onclick = () => {
   const id = responseId(set.questions[attempt.current]);
   attempt.flags[id] = !attempt.flags[id];
@@ -477,7 +585,28 @@ try {
   document.title = set.name + ' · GATE EC Test Centre';
   $('title').textContent = set.name;
   await loadDigitizedSet(set);
-  attempt = restore();
+  for (const entry of set.questions) restoreTranscription(entry);
+  function openAttempt() {
+    key = attemptKey(mode, setId, year);
+    if (snapshot) {
+      const saved = JSON.parse(localStorage.getItem(key + '.' + snapshot));
+      if (!saved?.finished || saved.id !== snapshot) {
+        clearInterval(clock);
+        $('workbench').hidden = $('result').hidden = true;
+        $('status').textContent = 'This saved review is unavailable for this account on this device.';
+        return false;
+      }
+      attempt = saved;
+    } else attempt = restore();
+    return true;
+  }
+  window.addEventListener('aakash:account-state', () => {
+    if (key === attemptKey(mode, setId, year)) return;
+    if ($('confirm').open) $('confirm').close('cancel');
+    if ($('image-viewer').open) $('image-viewer').close();
+    if (openAttempt()) start();
+  });
+  if (!openAttempt()) throw new Error('snapshot');
   if (location.hash) {
     const wanted = location.hash.slice(1);
     const index = set.questions.findIndex(({paper, question}) =>
@@ -488,4 +617,4 @@ try {
     }
   }
   start();
-} catch { $('status').textContent = 'This test could not open. Return to Test Centre and select a test.'; }
+} catch (error) { if (error.message !== 'snapshot') $('status').textContent = 'This test could not open. Return to Test Centre and select a test.'; }

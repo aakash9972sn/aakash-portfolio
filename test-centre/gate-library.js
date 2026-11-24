@@ -3,7 +3,10 @@ export const units = new Map(Object.values(window.TEST_CENTRE_SYLLABI?.gate?.sub
 units.set('legacy', 'Earlier syllabus topics');
 
 export function attemptKey(mode, setId, year) {
-  return 'tclab.gate.attempt.v1.' + JSON.stringify([mode, setId, mode === 'paper' ? '' : year]);
+  const uid = window.AakashAccount?.getState()?.uid;
+  const parts = [mode, setId, mode === 'paper' ? '' : year];
+  if (uid) parts.push(uid);
+  return 'tclab.gate.attempt.v1.' + JSON.stringify(parts);
 }
 
 let cachedPapersPromise;

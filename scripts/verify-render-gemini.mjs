@@ -90,12 +90,13 @@ console.log('PASS: real Test Centre AI doubt explanation');
 // CUET PG regression: study assistant must know this live catalogue.
 const cuetChat=await fetch(base+'/api/ai/chat',{
   method:'POST',headers:{...common.headers,'Content-Type':'application/json',Accept:'application/json'},
-  body:JSON.stringify({app:'study',question:'Does this Test Centre have CUET PG Life Sciences and Zoology PYPs? Answer with the subject names and total imported questions.',history:[],context:{cuetPg:{available:true,totalImportedPreviousYearQuestions:275}}}),
+  body:JSON.stringify({app:'study',question:'Does this Test Centre have CUET PG Life Sciences and Zoology PYPs? Answer with the subject names and total imported questions.',history:[]}),
   signal:AbortSignal.timeout(65000)
 });
 check(cuetChat.status===200,'CUET study chat HTTP '+cuetChat.status);
 const cuetData=await cuetChat.json();
-check(/CUET/i.test(cuetData.answer||'')&&/275/.test(cuetData.answer||''),'CUET chat omitted available 275-question bank');
+check(/Life Sciences/i.test(cuetData.answer || '') && /Zoology/i.test(cuetData.answer || '') &&
+  /\b575\b/.test(cuetData.answer || ''), 'CUET chat omitted a subject or the 575-question catalogue total');
 check(!/not (yet )?(listed|available|populated)/i.test(cuetData.answer||''),'CUET chat incorrectly claims unavailable');
 console.log('PASS: study Gemini knows CUET PG PYPs are available');
 

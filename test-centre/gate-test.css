@@ -78,3 +78,6 @@ body:has(#image-viewer[open]) { overflow: hidden; }
 #prompt > p, #controls .opt-text { white-space: pre-wrap; }
 #controls .opt:has(img) { flex-wrap: wrap; }
 #controls .opt img { background: white; border-radius: 4px; }
+#marking, #ai-note { color: var(--muted); font-size: .88rem; }
+#ai-note { white-space: pre-wrap; overflow-wrap: anywhere; }
+.gt-main .runner-timer.low-time { color: var(--warn); font-weight: 800; }

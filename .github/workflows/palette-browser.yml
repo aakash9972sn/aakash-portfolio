@@ -3,6 +3,11 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "scripts/gate-browser.mjs"
+      - "test-centre/gate-*"
+      - "test-centre/gate-digitized/**"
+      - "test-centre/math-render.js"
+      - "src/services/gate-digitizer.js"
       - "command-palette.js"
       - "command-palette.css"
       - "studio-extras.js"
@@ -29,11 +34,13 @@ jobs:
       - run: npm ci
       - name: Install headless Chromium
         run: |
-          npm install --no-save --no-package-lock playwright
+          npm install --no-save --no-package-lock playwright mathjax@3.2.2
           npx playwright install chromium --with-deps
       - run: node scripts/command-palette-browser.mjs
       - name: Test studio UI and Google sign-in with simulated Firebase
         run: node scripts/studio-light-auth-browser.mjs
+      - name: Exercise GATE papers, reviews and digitization
+        run: node scripts/gate-browser.mjs
       - name: Inspect live Firebase authorized domain (read-only, non-blocking)
         run: node scripts/check-firebase-domain.mjs
       - uses: actions/upload-artifact@v4

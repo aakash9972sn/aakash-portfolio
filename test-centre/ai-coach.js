@@ -107,8 +107,20 @@
   }
 
   function dailyHistory() {
-    try { const rows = JSON.parse(localStorage.getItem('tclab.analysis.history.v1') || '[]'); return Array.isArray(rows) ? rows : []; }
-    catch { return []; }
+    try {
+      const rows = JSON.parse(localStorage.getItem('tclab.analysis.history.v1') || '[]');
+      const uid = window.AakashAccount?.getState()?.uid || null;
+      return Array.isArray(rows) ? rows.filter(row => row && (row.ownerUid || null) === uid) : [];
+    } catch { return []; }
+  }
+
+  function reviewLink(item) {
+    if (item.gate) {
+      const {mode, set, year, attempt} = item.gate;
+      const query = new URLSearchParams({mode, set, year, attempt});
+      return '<a href="gate-test.html?' + esc(query) + '">Review this attempt</a>';
+    }
+    return item.testId ? '<a href="#/r/' + encodeURIComponent(item.testId) + '">Review latest result</a>' : '';
   }
 
   function dailyHTML() {
@@ -126,7 +138,7 @@
         '<div><b>' + esc(item.title || item.testId) + '</b><span>' +
         esc(item.subject || '') + ' · ' + item.correct + ' correct, ' + item.wrong +
         ' wrong, ' + item.unattempted + ' skipped · ' + item.accuracy + '%</span>' +
-        (item.testId ? '<a href="#/r/' + encodeURIComponent(item.testId) + '">Review latest result</a>' : '') +
+        reviewLink(item) +
         compactStats('Unit-wise scores',item.unitStats) + compactStats('Topic-wise scores',item.topicStats) +
         '</div>').join('') + '</div>').join('');
   }
@@ -455,5 +467,10 @@
     if (target) target.innerHTML = dailyHTML();
   }
 
+  window.addEventListener('aakash:account-state', () => {
+    mountHistory();
+    const list = document.querySelector('#ai-daily-history-list');
+    if (list) list.innerHTML = dailyHTML();
+  });
   window.TestCentreAI = { mount, mountSolutions, summarize, mountHistory };
 })();

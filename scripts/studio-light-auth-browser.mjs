@@ -42,7 +42,7 @@ const firestoreModule=[
  'export function serverTimestamp(){return "mock-server-timestamp"}',
  'export async function getDoc(ref){const data=docs.get(ref.path);return {exists:()=>!!data,data:()=>data||{}}}',
  'export async function getDocFromServer(ref){return getDoc(ref)}',
- 'export async function setDoc(ref,data){docs.set(ref.path,data)}',
+ 'export async function setDoc(ref,data){docs.set(ref.path,data);if(ref.path.includes("/testAttempts/"))window.__mockAttemptPath=ref.path}',
  'export async function updateDoc(ref,data){docs.set(ref.path,{...docs.get(ref.path),...data})}',
  'export function collection(_db,...path){return {path:path.join("/")}}',
  'export function query(ref){return ref}export function where(){return null}',
@@ -59,25 +59,26 @@ await page.route('https://www.gstatic.com/firebasejs/11.10.0/**',async route=>{
 try {
  const origin='http://127.0.0.1:'+http.address().port;
  await page.goto(origin+'/index.html',{waitUntil:'domcontentloaded',timeout:30000});
- assert.equal(await page.evaluate(()=>document.documentElement.dataset.portfolioTheme),'light');
- const switcher=page.locator('.studio-theme-button');
+ assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'light');
+ const switcher=page.locator('#home-theme-toggle');
  await switcher.waitFor({timeout:15000});
- const featured=page.locator('.studio-featured');
+ const featured=page.locator('.silicon-spotlight');
  await featured.waitFor({timeout:10000});
- assert.match(await featured.locator('.studio-featured-title').textContent(),/RFID/);
- await featured.getByRole('tab',{name:/02.*Test Centre/}).click();
- assert.match(await featured.locator('.studio-featured-title').textContent(),/Test Centre/);
- await page.getByRole('button',{name:'Compact'}).click();
- assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('studio-list-view')),true);
+ assert.match(await featured.locator('#spot-title').textContent(),/RFID/);
+ await featured.getByRole('tab',{name:/02.*Test App/}).click();
+ assert.match(await featured.locator('#spot-title').textContent(),/Test Centre/);
+ await page.getByRole('button',{name:'Index',exact:true}).click();
+ assert.equal(await page.locator('.projects-grid').evaluate(el=>el.classList.contains('is-compact')),true);
  await page.getByRole('button',{name:'Bento'}).click();
- assert.equal(await page.locator('body').evaluate(el=>el.classList.contains('studio-list-view')),false);
- await page.getByRole('button',{name:'RFID / Embedded'}).click();
- assert.match(await page.locator('#work-search').inputValue(),/Arduino UNO/);
+ assert.equal(await page.locator('.projects-grid').evaluate(el=>el.classList.contains('is-compact')),false);
+ await page.getByRole('button',{name:'Embedded / RFID'}).click();
+ assert.match(await page.locator('.projects-grid').textContent(),/RFID/);
+ await page.locator('#work-search').fill('MFRC522');
  assert.match(await page.locator('#results-status').textContent(),/result/i);
  await switcher.click();
- assert.equal(await page.evaluate(()=>document.documentElement.dataset.portfolioTheme),'dark');
+ assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'dark');
  await switcher.click();
- assert.equal(await page.evaluate(()=>document.documentElement.dataset.portfolioTheme),'light');
+ assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),'light');
  console.log('PASS: Light-theme default, reversible dark mode, featured tabs, RFID search and compact/Bento layouts.');
 
  const launcher=page.locator('.account-launcher');
@@ -101,6 +102,23 @@ try {
  assert.equal(result.name,'Student');
  assert.ok(result.photoOrInitial);
  console.log('PASS: Mocked Google sign-in button, profile name/avatar and exact named Firestore database.');
+ await page.goto(origin+'/test-centre/gate-test.html?mode=paper&set=EC2026',{waitUntil:'domcontentloaded'});
+ await page.locator('#workbench').waitFor();
+ await launcher.click();
+ await dialog.locator('.account-google-btn').click();
+ await page.waitForFunction(()=>window.AakashAccount.getState().signedIn);
+ await dialog.getByRole('button',{name:'Close account dialog'}).click();
+ await page.locator('#controls input[value="B"]').check();
+ await page.locator('#submit').click();
+ await page.locator('#confirm-yes').click();
+ await page.waitForFunction(()=>window.__mockAttemptPath?.startsWith('users/mock-google-account/testAttempts/gate-'));
+ assert.match(await page.locator('#score').textContent(),/^1 correct/);
+ await launcher.click();
+ await dialog.locator('.account-signout-btn').click();
+ await page.waitForFunction(()=>!window.AakashAccount.getState().signedIn);
+ assert.equal(await page.locator('#result').isVisible(),false);
+ assert.match(await page.locator('#progress').textContent(),/^0 of 65/);
+ console.log('PASS: signed-in GATE history sync and isolated guest attempt after sign-out.');
  if(errors.length)console.warn('Nonfatal page errors:',errors.slice(0,4));
 } finally {
  try{await page.screenshot({path:'studio-light-auth-browser.png',fullPage:true})}catch(_){}

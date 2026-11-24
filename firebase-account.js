@@ -944,12 +944,14 @@
       }
     },
     async syncLocal() {
-      // Backfill earlier submitted attempts and reset-safe local daily summaries.
+      const uid = auth?.currentUser?.uid;
+      if (!uid) return;
+      // Backfill only attempts attributed to this account.
       try {
         const history = JSON.parse(localStorage.getItem('tclab.analysis.history.v1') || '[]');
         if (Array.isArray(history)) {
           for (const entry of history.slice(-300)) {
-            if (entry?.testId && entry?.at) {
+            if (entry?.testId && entry?.at && entry.ownerUid === uid && auth.currentUser?.uid === uid) {
               await save('testAttempts', String(entry.testId) + '-' + String(entry.at), {
                 ...entry, title: entry.title || entry.testId
               });
@@ -963,6 +965,7 @@
             const result = JSON.parse(localStorage.getItem(key));
             const history = JSON.parse(localStorage.getItem('tclab.analysis.history.v1') || '[]');
             const detail = Array.isArray(history) ? history.find(h => h.testId === result.testId && h.at === result.at) : null;
+            if (detail?.ownerUid !== uid || auth.currentUser?.uid !== uid) continue;
             await save('testAttempts', `${result.testId || 'test'}-${result.at || 'latest'}`, { ...result, ...detail });
           } catch {}
         }
@@ -1149,12 +1152,13 @@
     myResultsBtn.disabled = true;
     message('Loading test history from your account…');
     try {
+      const uid = auth.currentUser.uid;
       const cloudResponse = await window.AakashAccount.list('testAttempts');
+      if (auth.currentUser?.uid !== uid) return;
       const cloud = Array.isArray(cloudResponse) ? cloudResponse : [];
       const cloudUnavailable = !Array.isArray(cloudResponse);
       // Merge device records only when attributed to this signed-in account,
       // or when their attempt ID already exists in this account's cloud data.
-      const uid = auth.currentUser.uid;
       let device = [];
       try {
         const raw = JSON.parse(localStorage.getItem('tclab.analysis.history.v1') || '[]');

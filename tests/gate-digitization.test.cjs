@@ -58,3 +58,45 @@ for (const id of ['EC2025','EC2026']) {
     assert.equal(imported,id==='EC2025'?63:62);
   });
 }
+
+test('concurrent transcription requests share an inference and refresh preserves the last valid result', async () => {
+  const {registerGateDigitizer} = require('../src/services/gate-digitizer');
+  const express = require('express');
+  const app = express();
+  app.use(express.json());
+  let calls = 0;
+  let release;
+  let started;
+  const first = new Promise(resolve => { started = resolve; });
+  const gate = new Promise(resolve => { release = resolve; });
+  const generateContent = async () => {
+    calls++;
+    started();
+    await gate;
+    return {text:JSON.stringify(calls === 1 ? sample : {})};
+  };
+  registerGateDigitizer(app, () => ({models:{generateContent}}), 'test');
+  const server = app.listen(0,'127.0.0.1');
+  await new Promise(resolve => server.once('listening',resolve));
+  const send = body => fetch('http://127.0.0.1:' + server.address().port + '/api/ai/gate-digitize', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+  });
+  const question = {paperId:'EC2026',index:1};
+  try {
+    assert.equal((await send({...question,index:65})).status,400);
+    const pending = send(question);
+    await first;
+    const duplicate = send(question);
+    release();
+    for (const response of await Promise.all([pending,duplicate])) {
+      assert.deepEqual(await response.json(),sample);
+    }
+    assert.equal(calls,1);
+    assert.equal((await send({...question,refresh:true})).status,502);
+    assert.deepEqual(await (await send(question)).json(),sample);
+    assert.equal(calls,2);
+  } finally {
+    release();
+    await new Promise(resolve => server.close(resolve));
+  }
+});
