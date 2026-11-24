@@ -1,4 +1,4 @@
-import {attemptKey, loadPapers, makeSets} from './gate-library.js?v=cards2';
+import {inspectSavedAttempt, summarizeSet, loadPapers, makeSets, units} from './gate-library.js?v=archive3';
 
 const archive = document.getElementById('gate-pyp');
 const year = archive.querySelector('#gate-year');
@@ -10,7 +10,7 @@ const template = archive.querySelector('#gate-card');
 const pagination = archive.querySelector('#gate-pagination');
 const prev = archive.querySelector('#gate-prev');
 const next = archive.querySelector('#gate-next');
-const pageSize = 6;
+const pageSize = 9;
 const params = new URLSearchParams(location.search);
 const kinds = {paper:'paper set', unit:'unit', topic:'topic'};
 let mode = Object.hasOwn(kinds, params.get('mode')) ? params.get('mode') :
@@ -19,7 +19,13 @@ let papers = [], sets = [], page = 0;
 
 function createCard(set) {
   const card = template.content.firstElementChild.cloneNode(true);
-  card.querySelector('h3').textContent = set.name;
+  const info = summarizeSet(set);
+  const title = card.querySelector('h3');
+  title.textContent = set.name;
+  const sub = document.createElement('p');
+  sub.className = 'gate-card-sub';
+  sub.textContent = [info.yearsLabel, info.typesLabel].filter(Boolean).join(' · ');
+  title.after(sub);
   card.querySelector('[data-questions]').textContent = set.questions.length;
   card.querySelector('[data-time]').textContent = mode === 'paper' ? '180 min' : 'Untimed';
   const marks = card.querySelector('[data-paper-marks]');
@@ -29,14 +35,12 @@ function createCard(set) {
     marks.remove();
   }
 
-  let saved;
-  try { saved = JSON.parse(localStorage.getItem(attemptKey(mode, set.id, year.value))); }
-  catch { /* The test can still open when saved progress is unavailable. */ }
-  const expired = mode === 'paper' && Number.isFinite(saved?.deadline) && saved.deadline <= Date.now();
-  const review = saved?.finished || expired;
+  const state = inspectSavedAttempt(set, mode, year.value);
+  const saved = state?.saved;
+  const review = state?.review;
   const status = card.querySelector('.card-status');
-  status.textContent = review ? (expired && !saved.finished ? 'Time elapsed' : 'Submitted') :
-    saved ? 'In progress' : 'Not started';
+  status.textContent = review ? (state.expired && !saved.finished ? 'Time elapsed' : 'Submitted') :
+    saved ? `In progress · ${state.answeredCount}/${info.total}` : 'Not started';
   if (saved) status.classList.add(review ? 'is-done' : 'is-progress');
 
   const link = card.querySelector('a');
@@ -51,17 +55,23 @@ function createCard(set) {
 
 function renderPage() {
   const visible = group.value && mode !== 'paper' ? sets.filter(set => set.id === group.value) : sets;
-  const pages = Math.ceil(visible.length / pageSize);
+  const pages = Math.max(1, Math.ceil(visible.length / pageSize));
   page = Math.max(0, Math.min(page, pages - 1));
   const start = page * pageSize;
   const batch = visible.slice(start, start + pageSize);
   grid.replaceChildren(...batch.map(createCard));
+  if (!batch.length) {
+    const empty = document.createElement('li');
+    empty.className = 'gate-empty-state';
+    empty.textContent = 'No GATE practice sets match the active filters.';
+    grid.append(empty);
+  }
 
   const count = visible.length;
   const label = kinds[mode] + (count === 1 ? '' : 's');
   const years = new Set(visible.flatMap(set => set.questions.map(entry => entry.paper.year)));
   const range = pages > 1 ? ' · Showing ' + (start + 1) + '–' + (start + batch.length) : '';
-  summary.textContent = count + ' ' + label + (years.size > 1 ? ' across ' + years.size + ' exam years' : '') + range;
+  summary.textContent = count + ' ' + label + ' (' + visible.reduce((sum,set) => sum + set.questions.length,0) + ' questions)' + (years.size > 1 ? ' across ' + years.size + ' exam years' : '') + range;
   pagination.hidden = pages <= 1;
   prev.disabled = page === 0;
   next.disabled = page + 1 >= pages;
@@ -79,7 +89,7 @@ function selectMode(returnTo) {
   sets = makeSets(papers, mode, year.value);
   group.replaceChildren(new Option(mode === 'topic' ? 'All topics' : 'All units', ''));
   if (mode !== 'paper') {
-    sets.forEach(set => group.add(new Option(set.name, set.id)));
+    sets.forEach(set => group.add(new Option(set.name + ' (' + set.questions.length + ')', set.id)));
   }
   const index = returnTo ? sets.findIndex(set => set.id === returnTo) : -1;
   if (mode !== 'paper' && index >= 0) group.value = returnTo;
