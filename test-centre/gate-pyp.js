@@ -11,6 +11,17 @@ const pagination = archive.querySelector('#gate-pagination');
 const prev = archive.querySelector('#gate-prev');
 const next = archive.querySelector('#gate-next');
 const pageSize = 9;
+const statusFilter = document.createElement('select');
+statusFilter.id = 'gate-status-filter';
+for (const [name,value] of [['All statuses',''],['Not started','unstarted'],['In progress','in-progress'],['Submitted / elapsed','submitted']]) statusFilter.add(new Option(name,value));
+const statusLabel = document.createElement('label');
+statusLabel.append('Status', statusFilter);
+const search = document.createElement('input');
+search.type = 'search'; search.placeholder = 'Search GATE sets'; search.setAttribute('aria-label','Search GATE sets');
+const searchLabel = document.createElement('label'); searchLabel.append('Search',search);
+summary.before(statusLabel,searchLabel);
+statusFilter.addEventListener('change',()=>{page=0;renderPage();});
+search.addEventListener('input',()=>{page=0;renderPage();});
 const params = new URLSearchParams(location.search);
 const kinds = {paper:'paper set', unit:'unit', topic:'topic'};
 let mode = Object.hasOwn(kinds, params.get('mode')) ? params.get('mode') :
@@ -54,7 +65,14 @@ function createCard(set) {
 }
 
 function renderPage() {
-  const visible = group.value && mode !== 'paper' ? sets.filter(set => set.id === group.value) : sets;
+  const query = search.value.trim().toLowerCase();
+  const visible = sets.filter(set => {
+    if (group.value && mode !== 'paper' && set.id !== group.value) return false;
+    if (query && ![set.name,set.id,...set.questions.map(({paper,question})=>[paper.year,question.topic,units.get(question.unit)].join(' '))].join(' ').toLowerCase().includes(query)) return false;
+    if (!statusFilter.value) return true;
+    const state = inspectSavedAttempt(set,mode,year.value);
+    return statusFilter.value === 'submitted' ? !!state?.review : statusFilter.value === 'in-progress' ? !!state && !state.review : !state;
+  });
   const pages = Math.max(1, Math.ceil(visible.length / pageSize));
   page = Math.max(0, Math.min(page, pages - 1));
   const start = page * pageSize;
