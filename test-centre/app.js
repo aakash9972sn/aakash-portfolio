@@ -203,7 +203,7 @@
     if(!TRACK_IDS.includes(track))return;
     if(isGateTrack(track)) {lastGateBranch=track;store.set(GATE_BRANCH_KEY,track);}
     if(location.hash && location.hash!=='#/')history.replaceState(history.state,'',location.pathname+'#/');
-    workspaceView=isPaperOnly(track)?'pyp':'all';
+    workspaceView='all';
     searchTerm='';$('#search').value='';
     selectExamTrack(track,false);
   }
@@ -225,8 +225,8 @@
     const cs = isPaperOnly(filterExam);
     $('.hero-cta-card').hidden = cs;
     $('#subject-chips').closest('.tc-rail-group').hidden = cs;
-    $$('[data-view="ai"], [data-view="tests"], [data-view="all"]').forEach(btn => btn.hidden = cs);
-    setWorkspaceView(cs ? 'pyp' : workspaceView);
+    $('[data-view="ai"], [data-view="tests"], [data-view="all"]').forEach(btn => btn.hidden = false);
+    setWorkspaceView(workspaceView);
     window.dispatchEvent(new CustomEvent('tclab:gate-track', {detail:{track:filterExam}}));
   }
 
@@ -965,7 +965,7 @@
   let workspaceView = 'all';
   function setWorkspaceView(view) {
     const allowPyp = filterExam !== 'neet';
-    workspaceView = isPaperOnly(filterExam) ? 'pyp' : (['all', 'tests', 'ai'].includes(view) || (view === 'pyp' && allowPyp) ? view : 'all');
+    workspaceView = ['all', 'tests', 'ai'].includes(view) || (view === 'pyp' && allowPyp) ? view : 'all';
     $$('[data-view]').forEach((btn) => {
       const on = btn.dataset.view === workspaceView;
       btn.classList.toggle('is-active', on);
@@ -974,11 +974,17 @@
     const aiSec = $('#ai-generator');
     const pypSec = $('.pyp-library');
     const catSec = $('#tests-catalog');
-    if (aiSec) aiSec.hidden = isPaperOnly(filterExam) || !(workspaceView === 'all' || workspaceView === 'ai');
+    const paperOnly = isPaperOnly(filterExam);
+    if (aiSec) aiSec.hidden = paperOnly || !(workspaceView === 'all' || workspaceView === 'ai');
+    const branchAI = $('#branch-ai-notice');
+    if (branchAI) {
+      branchAI.hidden = !(paperOnly && workspaceView === 'ai');
+      if (paperOnly) $('#branch-ai-label').textContent = filterExam === 'gate-ee' ? 'GATE EE' : 'GATE CS';
+    }
     const showPyp = workspaceView === 'all' || workspaceView === 'pyp';
     if (pypSec) pypSec.hidden = !(filterExam === 'cuet-pg' && showPyp);
     const gatePyp = $('#gate-pyp');
-    if (gatePyp) gatePyp.hidden = !(isGateTrack(filterExam) && showPyp);
+    if (gatePyp) gatePyp.hidden = !(isGateTrack(filterExam) && (showPyp || (paperOnly && workspaceView === 'tests')));
     if (catSec) catSec.hidden = isPaperOnly(filterExam) || !(workspaceView === 'all' || workspaceView === 'tests' || workspaceView === 'pyp');
     renderCards();
   }
@@ -995,6 +1001,10 @@
       if ($('#screen-home').hidden) go('#/');
       setWorkspaceView(btn.dataset.view);
     }));
+    $('#branch-ai-practice')?.addEventListener('click', () => {
+      setWorkspaceView('tests');
+      $('#gate-pyp')?.scrollIntoView({behavior:'smooth',block:'start'});
+    });
     $('#jump-ai-gen')?.addEventListener('click', () => {
       setWorkspaceView('ai');
       $('#ai-generator')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1002,7 +1012,10 @@
 
     $('#search').addEventListener('input', (e) => {
       searchTerm = e.target.value;
-      if (isPaperOnly(filterExam)) { window.dispatchEvent(new CustomEvent('tclab:gate-search',{detail:searchTerm})); return; }
+      if (isPaperOnly(filterExam)) {
+        if (workspaceView === 'ai' && searchTerm.trim()) setWorkspaceView('tests');
+        window.dispatchEvent(new CustomEvent('tclab:gate-search',{detail:searchTerm})); return;
+      }
       if (workspaceView !== 'all' && workspaceView !== 'tests' && searchTerm.trim()) {
         setWorkspaceView('tests');
       }
