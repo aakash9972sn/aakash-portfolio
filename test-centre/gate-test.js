@@ -135,6 +135,8 @@ function showPrompt(entry) {
       const alternate = document.createElement('details');
       const caption = document.createElement('summary');
       caption.textContent = 'Compare AI-redrawn diagram';
+      // Some exported SVGs are malformed. The printed figure stays visible.
+      diagram.addEventListener('error', () => alternate.remove(), {once:true});
       alternate.append(caption, view);
       prompt.append(alternate);
     }
