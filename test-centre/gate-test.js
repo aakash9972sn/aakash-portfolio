@@ -1,3 +1,4 @@
+import {renderCSQuestion} from './gate-cs-reader.js?v=1';
 import {attemptKey, loadPapers, makeSets, units} from './gate-library.js?v=archive4';
 
 import {loadDigitizedSet, restoreTranscription, requestTranscription} from './gate-digitization.js?v=studio6';
@@ -7,6 +8,7 @@ const params = new URLSearchParams(location.search);
 const mode = params.get('mode');
 const year = params.get('year') || '';
 const setId = params.get('set');
+const isCS = /^CS\d/.test(setId || '');
 let key;
 const snapshot = params.get('attempt');
 const historyKey = 'tclab.analysis.history.v1';
@@ -64,6 +66,7 @@ function keyLabel(question) {
 }
 
 function imageBatch(entry, index) {
+  if (entry.paper.sourcePdf) return Promise.resolve(null);
   const part = entry.paper.id + '-' + Math.floor(index / 8);
   if (!cachedImages.has(part)) {
     if (cachedImages.size >= 4) cachedImages.delete(cachedImages.keys().next().value);
@@ -75,6 +78,7 @@ function imageBatch(entry, index) {
   return cachedImages.get(part);
 }
 async function questionImage(entry, index = entry.index) {
+  if (entry.paper.sourcePdf) return renderCSQuestion(entry.paper,index);
   const batch = await imageBatch(entry, index);
   const img = document.createElement('img');
   img.alt = 'Original question with its printed figures and answer choices, ' + entry.paper.name +
@@ -372,7 +376,7 @@ function showQuestion(focus = false) {
     '+' + entry.question.marks + ' for a correct answer · ' +
     (deduction ? '−' + Number(deduction.toFixed(3)) + ' for an incorrect answer' : 'No negative marking') +
     (entry.question.linkedPrevious && mode === 'paper' && entry.paper.year >= 2008 ? ' · Requires the preceding answer to be correct' : '');
-  $('digitize').hidden = Boolean(entry.question.native && !entry.question.digitized);
+  $('digitize').hidden = isCS || Boolean(entry.question.native && !entry.question.digitized);
   $('digitize').textContent = entry.question.digitized ? 'Re-transcribe with AI' : 'Transcribe with AI';
   $('digitize').disabled = false;
   $('explain').hidden = !attempt.finished || !entry.question.native;
@@ -590,16 +594,16 @@ palettePanel.addEventListener('close', () => {
 });
 mobile.addEventListener('change', syncPalette);
 try {
-  const papers = await loadPapers();
+  const papers = isCS ? await fetch('gate-cs-index.json?v=1').then(r=>{if(!r.ok)throw Error('CS index unavailable');return r.json();}) : await loadPapers();
   if (!['paper','topic','unit'].includes(mode)) throw new Error();
   set = makeSets(papers, mode, year).find(item => item.id === setId);
   if (!set?.questions.length) throw new Error();
   const back = new URLSearchParams({mode, set:setId});
   if (year) back.set('year', year);
-  $('back-to-tests').href = './?' + back + '#/gate-papers';
-  document.title = set.name + ' · GATE EC Test Centre';
+  $('back-to-tests').href = isCS ? './gate-cs.html' : './?' + back + '#/gate-papers';
+  document.title = set.name + ' · GATE Test Centre';
   $('title').textContent = set.name;
-  await loadDigitizedSet(set);
+  if (!isCS) await loadDigitizedSet(set);
   for (const entry of set.questions) restoreTranscription(entry);
   function openAttempt() {
     key = attemptKey(mode, setId, year);

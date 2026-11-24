@@ -145,6 +145,7 @@ function element(tag,text,cls){const el=document.createElement(tag);if(text)el.t
 function link(label,url){const a=element('a',label,'action');a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;}
 const localPath=p=>'../assets/gate-cs/'+encodeURIComponent(p.file);
 async function isLocal(p){try{const r=await fetch(localPath(p),{method:'HEAD'});return r.ok && /application\/pdf|application\/octet-stream/i.test(r.headers.get('content-type')||'');}catch{return false;}}
+const testIds={'CS12024.pdf':'CS2024-1','CS22025.pdf':'CS2025-2'};
 const localFiles=new Set(papers.filter(p=>p.hosted).map(p=>p.file));
 function render(){
  const query=search.value.trim().toLowerCase();
@@ -154,6 +155,8 @@ function render(){
  const local=localFiles.has(p.file);
  card.append(element('p',local?'Original PDF · hosted on site':p.mirror?'Original PDF · verified matching archive copy':'Original upload pending · official archive available','muted'));
  const actions=element('div','','actions');
+ const testId=testIds[p.file];
+ if(testId){const a=element('a','Start / resume CBT','action');a.href='gate-test.html?mode=paper&set='+encodeURIComponent(testId);actions.append(a);card.append(element('p','65 questions · 100 marks · 180 minutes · scored test'));}else card.append(element('p','CBT digitization pending','note'));
  if(local||p.mirror)actions.append(link('Open PDF',local?localPath(p):p.mirror));
  else actions.append(link('Find in official archive',archive));
  card.append(actions);
