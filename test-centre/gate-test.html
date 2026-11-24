@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GATE EC practice test · Test Centre</title>
+  <link rel="icon" href="../favicon.svg">
+  <script src="../theme-sync.js?v=20261121-t1"></script>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="gate-test.css">
+</head>
+<body>
+  <header class="gt-bar"><a href="./#/gate-papers">← GATE tests</a><strong>GATE EC</strong><span id="timer"></span></header>
+  <main class="gt-main">
+    <h1 id="title">GATE EC practice test</h1>
+    <p id="status" role="status">Loading questions…</p>
+    <section id="result" class="gt-panel" aria-label="Test results" hidden>
+      <h2>Attempt summary</h2><p id="score"></p><p id="marks"></p><p id="breakdown"></p>
+      <button type="button" id="retake">Start a new attempt</button>
+    </section>
+    <div id="workbench" hidden>
+      <article class="gt-panel">
+        <h2 id="position" tabindex="-1"></h2>
+        <p id="source"></p>
+        <div id="prompt"></div>
+        <fieldset id="answers"><legend>Your answer</legend><div id="controls"></div></fieldset>
+        <p id="feedback" aria-live="polite"></p>
+        <div class="gt-actions"><button id="clear" type="button">Clear response</button><button id="flag" type="button" aria-pressed="false">Mark for review</button></div>
+        <div class="gt-actions gt-nav"><button type="button" id="prev">← Previous</button><button type="button" id="next">Next →</button><button type="button" id="submit">Submit test</button></div>
+      </article>
+      <aside class="gt-panel"><h2>Question palette</h2><p id="progress"></p><div id="palette" aria-label="Questions"></div></aside>
+    </div>
+    <dialog id="confirm"><form method="dialog"><h2 id="confirm-title"></h2><p id="confirm-copy"></p><div class="gt-actions"><button value="cancel" autofocus>Cancel</button><button value="yes" id="confirm-yes">Confirm</button></div></form></dialog>
+  </main>
+  <script src="syllabus-data.js"></script>
+  <script src="test-core.js"></script>
+  <script type="module" src="gate-test.js"></script>
+</body>
+</html>

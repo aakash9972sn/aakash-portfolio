@@ -47,3 +47,5 @@
 
 .gate-pyp details { margin-top: 16px; }
 .gate-pyp summary { cursor: pointer; }
+
+#gate-results { max-height: min(480px, 65vh); overflow: auto; }

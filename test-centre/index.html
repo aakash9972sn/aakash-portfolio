@@ -15,7 +15,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="../theme-sync.js?v=20261121-t1"></script>
   <link rel="stylesheet" href="styles.css?v=20261123-pdf-auto2">
-  <link rel="stylesheet" href="gate-pyp.css">
+  <link rel="stylesheet" href="gate-pyp.css?v=tests1">
 </head>
 <body>
 
@@ -136,7 +136,7 @@
             <header class="gate-pyp-header">
               <div>
                 <span class="section-kicker">GATE EC · 2007–2026</span>
-                <h2 id="gate-pyp-title">Previous-year questions</h2>
+                <h2 id="gate-pyp-title">Previous-year practice tests</h2>
               </div>
               <a href="../assets/gate-ec/EC-GATE-2027-syllabus.pdf" target="_blank" rel="noopener">2027 syllabus PDF ↗</a>
             </header>
@@ -151,10 +151,11 @@
             </div>
             <p id="gate-summary" class="gate-pyp-summary" role="status"></p>
             <div id="gate-results"></div>
-            <button type="button" class="ws-pill" id="gate-more" hidden>Show more questions</button>
             <details>
-              <summary>About the question index</summary>
-              <p>Topic and unit tags are automatically assigned from PDF text and scan OCR. Some questions may be misclassified or listed under Unclassified. Use the original PDFs for the full wording, figures and exam instructions.</p>
+              <summary>Questions and scoring</summary>
+              <p>Paper tests preserve the printed question order. Topic and unit practice use one copy of the 2013 booklet variants. Syllabus tags are assigned from the question text and scans.</p>
+              <p>Submit to review your answers. Paper scores use the question weights and MCQ penalties for the exam year. Questions with missing or disputed keys are available for self-review and excluded from scored marks.</p>
+              <p>Answer keys come from the supplied papers, the <a href="https://gate2026.iitg.ac.in/download.html">GATE archive</a>, <a href="https://previousyearquestions.app/gate/ec/2013/">archived booklet keys</a> and, for 2007–2010, matching entries in <a href="https://esenotes.com/gate-previous-year-question-papers/electronics-and-communication-engineering/">ESE Notes</a> and <a href="https://www.mywbut.com/gate/gate%20solved%20papers/ec/2008.pdf">MyWBUT's solved papers</a>.</p>
             </details>
           </section>
 
@@ -277,8 +278,8 @@
   <script src="ai-config.js?v=20261123-portable1"></script>
   <script src="ai-coach.js?v=20261123-original3"></script>
   <script src="ai-generator.js?v=20261121-history3"></script>
-  <script src="gate-pyp.js" defer></script>
-  <script src="app.js?v=20261123-gate-pyp"></script>
+  <script type="module" src="gate-pyp.js?v=tests1"></script>
+  <script src="app.js?v=20261124-gate-tests"></script>
   <script src="../ai-assistant.js?v=20261123-portable2" defer></script>
   <script src="../ai-tools.js?v=20261123-portable2" defer></script>
 </body>

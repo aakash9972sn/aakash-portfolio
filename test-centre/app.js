@@ -94,6 +94,13 @@
     closeModal(false);
     if (run) { saveProgress(true); run = null; stopTimer(); }
     const hash = location.hash || '#/';
+    if (hash === '#/gate-papers') {
+      filterExam = 'gate';
+      showHome();
+      setWorkspaceView('pyp');
+      document.getElementById('gate-pyp').scrollIntoView({block:'start'});
+      return;
+    }
     const tMatch = hash.match(/^#\/t\/(.+)$/);
     const rMatch = hash.match(/^#\/r\/(.+)$/);
     const pdfMatch = hash.match(/^#\/pdf\/(.+)$/);
