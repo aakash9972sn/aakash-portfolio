@@ -1,4 +1,4 @@
-import {renderCSQuestion} from './gate-cs-reader.js?v=2';
+import {renderCSQuestion} from './gate-cs-reader.js?v=3';
 import {attemptKey, loadPapers, makeSets, units} from './gate-library.js?v=archive4';
 
 import {loadDigitizedSet, restoreTranscription, requestTranscription} from './gate-digitization.js?v=banks1';
@@ -616,7 +616,7 @@ palettePanel.addEventListener('close', () => {
 });
 mobile.addEventListener('change', syncPalette);
 try {
-  const papers = isEE ? await fetch('gate-ee-index.json?v=1').then(r=>{if(!r.ok)throw Error('EE index unavailable');return r.json();}) : isCS ? await fetch('gate-cs-index.json?v=2').then(r=>{if(!r.ok)throw Error('CS index unavailable');return r.json();}) : await loadPapers();
+  const papers = isEE ? await fetch('gate-ee-index.json?v=1').then(r=>{if(!r.ok)throw Error('EE index unavailable');return r.json();}) : isCS ? await fetch('gate-cs-index.json?v=3').then(r=>{if(!r.ok)throw Error('CS index unavailable');return r.json();}) : await loadPapers();
   if (!['paper','topic','unit'].includes(mode)) throw new Error();
   set = makeSets(papers, mode, year).find(item => item.id === setId);
   if (!set?.questions.length) throw new Error();
