@@ -117,7 +117,9 @@ try {
   await page.locator('#digitize').click();
   await page.locator('#prompt mjx-container').waitFor();
   await page.waitForFunction(() => document.querySelector('#controls img')?.naturalWidth > 0);
-  await page.locator('#prompt summary').last().click();
+  assert.equal(await page.locator('#prompt details').last().getAttribute('open'),'');
+  await page.getByText('Compare AI-redrawn diagram').click();
+  await page.waitForFunction(() => document.querySelector('.gt-diagram')?.naturalWidth > 0);
   await page.getByRole('button',{name:'Enlarge image',exact:true}).click();
   await page.locator('#image-fit').click();
   await page.keyboard.press('Escape');

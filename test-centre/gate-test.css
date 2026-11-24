@@ -81,3 +81,4 @@ body:has(#image-viewer[open]) { overflow: hidden; }
 #marking, #ai-note { color: var(--muted); font-size: .88rem; }
 #ai-note { white-space: pre-wrap; overflow-wrap: anywhere; }
 .gt-main .runner-timer.low-time { color: var(--warn); font-weight: 800; }
+.gt-option-figure { display: grid; color: var(--muted); font-size: .8rem; }

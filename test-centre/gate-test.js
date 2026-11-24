@@ -125,12 +125,23 @@ async function showPrompt(entry) {
     diagram.src = entry.question.figure?.file || entry.question.digitizedFigure;
     diagram.alt = entry.question.figure?.alt || 'AI-transcribed diagram; compare with the original question.';
     diagram.className = 'gt-diagram';
-    prompt.append(imageView(diagram, 'diagram'));
+    const view = imageView(diagram, 'diagram');
+    if (entry.question.figure) prompt.append(view);
+    else {
+      const alternate = document.createElement('details');
+      const caption = document.createElement('summary');
+      caption.textContent = 'Compare AI-redrawn diagram';
+      alternate.append(caption, view);
+      prompt.append(alternate);
+    }
   }
   const source = document.createElement(entry.question.native ? 'details' : 'div');
   if (entry.question.native) {
     const caption = document.createElement('summary');
-    caption.textContent = entry.question.digitized ? 'View original question (verify AI transcription)' : 'View original question';
+    const redrawn = Boolean(entry.question.digitizedFigure || entry.question.digitizedOptions);
+    source.open = redrawn;
+    caption.textContent = redrawn ? 'Printed question and original figures' :
+      entry.question.digitized ? 'View original question (verify AI transcription)' : 'View original question';
     source.append(caption);
   }
   const stage = document.createElement('div');
@@ -231,7 +242,10 @@ function showControls(entry) {
         img.alt = 'Transcribed diagram for option ' + letter;
         img.style.maxWidth = '100%';
         img.style.maxHeight = '180px';
-        label.append(img);
+        const figure = document.createElement('span');
+        figure.className = 'gt-option-figure';
+        figure.append(img, 'AI redrawing · see printed option');
+        label.append(figure);
       }
       controls.append(label);
     }

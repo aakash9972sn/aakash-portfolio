@@ -14,7 +14,7 @@ function registerGateDigitizer(app, createClient, model) {
     const response = await createClient().models.generateContent({
       model,
       contents: [{role:'user', parts:[
-        {text:'Transcribe this ' + type + ' question verbatim. Return JSON with native (array of stem followed by four choices in printed order, stem only for NAT), hasDiagram (boolean), figureSvg (standalone SVG of a stem figure when present), optionSvgs (four SVG strings or null entries for option figures). Use delimited LaTeX for mathematics. Preserve all printed labels and units. Never solve or include an answer key. If content cannot be transcribed faithfully, return {}.'},
+        {text:'Transcribe this ' + type + ' question verbatim. Return JSON with native (array of stem followed by four choices in printed order, stem only for NAT), hasDiagram (boolean), figureSvg (standalone SVG of a stem figure when present), optionSvgs (four SVG strings or null entries for option figures). Use delimited LaTeX in the stem and choice text. Inside SVG, use plain Unicode labels, fit all labels inside the viewBox, and reproduce the exact geometry, connections and dimensions. Preserve all printed labels and units. Never solve or include an answer key. If content cannot be transcribed faithfully, return {}.'},
         {inlineData:{mimeType:'image/webp', data:image}}
       ]}],
       config:{responseMimeType:'application/json', maxOutputTokens:8192, abortSignal:AbortSignal.timeout(25000)}
