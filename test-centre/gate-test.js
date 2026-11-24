@@ -614,7 +614,7 @@ try {
   if (!set?.questions.length) throw new Error();
   const back = new URLSearchParams({mode, set:setId});
   if (year) back.set('year', year);
-  $('back-to-tests').href = isCS ? './gate-cs.html' : './?' + back + '#/gate-papers';
+  $('back-to-tests').href = './?' + back + (isCS ? '#/gate-cs-papers' : '#/gate-papers');
   document.title = set.name + ' · GATE Test Centre';
   $('title').textContent = set.name;
   if (!isCS) await loadDigitizedSet(set);

@@ -27,6 +27,10 @@ const kinds = {paper:'paper set', unit:'unit', topic:'topic'};
 let mode = Object.hasOwn(kinds, params.get('mode')) ? params.get('mode') :
   location.hash === '#/gate-papers' ? 'paper' : 'topic';
 let papers = [], sets = [], page = 0;
+let activeTrack = '', loadToken = 0, ecMode = mode, csPromise;
+const isCS = () => activeTrack === 'gate-cs';
+function loadCS(){if(!csPromise)csPromise=fetch('gate-cs-index.json?v=1').then(r=>{if(!r.ok)throw Error('CS index unavailable');return r.json();}).catch(e=>{csPromise=null;throw e;});return csPromise;}
+function stats(){if(!isCS()||!papers.length||!document.querySelector('[data-track="gate-cs"].is-active'))return;const all=makeSets(papers,'paper','');const states=all.map(s=>inspectSavedAttempt(s,'paper',''));const count=states.filter(s=>s?.review).length, progress=states.filter(s=>s&&!s.review).length;const el=document.getElementById('home-stats');if(!el)return;el.replaceChildren(...[[all.length,'Tests'],[all.reduce((n,s)=>n+s.questions.length,0),'Questions'],[count,'Attempted'],[progress,'In progress']].map(([v,l])=>{const d=document.createElement('div');d.className='stat';const b=document.createElement('b'),span=document.createElement('span');b.textContent=v;span.textContent=l;d.append(b,span);return d;}));}
 
 function createCard(set) {
   const card = template.content.firstElementChild.cloneNode(true);
@@ -94,6 +98,7 @@ function renderPage() {
   prev.disabled = page === 0;
   next.disabled = page + 1 >= pages;
   archive.querySelector('#gate-page').textContent = 'Page ' + (page + 1) + ' of ' + pages;
+  stats();
 }
 
 function selectMode(returnTo) {
@@ -125,7 +130,9 @@ function turnPage(delta) {
 prev.addEventListener('click', () => turnPage(-1));
 next.addEventListener('click', () => turnPage(1));
 modeButtons.forEach(button => button.addEventListener('click', () => {
+  if (isCS() && button.dataset.gateMode !== 'paper') return;
   mode = button.dataset.gateMode;
+  if (!isCS()) ecMode=mode;
   selectMode();
 }));
 year.addEventListener('change', () => selectMode());
@@ -133,11 +140,35 @@ group.addEventListener('change', () => { page = 0; renderPage(); });
 window.addEventListener('aakash:account-state', () => { if (papers.length) renderPage(); });
 window.addEventListener('pageshow', event => { if (event.persisted && papers.length) renderPage(); });
 
-summary.textContent = 'Loading practice tests…';
-loadPapers().then(data => {
-  papers = data;
-  const years = new Set(data.map(paper => String(paper.year)));
-  for (const value of years) year.add(new Option(value, value));
-  if (years.has(params.get('year'))) year.value = params.get('year');
-  selectMode(params.get('set'));
-}).catch(() => { summary.textContent = 'Unable to load the question bank. Reload to try again.'; });
+async function switchTrack(track, initial=false) {
+  if (!['gate','gate-cs'].includes(track)) return;
+  if (activeTrack===track && !initial) {stats();return;}
+  if (activeTrack==='gate') ecMode=mode;
+  activeTrack=track;
+  const cs=isCS(), token=++loadToken;
+  mode=cs?'paper':ecMode;
+  archive.querySelector('#gate-archive-kicker').textContent=cs?'GATE CS · Previous-year papers':'GATE EC · 2007–2026';
+  archive.querySelector('#gate-archive-syllabus').hidden=cs;
+  archive.querySelector('#gate-ec-scoring').hidden=cs;
+  archive.querySelector('#gate-cs-note').hidden=!cs;
+  modeButtons.forEach(b=>b.hidden=cs&&b.dataset.gateMode!=='paper');
+  search.value=cs?(document.getElementById('search')?.value||''):'';
+  statusFilter.value='';
+  year.replaceChildren(new Option('All years',''));
+  papers=[];sets=[];grid.replaceChildren();pagination.hidden=true;
+  summary.textContent='Loading practice tests…';
+  try{
+    const data=await (cs?loadCS():loadPapers());
+    if(token!==loadToken)return;
+    papers=data;
+    const years=new Set(data.map(p=>String(p.year)));
+    for(const v of years)year.add(new Option(v,v));
+    if(initial&&years.has(params.get('year')))year.value=params.get('year');
+    selectMode(initial?params.get('set'):undefined);
+  }catch{if(token===loadToken)summary.textContent='Unable to load the question bank. Reload to try again.';}
+}
+window.addEventListener('tclab:gate-track',e=>switchTrack(e.detail.track));
+window.addEventListener('tclab:gate-search',e=>{if(isCS()){search.value=e.detail;page=0;renderPage();}});
+window.addEventListener('tclab:cs-stats',stats);
+const initialTrack=document.querySelector('#exam-track-bar .tc-track-btn.is-active')?.dataset.track;
+switchTrack(location.hash==='#/gate-cs-papers'||initialTrack==='gate-cs'?'gate-cs':'gate',true);

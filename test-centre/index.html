@@ -16,6 +16,7 @@
   <script src="../theme-sync.js?v=20261121-t1"></script>
   <link rel="stylesheet" href="styles.css?v=20261123-pdf-auto2">
   <link rel="stylesheet" href="gate-pyp.css?v=studio2">
+  <style>.tc-exam-gate-btns{grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr))} #screen-home [hidden]{display:none!important}</style>
 </head>
 <body>
 
@@ -58,6 +59,10 @@
             <span class="tc-track-code">GATE EC</span>
             <small>ECE · 10 subjects</small>
           </button>
+          <button type="button" class="tc-track-btn" data-track="gate-cs" role="tab" aria-selected="false">
+            <span class="tc-track-code">GATE CS</span>
+            <small>Computer Science · PYQs</small>
+          </button>
           <button type="button" class="tc-track-btn" data-track="neet" role="tab" aria-selected="false">
             <span class="tc-track-code">NEET UG</span>
             <small>Bio · Physics · Chem</small>
@@ -67,7 +72,6 @@
             <small>Life Sci · Zoology · PYPs</small>
           </button>
         </div>
-        <p class="tc-exam-gate-copy"><a href="gate-cs.html" class="ws-pill">GATE CS · 2011–2025 · 17 source files →</a></p>
         <p class="tc-exam-gate-copy"><a href="gate-ee.html" class="ws-pill">GATE EE · 2011–2025 · 16 source files →</a></p>
       </section>
 
@@ -137,10 +141,10 @@
           <section class="gate-pyp" id="gate-pyp" aria-labelledby="gate-pyp-title" hidden>
             <header class="gate-pyp-header">
               <div>
-                <span class="section-kicker">GATE EC · 2007–2026</span>
+                <span class="section-kicker" id="gate-archive-kicker">GATE EC · 2007–2026</span>
                 <h2 id="gate-pyp-title">Previous-year practice tests</h2>
               </div>
-              <a href="../assets/gate-ec/EC-GATE-2027-syllabus.pdf" target="_blank" rel="noopener">2027 syllabus PDF ↗</a>
+              <a id="gate-archive-syllabus" href="../assets/gate-ec/EC-GATE-2027-syllabus.pdf" target="_blank" rel="noopener">2027 syllabus PDF ↗</a>
             </header>
             <div class="tc-view-pills" role="group" aria-label="Browse GATE papers">
               <button type="button" class="ws-pill is-active" data-gate-mode="topic" aria-pressed="true">Topic-wise</button>
@@ -172,7 +176,8 @@
               <span id="gate-page"></span>
               <button type="button" id="gate-next" aria-controls="gate-results">Next</button>
             </nav>
-            <details>
+            <p id="gate-cs-note" class="gate-pyp-summary" hidden>Only available interactive CS tests are listed here. Additional paper sets require conversion and verification.</p>
+            <details id="gate-ec-scoring">
               <summary>Questions and scoring</summary>
               <p>Paper tests preserve the printed question order. Topic and unit practice use one copy of the 2013 booklet variants. Syllabus tags are assigned from the question text and scans.</p>
               <p>Submit to review your answers. Paper scores use the question weights and MCQ penalties for the exam year. Questions with missing or disputed keys are available for self-review and excluded from scored marks.</p>
@@ -299,8 +304,8 @@
   <script src="ai-config.js?v=20261123-portable1"></script>
   <script src="ai-coach.js?v=20261124-history"></script>
   <script src="ai-generator.js?v=20261121-history3"></script>
-  <script type="module" src="gate-pyp.js?v=studio4"></script>
-  <script src="app.js?v=20261124-gate-tests"></script>
+  <script type="module" src="gate-pyp.js?v=unifiedcs2"></script>
+  <script src="app.js?v=unifiedcs2"></script>
   <script src="../ai-assistant.js?v=20261123-portable2" defer></script>
   <script src="../ai-tools.js?v=20261123-portable2" defer></script>
   <script defer src="../command-palette.js"></script>

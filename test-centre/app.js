@@ -94,8 +94,9 @@
     closeModal(false);
     if (run) { saveProgress(true); run = null; stopTimer(); }
     const hash = location.hash || '#/';
-    if (hash === '#/gate-papers') {
-      filterExam = 'gate';
+    if (hash === '#/gate-papers' || hash === '#/gate-cs-papers') {
+      filterExam = hash === '#/gate-cs-papers' ? 'gate-cs' : 'gate';
+      store.set(EXAM_STORE_KEY, filterExam);
       showHome();
       setWorkspaceView('pyp');
       document.getElementById('gate-pyp').scrollIntoView({block:'start'});
@@ -129,7 +130,7 @@
 
   /* ------------------------------------------------------------------- home */
   const EXAM_STORE_KEY = 'tclab.activeExam';
-  const TRACK_IDS = ['gate', 'neet', 'cuet-pg'];
+  const TRACK_IDS = ['gate', 'gate-cs', 'neet', 'cuet-pg'];
   const TRACK_META = {
     gate: {
       eyebrow: 'PRACTICE PORTAL · GATE 2027 ECE',
@@ -137,6 +138,11 @@
       ctaSub: 'Generate MCQs strictly from the official GATE 2027 EC syllabus.',
       railSub: 'GATE 2027 ECE Track',
       catalogHeading: 'GATE EC subject modules'
+    },
+    'gate-cs': {
+      eyebrow: 'PRACTICE PORTAL · GATE CS',
+      lede: 'Computer Science previous-year tests with the GATE question palette, timer, saved responses and answer review.',
+      ctaSub: '', railSub: 'GATE Computer Science Track', catalogHeading: 'GATE CS practice tests'
     },
     neet: {
       eyebrow: 'PRACTICE PORTAL · NEET UG',
@@ -182,9 +188,14 @@
     if ($('#catalog-heading')) $('#catalog-heading').textContent = meta.catalogHeading;
     $$('[data-view="pyp"]').forEach((btn) => {
       btn.hidden = filterExam === 'neet';
-      btn.textContent = filterExam === 'gate' ? 'GATE EC PYQs' : 'CUET PG Papers';
+      btn.textContent = filterExam === 'gate' ? 'GATE EC PYQs' : filterExam === 'gate-cs' ? 'GATE CS PYQs' : 'CUET PG Papers';
     });
-    setWorkspaceView(workspaceView);
+    const cs = filterExam === 'gate-cs';
+    $('.hero-cta-card').hidden = cs;
+    $('#subject-chips').closest('.tc-rail-group').hidden = cs;
+    $('[data-view="ai"], [data-view="tests"], [data-view="all"]').forEach(btn => btn.hidden = cs);
+    setWorkspaceView(cs ? 'pyp' : workspaceView);
+    window.dispatchEvent(new CustomEvent('tclab:gate-track', {detail:{track:filterExam}}));
   }
 
   function selectExamTrack(trackId, fromGenerator) {
@@ -198,7 +209,7 @@
     renderResume();
     renderCards();
     renderHomeStats();
-    if (!fromGenerator && generator && typeof generator.setExam === 'function') {
+    if (filterExam !== 'gate-cs' && !fromGenerator && generator && typeof generator.setExam === 'function') {
       generator.setExam(filterExam);
     }
   }
@@ -214,7 +225,7 @@
     renderResume();
     renderCards();
     renderHomeStats();
-    if (generator) {
+    if (generator && filterExam !== 'gate-cs') {
       generator.mount(
         EXAMS,
         registerGenerated,
@@ -233,6 +244,13 @@
   }
 
   function renderHomeStats() {
+    if (filterExam === 'gate-cs') {
+      $('#home-stats').replaceChildren();
+      $('#tc-meter').hidden = true;
+      window.dispatchEvent(new Event('tclab:cs-stats'));
+      return;
+    }
+    $('#tc-meter').hidden = false;
     const scopedTests = activeTrackTests();
     const scopedExams = EXAMS.filter((e) => matchesActiveTrack(e.id));
     const inProgress = scopedTests.filter((x) => progressOf(x.test.id)).length;
@@ -277,13 +295,15 @@
   }
 
   function renderExamTabs() {
-    const tabs = TRACK_IDS.map((id) => EXAMS.find((e) => e.id === id)).filter(Boolean);
+    const tabs = TRACK_IDS.map((id) => id === 'gate-cs' ? {id,name:'GATE CS',accent:'#6988dc'} : EXAMS.find((e) => e.id === id)).filter(Boolean);
     $('#exam-tabs').innerHTML = tabs.map((t) => {
       const active = t.id === filterExam ? ' is-active' : '';
       const style = ' style="--tab-accent:' + t.accent + '"';
       return '<button type="button" class="tab' + active + '" aria-pressed="' + (t.id === filterExam) + '" data-exam="' + esc(t.id) + '"' + style + '>' + esc(t.name) + '</button>';
     }).join('');
     $$('#exam-tabs .tab').forEach((btn) => btn.addEventListener('click', () => {
+      if (btn.dataset.exam === 'gate-cs') { go('#/gate-cs-papers'); return; }
+      if (location.hash === '#/gate-cs-papers') { history.replaceState(history.state,'',location.pathname+'#/'); workspaceView='all'; }
       selectExamTrack(btn.dataset.exam, false);
     }));
   }
@@ -914,7 +934,7 @@
   let workspaceView = 'all';
   function setWorkspaceView(view) {
     const allowPyp = filterExam !== 'neet';
-    workspaceView = ['all', 'tests', 'ai'].includes(view) || (view === 'pyp' && allowPyp) ? view : 'all';
+    workspaceView = filterExam === 'gate-cs' ? 'pyp' : (['all', 'tests', 'ai'].includes(view) || (view === 'pyp' && allowPyp) ? view : 'all');
     $$('[data-view]').forEach((btn) => {
       const on = btn.dataset.view === workspaceView;
       btn.classList.toggle('is-active', on);
@@ -923,12 +943,12 @@
     const aiSec = $('#ai-generator');
     const pypSec = $('.pyp-library');
     const catSec = $('#tests-catalog');
-    if (aiSec) aiSec.hidden = !(workspaceView === 'all' || workspaceView === 'ai');
+    if (aiSec) aiSec.hidden = filterExam === 'gate-cs' || !(workspaceView === 'all' || workspaceView === 'ai');
     const showPyp = workspaceView === 'all' || workspaceView === 'pyp';
     if (pypSec) pypSec.hidden = !(filterExam === 'cuet-pg' && showPyp);
     const gatePyp = $('#gate-pyp');
-    if (gatePyp) gatePyp.hidden = !(filterExam === 'gate' && showPyp);
-    if (catSec) catSec.hidden = !(workspaceView === 'all' || workspaceView === 'tests' || workspaceView === 'pyp');
+    if (gatePyp) gatePyp.hidden = !(['gate','gate-cs'].includes(filterExam) && showPyp);
+    if (catSec) catSec.hidden = filterExam === 'gate-cs' || !(workspaceView === 'all' || workspaceView === 'tests' || workspaceView === 'pyp');
     renderCards();
   }
 
@@ -936,6 +956,8 @@
   function wire() {
     $$('#exam-track-bar .tc-track-btn').forEach((btn) => btn.addEventListener('click', () => {
       if ($('#screen-home').hidden) go('#/');
+      if (btn.dataset.track === 'gate-cs') { go('#/gate-cs-papers'); return; }
+      if (location.hash === '#/gate-cs-papers') { history.replaceState(history.state,'',location.pathname+'#/'); workspaceView='all'; }
       selectExamTrack(btn.dataset.track, false);
     }));
     $$('[data-view]').forEach((btn) => btn.addEventListener('click', () => {
@@ -949,6 +971,7 @@
 
     $('#search').addEventListener('input', (e) => {
       searchTerm = e.target.value;
+      if (filterExam === 'gate-cs') { window.dispatchEvent(new CustomEvent('tclab:gate-search',{detail:searchTerm})); return; }
       if (workspaceView !== 'all' && workspaceView !== 'tests' && searchTerm.trim()) {
         setWorkspaceView('tests');
       }
