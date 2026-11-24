@@ -305,7 +305,8 @@ function syncReviewPalette() {
     cell.hidden = !match;
     if (attempt.finished) {
       cell.dataset.outcome = outcome(set.questions[i]);
-      cell.setAttribute('aria-label',cell.getAttribute('aria-label')+' · '+outcome(set.questions[i]));
+      const entry = set.questions[i];
+      cell.setAttribute('aria-label', 'Question ' + (i + 1) + ' · ' + outcome(entry));
     } else delete cell.dataset.outcome;
   }
 }
