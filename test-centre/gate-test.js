@@ -1,7 +1,7 @@
 import {renderCSQuestion} from './gate-cs-reader.js?v=3';
 import {attemptKey, loadPapers, makeSets, units} from './gate-library.js?v=archive4';
 
-import {loadDigitizedSet, restoreTranscription, requestTranscription} from './gate-digitization.js?v=banks1';
+import {loadDigitizedSet, restoreTranscription, requestTranscription} from './gate-digitization.js?v=printed1';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -132,22 +132,12 @@ function showPrompt(entry) {
     p.textContent = entry.question.native[0];
     prompt.append(p);
   }
-  if (entry.question.figure || entry.question.digitizedFigure) {
+  if (entry.question.figure) {
     const diagram = new Image();
-    diagram.src = entry.question.figure?.file || entry.question.digitizedFigure;
-    diagram.alt = entry.question.figure?.alt || 'AI-transcribed diagram; compare with the original question.';
+    diagram.src = entry.question.figure.file;
+    diagram.alt = entry.question.figure.alt || 'Original question diagram';
     diagram.className = 'gt-diagram';
-    const view = imageView(diagram, 'diagram');
-    if (entry.question.figure) prompt.append(view);
-    else {
-      const alternate = document.createElement('details');
-      const caption = document.createElement('summary');
-      caption.textContent = 'Compare AI-redrawn diagram';
-      // Some exported SVGs are malformed. The printed figure stays visible.
-      diagram.addEventListener('error', () => alternate.remove(), {once:true});
-      alternate.append(caption, view);
-      prompt.append(alternate);
-    }
+    prompt.append(imageView(diagram, 'diagram'));
   }
   const source = document.createElement(entry.question.native ? 'details' : 'div');
   if (entry.question.native) {
@@ -261,17 +251,6 @@ function showControls(entry) {
         text.className = 'opt-text';
         text.textContent = q.native[i + 1];
         label.append(text);
-      }
-      if (q.digitizedOptions?.[i]) {
-        const img = new Image();
-        img.src = q.digitizedOptions[i];
-        img.alt = 'Transcribed diagram for option ' + letter;
-        img.style.maxWidth = '100%';
-        img.style.maxHeight = '180px';
-        const figure = document.createElement('span');
-        figure.className = 'gt-option-figure';
-        figure.append(img, 'AI redrawing · see printed option');
-        label.append(figure);
       }
       controls.append(label);
     }

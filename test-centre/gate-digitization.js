@@ -1,5 +1,5 @@
-import {applyDigitizedRecord} from './gate-transcription.mjs';
-export {applyDigitizedRecord, svgImageSource} from './gate-transcription.mjs';
+import {applyDigitizedRecord} from './gate-transcription.mjs?v=printed1';
+export {applyDigitizedRecord, svgImageSource} from './gate-transcription.mjs?v=printed1';
 
 // Bundled Google AI Studio transcriptions. Official question metadata and keys
 // remain in gate-pyp-index.json; never replace them with generated answers.

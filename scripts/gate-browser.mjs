@@ -130,10 +130,10 @@ try {
   assert.equal(calls,0);
   await page.locator('#digitize').click();
   await page.locator('#prompt mjx-container').waitFor();
-  await page.waitForFunction(() => document.querySelector('#controls img')?.naturalWidth > 0);
+  await page.waitForFunction(() => document.querySelector('#prompt details[open] img')?.naturalWidth > 0);
+  assert.equal(await page.locator('#controls img').count(),0);
+  assert.equal(await page.getByText('Compare AI-redrawn diagram').count(),0);
   assert.equal(await page.locator('#prompt details').last().getAttribute('open'),'');
-  await page.getByText('Compare AI-redrawn diagram').click();
-  await page.waitForFunction(() => document.querySelector('.gt-diagram')?.naturalWidth > 0);
   await page.getByRole('button',{name:'Enlarge image',exact:true}).click();
   await page.locator('#image-fit').click();
   await page.keyboard.press('Escape');
@@ -172,7 +172,7 @@ try {
   assert.match(await page.locator('#breakdown').textContent(),/dependent on a preceding answer/);
   console.log('PASS all 130 original question images, theme switch, timer warning, expiry and historical deductions');
   assert.deepEqual(errors,[]);
-  console.log('PASS transcript cache, manual refresh, MathJax, SVG stem/options, original zoom, AI explanation and practice modes');
+  console.log('PASS transcript cache, manual refresh, MathJax, original printed figures, original zoom, AI explanation and practice modes');
 } finally {
   await browser.close();
   await new Promise(resolve => server.close(resolve));

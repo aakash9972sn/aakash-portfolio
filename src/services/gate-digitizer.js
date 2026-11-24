@@ -5,9 +5,7 @@ const outputSchema = {
   properties:{
     native:{type:'ARRAY',items:{type:'STRING'}},
     hasDiagram:{type:'BOOLEAN'},
-    usePrintedFigures:{type:'BOOLEAN'},
-    figureSvg:{type:'STRING',nullable:true},
-    optionSvgs:{type:'ARRAY',items:{type:'STRING',nullable:true},nullable:true}
+    usePrintedFigures:{type:'BOOLEAN'}
   },
   required:['native','hasDiagram','usePrintedFigures']
 };
@@ -25,7 +23,7 @@ function registerGateDigitizer(app, createClient, model) {
     const response = await createClient().models.generateContent({
       model,
       contents: [{role:'user', parts:[
-        {text:'Transcribe this ' + type + ' question verbatim. Return JSON with native (array of stem followed by four choices in printed order, stem only for NAT), hasDiagram (boolean), figureSvg (standalone SVG of a stem figure when present), optionSvgs (four SVG strings or null entries for option figures). Use delimited LaTeX in the stem and choice text. Inside SVG, use plain Unicode labels, fit all labels inside the viewBox, and reproduce the exact geometry, connections and dimensions. Preserve all printed labels and units. Never solve or include an answer key. Set usePrintedFigures to true if a diagram or graphical choice cannot be faithfully redrawn. In that case omit the uncertain SVG, transcribe the visible text, and refer to the corresponding printed option for a graphical choice. If the question text cannot be read, return an empty native array.'},
+        {text:'Transcribe this ' + type + ' question verbatim. Return native (stem followed by four choices in printed order, stem only for NAT), hasDiagram (boolean), and usePrintedFigures (boolean). Use delimited LaTeX for math only. Never redraw, generate, trace, or describe a replacement for a circuit, graph, table, waveform, figure or graphical option. The original printed image is authoritative. Set hasDiagram and usePrintedFigures true whenever any graphic or table is needed, including graphical options. For a graphical option write See printed option followed by its letter. Preserve all labels, values, units and option order. Never solve or include an answer key. If text is unreadable return an empty native array.'},
         {inlineData:{mimeType:'image/webp', data:image}}
       ]}],
       config:{
@@ -33,11 +31,10 @@ function registerGateDigitizer(app, createClient, model) {
         httpOptions:{timeout:40000}, abortSignal:AbortSignal.timeout(40000)
       }
     });
-    const {applyDigitizedRecord} = await import('../../test-centre/gate-transcription.mjs');
-    const {native, hasDiagram, usePrintedFigures, figureSvg, optionSvgs} = JSON.parse(response.text);
-    const record = {native, hasDiagram, figureSvg, optionSvgs};
-    if (usePrintedFigures === true) record.usePrintedFigures = true;
-    if (typeof hasDiagram !== 'boolean' || !applyDigitizedRecord({question:{type}}, record)) {
+    const {applyDigitizedRecord, printedOnlyRecord} = await import('../../test-centre/gate-transcription.mjs');
+    const raw = JSON.parse(response.text);
+    const record = printedOnlyRecord(raw);
+    if (typeof raw?.hasDiagram !== 'boolean' || !applyDigitizedRecord({question:{type}}, record)) {
       throw new Error('Incomplete transcription');
     }
     return record;

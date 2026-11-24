@@ -15,7 +15,8 @@ test('digitized MCQ preserves official scoring metadata', async () => {
   assert.equal(applyDigitizedRecord(entry, sample), true);
   assert.deepEqual(entry.question.answers,['A']);
   assert.equal(entry.question.marks,2);
-  assert.match(entry.question.digitizedFigure,/^data:image\/svg\+xml/);
+  assert.equal(entry.question.digitizedFigure,undefined);
+  assert.equal(entry.question.usePrintedFigures,true);
 });
 test('valid NAT and diagram-only options are supported', async () => {
   const {applyDigitizedRecord} = await load();
@@ -92,11 +93,11 @@ test('concurrent transcription requests share an inference and refresh preserves
     const duplicate = send(question);
     release();
     for (const response of await Promise.all([pending,duplicate])) {
-      assert.deepEqual(await response.json(),sample);
+      assert.deepEqual(await response.json(),{native:sample.native,hasDiagram:true,usePrintedFigures:true});
     }
     assert.equal(calls,1);
     assert.equal((await send({...question,refresh:true})).status,502);
-    assert.deepEqual(await (await send(question)).json(),sample);
+    assert.deepEqual(await (await send(question)).json(),{native:sample.native,hasDiagram:true,usePrintedFigures:true});
     assert.equal(calls,2);
   } finally {
     release();
