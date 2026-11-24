@@ -1,7 +1,7 @@
 import {renderCSQuestion} from './gate-cs-reader.js?v=1';
 import {attemptKey, loadPapers, makeSets, units} from './gate-library.js?v=archive4';
 
-import {loadDigitizedSet, restoreTranscription, requestTranscription} from './gate-digitization.js?v=studio6';
+import {loadDigitizedSet, restoreTranscription, requestTranscription} from './gate-digitization.js?v=banks1';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -115,7 +115,7 @@ $('image-fit').onclick = () => {
 };
 $('image-viewer').addEventListener('close', () => $('image-scroll').replaceChildren());
 
-async function showPrompt(entry) {
+function showPrompt(entry) {
   const token = ++renderId;
   const prompt = $('prompt');
   prompt.replaceChildren();
@@ -152,26 +152,38 @@ async function showPrompt(entry) {
   stage.textContent = 'Loading question…';
   source.append(stage);
   prompt.append(source);
-  try {
-    const img = await questionImage(entry);
-    if (token !== renderId) return;
-    stage.replaceChildren(imageView(img, 'image'));
-    const next = set.questions[attempt.current + 1];
-    if (next && !navigator.connection?.saveData) imageBatch(next, next.index).catch(() => {});
-    if (entry.question.linkedPrevious) {
-      const details = document.createElement('details');
-      const summary = document.createElement('summary');
-      summary.textContent = 'View preceding linked question';
-      details.append(summary, imageView(await questionImage(entry, entry.index - 1), 'image'));
-      if (token === renderId) prompt.prepend(details);
+  if (entry.question.native && !source.open && !entry.question.linkedPrevious) {
+    source.addEventListener('toggle', function onOpen() {
+      if (!source.open) return;
+      source.removeEventListener('toggle', onOpen);
+      if (token === renderId) loadOriginal();
+    });
+    return;
+  }
+  loadOriginal();
+
+  async function loadOriginal() {
+    try {
+      const img = await questionImage(entry);
+      if (token !== renderId) return;
+      stage.replaceChildren(imageView(img, 'image'));
+      const next = set.questions[attempt.current + 1];
+      if (next && !next.question.native && !navigator.connection?.saveData) imageBatch(next, next.index).catch(() => {});
+      if (entry.question.linkedPrevious) {
+        const details = document.createElement('details');
+        const summary = document.createElement('summary');
+        summary.textContent = 'View preceding linked question';
+        details.append(summary, imageView(await questionImage(entry, entry.index - 1), 'image'));
+        if (token === renderId) prompt.prepend(details);
+      }
+    } catch {
+      if (token !== renderId) return;
+      const retry = document.createElement('button');
+      retry.className = 'btn btn-ghost';
+      retry.textContent = 'Retry loading question';
+      retry.onclick = () => { stage.textContent = 'Loading question…'; loadOriginal(); };
+      stage.replaceChildren(retry);
     }
-  } catch {
-    if (token !== renderId) return;
-    const retry = document.createElement('button');
-    retry.className = 'btn btn-ghost';
-    retry.textContent = 'Retry loading question';
-    retry.onclick = () => showPrompt(entry);
-    stage.replaceChildren(retry);
   }
 }
 function paintCell(button, entry, index) {

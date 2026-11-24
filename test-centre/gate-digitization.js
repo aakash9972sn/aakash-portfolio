@@ -1,7 +1,7 @@
 import {applyDigitizedRecord} from './gate-transcription.mjs';
 export {applyDigitizedRecord, svgImageSource} from './gate-transcription.mjs';
 
-// Optional Google AI Studio transcriptions. Official question metadata and keys
+// Bundled Google AI Studio transcriptions. Official question metadata and keys
 // remain in gate-pyp-index.json; never replace them with generated answers.
 const supported = new Set(['EC2025', 'EC2026']);
 const cache = new Map();
@@ -11,7 +11,7 @@ function getPaper(id) {
   if (!cache.has(id)) {
     cache.set(id, (async () => {
       try {
-        const res = await fetch('gate-digitized/' + encodeURIComponent(id) + '.json?v=studio1',
+        const res = await fetch('gate-digitized/' + encodeURIComponent(id) + '.json?v=2025-2026-1',
           {signal: AbortSignal.timeout(6000)});
         if (!res.ok) return null;
         const data = await res.json();

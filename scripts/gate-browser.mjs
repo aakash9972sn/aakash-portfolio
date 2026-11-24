@@ -62,6 +62,20 @@ try {
     },paper.id);
     assert.equal(imageCount,65);
     assert.equal(await page.locator('#palette button').count(), 65);
+    // This imported question must be readable on first visit, without AI or a scan.
+    await jump(5,mobile);
+    const stem = page.locator('#prompt > p');
+    assert.ok((await stem.innerText()).trim().length > 0);
+    assert.equal(await page.locator('#prompt img:visible').count(),0);
+    assert.equal(await page.locator('#controls .opt-text').count(),4);
+    if (year === 2026) {
+      assert.match(await stem.innerText(),/Synonym of recognize/);
+      assert.deepEqual(await page.locator('#controls .opt-text').allTextContents(),['CHIN','COIN','ITCH','NOSE']);
+    }
+    assert.equal(calls,0);
+    await page.locator('#prompt summary').click();
+    await page.locator('#prompt img').waitFor();
+    await page.locator('#prompt img').evaluate(el => el.decode());
     const theme = await page.locator('html').getAttribute('data-theme');
     await page.locator('[data-theme-toggle]').click();
     assert.notEqual(await page.locator('html').getAttribute('data-theme'),theme);

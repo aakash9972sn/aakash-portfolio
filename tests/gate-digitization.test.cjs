@@ -40,7 +40,7 @@ test('incomplete transcription cannot replace original content', async () => {
 });
 for (const id of ['EC2025','EC2026']) {
   const filename = path.join(root,'gate-digitized',id+'.json');
-  test(id+' dataset covers all questions with original or imported native text', {skip:!fs.existsSync(filename) ? 'Upload the original AI Studio JSON dataset first' : false}, async () => {
+  test(id+' dataset covers all questions with original or imported native text', async () => {
     const {applyDigitizedRecord} = await load();
     const papers = JSON.parse(fs.readFileSync(path.join(root,'gate-pyp-index.json'),'utf8'));
     const paper = papers.find(p => p.id === id);
