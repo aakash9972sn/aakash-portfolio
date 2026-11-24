@@ -41,7 +41,7 @@
       <nav class="workspace-nav" id="workspace-nav" aria-label="Workspace sections">
         <button type="button" class="ws-tab is-active" data-view="all" aria-pressed="true">Overview</button>
         <button type="button" class="ws-tab" data-view="tests" aria-pressed="false">Practice Tests</button>
-        <button type="button" class="ws-tab" id="nav-pyp-btn" data-view="pyp" aria-pressed="false" hidden>10 PYP Papers</button>
+        <button type="button" class="ws-tab" id="nav-pyp-btn" data-view="pyp" aria-pressed="false">PYQs</button>
         <button type="button" class="ws-tab" data-view="ai" aria-pressed="false">AI Generator</button>
       </nav>
 
@@ -136,7 +136,7 @@
             <div class="tc-view-pills" role="group" aria-label="Quick view">
               <button type="button" class="ws-pill is-active" data-view="all">All</button>
               <button type="button" class="ws-pill" data-view="tests">Tests</button>
-              <button type="button" class="ws-pill" id="pill-pyp-btn" data-view="pyp" hidden>PYPs (10)</button>
+              <button type="button" class="ws-pill" id="pill-pyp-btn" data-view="pyp">PYQs</button>
               <button type="button" class="ws-pill" data-view="ai">AI Sets</button>
             </div>
           </div>
@@ -190,6 +190,11 @@
             </details>
           </section>
 
+          <section id="neet-pyp-notice" class="gate-pyp" aria-labelledby="neet-pyp-title" hidden>
+            <header class="gate-pyp-header"><div><span class="section-kicker">NEET UG</span><h2 id="neet-pyp-title">Previous-year questions</h2></div></header>
+            <p>No NEET previous-year papers have been added yet. Subject-wise practice tests are available.</p>
+            <button type="button" class="btn btn-primary" id="neet-pyp-practice">Browse practice tests</button>
+          </section>
           <section id="branch-ai-notice" class="gate-pyp" aria-labelledby="branch-ai-title" hidden>
             <header class="gate-pyp-header"><div><span class="section-kicker" id="branch-ai-label">GATE</span><h2 id="branch-ai-title">AI Generator</h2></div></header>
             <p>Custom AI test generation is not yet configured for this branch. Its own syllabus and subject mappings are required; questions from another branch will not be generated here.</p>
@@ -315,7 +320,7 @@
   <script src="ai-coach.js?v=branchnav1"></script>
   <script src="ai-generator.js?v=20261121-history3"></script>
   <script type="module" src="gate-pyp.js?v=branchnav-fix2"></script>
-  <script src="app.js?v=header-consistent4"></script>
+  <script src="app.js?v=uniform-nav5"></script>
   <script src="../ai-assistant.js?v=20261123-portable2" defer></script>
   <script src="../ai-tools.js?v=20261123-portable2" defer></script>
   <script defer src="../command-palette.js"></script>

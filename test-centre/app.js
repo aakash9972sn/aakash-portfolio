@@ -218,9 +218,10 @@
     if ($('#hero-cta-sub')) $('#hero-cta-sub').textContent = meta.ctaSub;
     if ($('#rail-sub')) $('#rail-sub').textContent = meta.railSub;
     if ($('#catalog-heading')) $('#catalog-heading').textContent = meta.catalogHeading;
+    // Navigation is identical across all exam streams; only content is scoped.
     $$('[data-view="pyp"]').forEach((btn) => {
-      btn.hidden = filterExam === 'neet';
-      btn.textContent = filterExam === 'gate' ? 'GATE EC PYQs' : filterExam === 'gate-cs' ? 'GATE CS PYQs' : filterExam === 'gate-ee' ? 'GATE EE PYQs' : 'CUET PG Papers';
+      btn.hidden = false;
+      btn.textContent = 'PYQs';
     });
     const cs = isPaperOnly(filterExam);
     $('.hero-cta-card').hidden = cs;
@@ -964,8 +965,7 @@
   /* ------------------------------------------------------------------- workspace & theme */
   let workspaceView = 'all';
   function setWorkspaceView(view) {
-    const allowPyp = filterExam !== 'neet';
-    workspaceView = ['all', 'tests', 'ai'].includes(view) || (view === 'pyp' && allowPyp) ? view : 'all';
+    workspaceView = ['all', 'tests', 'pyp', 'ai'].includes(view) ? view : 'all';
     $$('[data-view]').forEach((btn) => {
       const on = btn.dataset.view === workspaceView;
       btn.classList.toggle('is-active', on);
@@ -985,7 +985,11 @@
     if (pypSec) pypSec.hidden = !(filterExam === 'cuet-pg' && showPyp);
     const gatePyp = $('#gate-pyp');
     if (gatePyp) gatePyp.hidden = !(isGateTrack(filterExam) && (showPyp || (paperOnly && workspaceView === 'tests')));
-    if (catSec) catSec.hidden = isPaperOnly(filterExam) || !(workspaceView === 'all' || workspaceView === 'tests' || workspaceView === 'pyp');
+    const neetWithoutPYQs = filterExam === 'neet' && workspaceView === 'pyp' &&
+      !activeTrackTests().some(x => x.test.pyp);
+    const neetNotice = $('#neet-pyp-notice');
+    if (neetNotice) neetNotice.hidden = !neetWithoutPYQs;
+    if (catSec) catSec.hidden = neetWithoutPYQs || isPaperOnly(filterExam) || !(workspaceView === 'all' || workspaceView === 'tests' || workspaceView === 'pyp');
     renderCards();
   }
 
@@ -1001,6 +1005,10 @@
       if ($('#screen-home').hidden) go('#/');
       setWorkspaceView(btn.dataset.view);
     }));
+    $('#neet-pyp-practice')?.addEventListener('click', () => {
+      setWorkspaceView('tests');
+      $('#tests-catalog')?.scrollIntoView({behavior:'smooth',block:'start'});
+    });
     $('#branch-ai-practice')?.addEventListener('click', () => {
       setWorkspaceView('tests');
       $('#gate-pyp')?.scrollIntoView({behavior:'smooth',block:'start'});
