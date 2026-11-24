@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 246" width="440" height="338" role="img" aria-labelledby="title desc">
+  <title id="title">Pole-zero plot</title>
+  <desc id="desc">Two crosses on the negative real axis. Two open circles just left of the imaginary axis, symmetric above and below the real axis.</desc>
+  <rect width="320" height="246" fill="white"/>
+  <g fill="none" stroke="#17191c" stroke-width="2.5" stroke-linecap="round">
+    <path d="M20 123H289 M207 228V18"/>
+    <path d="m52 118 10 10m0-10-10 10m65-10 10 10m0-10-10 10"/>
+    <circle cx="190" cy="53" r="5"/>
+    <circle cx="190" cy="193" r="5"/>
+  </g>
+  <g fill="#17191c">
+    <path d="m294 123-12-5 3 5-3 5z M207 12l-5 12 5-3 5 3z"/>
+    <g font-family="Georgia, serif" font-style="italic" font-size="22">
+      <text x="215" y="33">jω</text><text x="271" y="110">σ</text>
+    </g>
+  </g>
+</svg>

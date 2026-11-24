@@ -1,4 +1,4 @@
-import {attemptKey, loadPapers, makeSets, units} from './gate-library.js?v=cards2';
+import {attemptKey, loadPapers, makeSets, units} from './gate-library.js?v=reader1';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -58,7 +58,7 @@ async function questionImage(entry, index = entry.index) {
   const part = entry.paper.id + '-' + Math.floor(index / 8);
   if (!cachedImages.has(part)) {
     if (cachedImages.size >= 4) cachedImages.delete(cachedImages.keys().next().value);
-    cachedImages.set(part, fetch('gate-papers/' + part + '.json').then(res => {
+    cachedImages.set(part, fetch('gate-papers/' + part + '.json?v=reader1').then(res => {
       if (!res.ok) throw new Error('Image request failed');
       return res.json();
     }).catch(error => { cachedImages.delete(part); throw error; }));
@@ -70,6 +70,35 @@ async function questionImage(entry, index = entry.index) {
   img.src = 'data:image/webp;base64,' + batch[index % 8];
   return img;
 }
+function imageView(img, name) {
+  const frame = document.createElement('div');
+  frame.className = 'gt-image';
+  const enlarge = document.createElement('button');
+  enlarge.type = 'button';
+  enlarge.className = 'btn btn-ghost';
+  enlarge.textContent = 'Enlarge ' + name;
+  enlarge.onclick = () => {
+    const viewport = $('image-scroll');
+    const copy = img.cloneNode();
+    viewport.classList.remove('fit');
+    viewport.style.setProperty('--zoom-width', Math.ceil(Math.max(img.naturalWidth, img.clientWidth * 1.5, 800)) + 'px');
+    viewport.replaceChildren(copy);
+    $('image-title').textContent = name === 'diagram' ? 'Question diagram' : 'Question image';
+    $('image-fit').textContent = 'Fit to width';
+    $('image-viewer').showModal();
+    viewport.scrollTo(0, 0);
+  };
+  frame.append(img, enlarge);
+  return frame;
+}
+
+$('image-fit').onclick = () => {
+  const fit = $('image-scroll').classList.toggle('fit');
+  $('image-fit').textContent = fit ? 'Enlarge' : 'Fit to width';
+  $('image-scroll').scrollTo(0, 0);
+};
+$('image-viewer').addEventListener('close', () => $('image-scroll').replaceChildren());
+
 async function showPrompt(entry) {
   const token = ++renderId;
   const prompt = $('prompt');
@@ -78,6 +107,13 @@ async function showPrompt(entry) {
     const p = document.createElement('p');
     p.textContent = entry.question.native[0];
     prompt.append(p);
+  }
+  if (entry.question.figure) {
+    const diagram = new Image();
+    diagram.src = entry.question.figure.file;
+    diagram.alt = entry.question.figure.alt;
+    diagram.className = 'gt-diagram';
+    prompt.append(imageView(diagram, 'diagram'));
   }
   const source = document.createElement(entry.question.native ? 'details' : 'div');
   if (entry.question.native) {
@@ -92,31 +128,40 @@ async function showPrompt(entry) {
   try {
     const img = await questionImage(entry);
     if (token !== renderId) return;
-    stage.replaceChildren(img);
+    stage.replaceChildren(imageView(img, 'image'));
     if (entry.question.linkedPrevious) {
       const details = document.createElement('details');
       const summary = document.createElement('summary');
       summary.textContent = 'View preceding linked question';
-      details.append(summary, await questionImage(entry, entry.index - 1));
+      details.append(summary, imageView(await questionImage(entry, entry.index - 1), 'image'));
       if (token === renderId) prompt.prepend(details);
     }
   } catch {
     if (token !== renderId) return;
     const retry = document.createElement('button');
+    retry.className = 'btn btn-ghost';
     retry.textContent = 'Retry loading question';
     retry.onclick = () => showPrompt(entry);
     stage.replaceChildren(retry);
   }
 }
+function paintCell(button, entry, index) {
+  const answered = valid(entry);
+  const marked = Boolean(attempt.flags[responseId(entry)]);
+  button.className = 'pcell';
+  if (marked || answered) button.classList.add(marked && answered ? 'is-answered-marked' : marked ? 'is-marked' : 'is-answered');
+  if (index === attempt.current) button.classList.add('is-current');
+  button.setAttribute('aria-label', 'Question ' + (index + 1) + (answered ? ', answered' : ', unanswered') + (marked ? ', marked for review' : ''));
+}
+
 function updateProgress() {
   const count = set.questions.filter(valid).length;
   $('progress').textContent = count + ' of ' + set.questions.length + ' answered';
   const entry = set.questions[attempt.current];
   const button = $('palette').children[attempt.current];
   const flag = Boolean(attempt.flags[responseId(entry)]);
-  button.classList.toggle('answered', valid(entry));
-  button.classList.toggle('flagged', flag);
-  button.setAttribute('aria-label', 'Question ' + (attempt.current + 1) + (valid(entry) ? ', answered' : ', unanswered') + (flag ? ', marked for review' : ''));
+  paintCell(button, entry, attempt.current);
+  $('flag').classList.toggle('is-on', flag);
   $('flag').setAttribute('aria-pressed', String(flag));
 }
 function record(entry, value) {
@@ -128,6 +173,7 @@ function showControls(entry) {
   const q = entry.question, current = response(entry);
   const controls = $('controls');
   controls.replaceChildren();
+  controls.classList.toggle('gt-letters', q.type !== 'NAT' && !q.native);
   $('answers').disabled = attempt.finished;
   $('answers').querySelector('legend').textContent = q.type === 'NAT' ? 'Enter a numerical answer' :
     q.type === 'MSQ' ? 'Select all correct options' : 'Select one option';
@@ -146,13 +192,25 @@ function showControls(entry) {
   } else {
     for (const [i, letter] of [...'ABCD'].entries()) {
       const label = document.createElement('label');
-      label.className = 'gt-choice';
+      label.className = 'opt';
       const input = document.createElement('input');
       input.type = q.type === 'MSQ' ? 'checkbox' : 'radio';
       input.name = 'answer'; input.value = letter; input.checked = current.includes(letter);
-      input.addEventListener('change', () => record(entry,
-        [...controls.querySelectorAll(':checked')].map(node => node.value).join('')));
-      label.append(input, q.native ? letter + '. ' + q.native[i+1] : letter);
+      label.classList.toggle('is-selected', input.checked);
+      input.addEventListener('change', () => {
+        for (const el of controls.querySelectorAll('input')) el.parentElement.classList.toggle('is-selected', el.checked);
+        record(entry, [...controls.querySelectorAll(':checked')].map(node => node.value).join(''));
+      });
+      const letterKey = document.createElement('span');
+      letterKey.className = 'opt-key';
+      letterKey.textContent = letter;
+      label.append(input, letterKey);
+      if (q.native) {
+        const text = document.createElement('span');
+        text.className = 'opt-text';
+        text.textContent = q.native[i + 1];
+        label.append(text);
+      }
       controls.append(label);
     }
   }
@@ -163,16 +221,22 @@ function showQuestion(focus = false) {
   $('source').textContent = [entry.paper.name, entry.question.number, entry.question.topic,
     units.get(entry.question.unit), entry.question.type].filter(Boolean).join(' · ');
   $('prev').disabled = attempt.current === 0;
-  $('next').disabled = attempt.current + 1 === set.questions.length;
+  const last = attempt.current + 1 === set.questions.length;
+  $('next').disabled = last && attempt.finished;
+  $('next').textContent = last && !attempt.finished ? 'Submit test' : attempt.finished ? 'Next →' : 'Save & Next';
   for (const id of ['flag', 'clear', 'submit']) $(id).hidden = attempt.finished;
-  $('palette').querySelector('[aria-current]')?.removeAttribute('aria-current');
+  const oldCell = $('palette').querySelector('[aria-current]');
+  oldCell?.removeAttribute('aria-current');
+  oldCell?.classList.remove('is-current');
   $('palette').children[attempt.current].setAttribute('aria-current','true');
+  $('question-content').classList.toggle('with-diagram', Boolean(entry.question.figure));
   showPrompt(entry);
   showControls(entry);
   const review = {correct:'Correct', incorrect:'Incorrect', skipped:'Skipped', linked:'No credit · preceding linked answer required', ungraded:'Review only · no scorable key'};
   $('feedback').textContent = attempt.finished ? review[outcome(entry)] +
     (entry.question.answers.length ? ' · Key: ' + keyLabel(entry.question) : '') : '';
   updateProgress();
+  revealCurrentCell();
   if (focus) $('position').focus();
 }
 function jump(i) {
@@ -181,6 +245,8 @@ function jump(i) {
   showQuestion(true);
 }
 function finish() {
+  if ($('image-viewer').open) $('image-viewer').close();
+  if ($('palette-panel').matches(':modal')) $('palette-panel').close();
   if ($('confirm').open) $('confirm').close('cancel');
   attempt.finished = true;
   clearInterval(clock);
@@ -222,12 +288,15 @@ function start() {
   set.questions.forEach((entry, i) => {
     const button = document.createElement('button');
     button.type = 'button'; button.textContent = i + 1;
-    button.classList.toggle('answered', valid(entry));
-    button.classList.toggle('flagged', Boolean(attempt.flags[responseId(entry)]));
-    button.onclick = () => jump(i);
+    paintCell(button, entry, i);
+    button.onclick = () => {
+      if ($('palette-panel').matches(':modal')) $('palette-panel').close();
+      jump(i);
+    };
     $('palette').append(button);
   });
   $('workbench').hidden = false;
+  syncPalette();
   if (attempt.finished) { finish(); return; }
   $('status').textContent = 'Progress saves on this device.';
   save();
@@ -245,17 +314,56 @@ function confirm(title, copy, action) {
 }
 $('confirm').addEventListener('close', () => { if ($('confirm').returnValue === 'yes') confirmAction(); });
 $('prev').onclick = () => jump(attempt.current - 1);
-$('next').onclick = () => jump(attempt.current + 1);
+$('next').onclick = () => {
+  if (attempt.current + 1 < set.questions.length) jump(attempt.current + 1);
+  else if (!attempt.finished) askSubmit();
+};
 $('flag').onclick = () => {
   const id = responseId(set.questions[attempt.current]);
   attempt.flags[id] = !attempt.flags[id];
   save(); updateProgress();
 };
 $('clear').onclick = () => { record(set.questions[attempt.current], ''); showQuestion(); };
-$('submit').onclick = () => confirm('Submit this test?', $('progress').textContent + '. Your responses will be saved for review.', finish);
+function askSubmit() {
+  if ($('palette-panel').matches(':modal')) $('palette-panel').close();
+  confirm('Submit this test?', $('progress').textContent + '. Your responses will be saved for review.', finish);
+}
+$('submit').onclick = askSubmit;
 $('retake').onclick = () => confirm('Start a new attempt?', 'This replaces the saved attempt for this test on this device.', () => {
   attempt = freshAttempt(); start();
 });
+const mobile = matchMedia('(max-width: 900px)');
+const palettePanel = $('palette-panel');
+function revealCurrentCell() {
+  const grid = $('palette');
+  const current = grid.querySelector('[aria-current]');
+  if (!palettePanel.open || !current) return;
+  const cell = current.getBoundingClientRect();
+  const frame = grid.getBoundingClientRect();
+  if (cell.top < frame.top + 4) grid.scrollTop += cell.top - frame.top - 4;
+  else if (cell.bottom > frame.bottom - 4) grid.scrollTop += cell.bottom - frame.bottom + 4;
+}
+function syncPalette() {
+  if (palettePanel.open) palettePanel.close();
+  if (!mobile.matches && !$('workbench').hidden) {
+    palettePanel.setAttribute('open', '');
+    revealCurrentCell();
+  }
+}
+$('palette-open').onclick = () => {
+  palettePanel.showModal();
+  $('palette-open').setAttribute('aria-expanded', 'true');
+  document.body.classList.add('palette-open');
+  $('palette-close').focus();
+  revealCurrentCell();
+};
+$('palette-close').onclick = () => palettePanel.close();
+palettePanel.addEventListener('close', () => {
+  if (palettePanel.matches(':modal')) return;
+  $('palette-open').setAttribute('aria-expanded', 'false');
+  document.body.classList.remove('palette-open');
+});
+mobile.addEventListener('change', syncPalette);
 try {
   const papers = await loadPapers();
   if (!['paper','topic','unit'].includes(mode)) throw new Error();
@@ -266,5 +374,15 @@ try {
   $('back-to-tests').href = './?' + back + '#/gate-papers';
   document.title = set.name + ' · GATE EC Test Centre';
   $('title').textContent = set.name;
-  attempt = restore(); start();
+  attempt = restore();
+  if (location.hash) {
+    const wanted = location.hash.slice(1);
+    const index = set.questions.findIndex(({paper, question}) =>
+      paper.id + '-' + question.number.replaceAll(' ', '') === wanted);
+    if (index >= 0) {
+      attempt.current = index;
+      history.replaceState(history.state, '', location.pathname + location.search);
+    }
+  }
+  start();
 } catch { $('status').textContent = 'This test could not open. Return to Test Centre and select a test.'; }

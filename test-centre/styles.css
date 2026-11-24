@@ -505,7 +505,7 @@ p { margin: 0; }
   background: var(--surface); color: var(--muted); cursor: pointer; font-size: .82rem; font-weight: 600;
 }
 .q-actions button:hover { color: var(--text); border-color: var(--text); }
-#btn-mark.is-on { color: #FFFFFF; background: var(--mark); border-color: var(--mark); }
+#btn-mark.is-on, .q-actions .is-on { color: #FFFFFF; background: var(--mark); border-color: var(--mark); }
 
 .q-nav-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
 .q-nav-row button {
@@ -513,8 +513,8 @@ p { margin: 0; }
   background: var(--surface-2); color: var(--text); cursor: pointer; font-weight: 700; font-size: .88rem;
 }
 .q-nav-row button:disabled { opacity: .4; cursor: not-allowed; }
-#btn-next { background: var(--gold); color: var(--gold-ink); border-color: var(--gold); }
-#btn-next:hover:not(:disabled) { background: var(--gold-hover); }
+#btn-next, .q-nav-row .q-next { background: var(--gold); color: var(--gold-ink); border-color: var(--gold); }
+#btn-next:hover:not(:disabled), .q-nav-row .q-next:hover:not(:disabled) { background: var(--gold-hover); }
 
 /* Palette (Obsidian Rail) */
 .palette {
@@ -544,11 +544,11 @@ p { margin: 0; }
 .pcell.is-current { outline: 2px solid var(--gold); outline-offset: 2px; color: #FFFFFF; }
 .palette-footer { border-top: 1px solid var(--obsidian-line); margin-top: 14px; padding-top: 14px; }
 .palette-summary { font-family: var(--mono); font-size: .7rem; color: #9CA3AF; margin-bottom: 10px; }
-#btn-submit {
+#btn-submit, .palette-submit {
   width: 100%; min-height: 44px; padding: 11px; border-radius: 8px; border: none;
   background: var(--gold); color: var(--gold-ink); font-weight: 800; cursor: pointer;
 }
-#btn-submit:hover { background: var(--gold-hover); }
+#btn-submit:hover, .palette-submit:hover { background: var(--gold-hover); }
 .palette-fab {
   display: none; position: fixed; right: 18px; bottom: 18px; z-index: 45; padding: 12px 18px;
   border-radius: 9px; border: none; background: var(--obsidian); color: var(--gold); font-weight: 700; box-shadow: var(--shadow);

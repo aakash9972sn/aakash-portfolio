@@ -7,7 +7,7 @@ export function attemptKey(mode, setId, year) {
 }
 
 export async function loadPapers() {
-  const response = await fetch('gate-pyp-index.json?v=tests1');
+  const response = await fetch('gate-pyp-index.json?v=reader1');
   if (!response.ok) throw new Error('Unable to load GATE papers');
   return response.json();
 }
