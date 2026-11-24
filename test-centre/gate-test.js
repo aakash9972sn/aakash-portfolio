@@ -440,7 +440,7 @@ function recordResult(counts, stats, score, maximum) {
   const ownerUid = window.AakashAccount?.getState()?.uid || null;
   const row = {
     ownerUid, testId:'gate-' + attempt.id, at:attempt.submittedAt, title:set.name,
-    exam:'GATE', examId:'gate', subject:'Electronics and Communication', subjectId:'gate-ec',
+    exam:'GATE', examId:'gate', subject:isCS ? 'Computer Science and Information Technology' : 'Electronics and Communication', subjectId:isCS ? 'gate-cs' : 'gate-ec',
     gate:{mode, set:setId, year, attempt:attempt.id}, score, total:maximum,
     correct:counts.correct, wrong:counts.incorrect, unattempted:counts.skipped,
     excluded:counts.linked + counts.ungraded,
