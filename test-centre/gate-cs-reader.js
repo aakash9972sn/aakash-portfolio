@@ -1,17 +1,9 @@
-// Render one cropped question, not a full PDF viewer.
+// Source-backed, question-level rendering; PDFs are never embedded as viewers.
 let pdfjsPromise;
 const docs=new Map();
-async function getPDF(url){
- if(!pdfjsPromise) pdfjsPromise=import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.mjs').then(m=>{m.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.mjs';return m;}).catch(e=>{pdfjsPromise=null;throw e;});
- if(!docs.has(url))docs.set(url,pdfjsPromise.then(m=>m.getDocument(url).promise).catch(e=>{docs.delete(url);throw e;}));
- return docs.get(url);
-}
-export async function renderCSQuestion(paper,index){
- const [pageNo,top,bottom]=paper.questions[index].crop;
- const doc=await getPDF(paper.sourcePdf),page=await doc.getPage(pageNo),scale=2.3;
- const vp=page.getViewport({scale});
- const x=66,y=top-2,w=470,h=bottom-top+4;
- const canvas=document.createElement('canvas');canvas.width=Math.ceil(w*scale);canvas.height=Math.ceil(h*scale);
- await page.render({canvasContext:canvas.getContext('2d'),viewport:vp,transform:[1,0,0,1,-x*scale,-y*scale],background:'white'}).promise;
- const img=new Image();img.alt=paper.name+' '+paper.questions[index].number+' — question and printed answer choices';img.src=canvas.toDataURL('image/png');return img;
-}
+function pdfjs(){if(!pdfjsPromise)pdfjsPromise=import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.mjs').then(m=>{m.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.mjs';return m;}).catch(e=>{pdfjsPromise=null;throw e;});return pdfjsPromise;}
+function getPDF(paper){const url=paper.sourcePdf;if(!docs.has(url))docs.set(url,pdfjs().then(async m=>{try{return await m.getDocument(url).promise;}catch(e){if(!paper.sourceFallback)throw e;return m.getDocument(paper.sourceFallback).promise;}}).catch(e=>{docs.delete(url);throw e;}));return docs.get(url);}
+function margins(year,w,h){if(year===2015||year===2017)return [6,w-6,7,h-3];if(year===2020)return [42,w-28,10,h-2];if(year===2022)return [78,w-43,72,h-38];if(year===2023)return [64,w-48,88,h-35];if(year>=2024)return [63,w-43,year===2025?100:77,h-48];if(year===2012||year===2013)return [48,w-42,64,h-58];return [44,w-40,40,h-55];}
+async function piece(doc,year,pageNo,top,bottom){const page=await doc.getPage(pageNo),base=page.getViewport({scale:1}),scale=2.1;const [x,right,lo,hi]=margins(year,base.width,base.height);const y=Math.max(0,top??lo),end=Math.min(base.height,bottom??hi);if(end-y<9)return null;const canvas=document.createElement('canvas');canvas.width=Math.ceil((right-x)*scale);canvas.height=Math.ceil((end-y)*scale);const ctx=canvas.getContext('2d',{willReadFrequently:true});await page.render({canvasContext:ctx,viewport:page.getViewport({scale}),transform:[1,0,0,1,-x*scale,-y*scale],background:'white'}).promise;return canvas;}
+async function range(doc,year,bounds){const [[sp,sy],[ep,ey]]=bounds;const result=[];for(let p=sp;p<=ep;p++){const c=await piece(doc,year,p,p===sp?sy:null,p===ep?ey:null);if(c)result.push(c);}return result;}
+export async function renderCSQuestion(paper,index){const q=paper.questions[index],doc=await getPDF(paper);let parts=[];if(q.context)parts.push(...await range(doc,paper.year,q.context));if(q.range)parts.push(...await range(doc,paper.year,q.range));else{const [p,t,b]=q.crop;parts.push(await piece(doc,paper.year,p,t,b));}parts=parts.filter(Boolean);if(!parts.length)throw Error('Question image is empty');const result=document.createElement('canvas');result.width=Math.max(...parts.map(c=>c.width));result.height=parts.reduce((s,c)=>s+c.height,0)+12*(parts.length-1);const ctx=result.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,result.width,result.height);let y=0;for(const c of parts){ctx.drawImage(c,0,y);y+=c.height+12;}const img=new Image();img.alt=paper.name+' '+q.number+' — question and printed answer choices';img.src=result.toDataURL('image/png');return img;}

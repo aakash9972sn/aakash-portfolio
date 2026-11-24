@@ -29,7 +29,7 @@ let mode = Object.hasOwn(kinds, params.get('mode')) ? params.get('mode') :
 let papers = [], sets = [], page = 0;
 let activeTrack = '', loadToken = 0, ecMode = mode, csPromise;
 const isCS = () => activeTrack === 'gate-cs';
-function loadCS(){if(!csPromise)csPromise=fetch('gate-cs-index.json?v=1').then(r=>{if(!r.ok)throw Error('CS index unavailable');return r.json();}).catch(e=>{csPromise=null;throw e;});return csPromise;}
+function loadCS(){if(!csPromise)csPromise=fetch('gate-cs-index.json?v=2').then(r=>{if(!r.ok)throw Error('CS index unavailable');return r.json();}).catch(e=>{csPromise=null;throw e;});return csPromise;}
 function stats(){if(!isCS()||!papers.length||!document.querySelector('[data-track="gate-cs"].is-active'))return;const all=makeSets(papers,'paper','');const states=all.map(s=>inspectSavedAttempt(s,'paper',''));const count=states.filter(s=>s?.review).length, progress=states.filter(s=>s&&!s.review).length;const el=document.getElementById('home-stats');if(!el)return;el.replaceChildren(...[[all.length,'Tests'],[all.reduce((n,s)=>n+s.questions.length,0),'Questions'],[count,'Attempted'],[progress,'In progress']].map(([v,l])=>{const d=document.createElement('div');d.className='stat';const b=document.createElement('b'),span=document.createElement('span');b.textContent=v;span.textContent=l;d.append(b,span);return d;}));}
 
 function createCard(set) {
