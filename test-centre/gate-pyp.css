@@ -1,4 +1,6 @@
 .gate-pyp {
+  --gate-scroll-offset: 80px;
+  scroll-margin-top: var(--gate-scroll-offset);
   padding: clamp(16px, 3vw, 26px);
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -16,7 +18,7 @@
 }
 
 .gate-pyp-header h2 { margin: 0; font-size: clamp(1.2rem, 3vw, 1.65rem); }
-.gate-pyp a { color: var(--text); text-underline-offset: .18em; }
+.gate-pyp-header a, .gate-pyp details a { color: var(--text); text-underline-offset: .18em; }
 .gate-pyp .tc-view-pills { flex-wrap: wrap; margin-bottom: 16px; }
 .gate-pyp .ws-pill { min-height: 40px; }
 .gate-pyp-filters { justify-content: flex-start; }
@@ -33,19 +35,49 @@
   font: inherit;
 }
 
-.gate-pyp-summary, .gate-pyp details, .gate-pyp-row small { color: var(--muted); font-size: .85rem; }
-.gate-pyp-rows { display: grid; gap: 6px; list-style: none; padding: 0; margin: 8px 0; }
-.gate-pyp-row {
-  display: grid;
-  gap: 3px;
-  min-height: 44px;
-  padding: 8px 12px;
-  background: var(--surface-2);
-  border-radius: 8px;
-  overflow-wrap: anywhere;
-}
 
+.gate-pyp-summary, .gate-pyp details { color: var(--muted); font-size: .85rem; }
+.gate-pyp-summary { margin: 0 0 0 auto; scroll-margin-top: var(--gate-scroll-offset); }
+.gate-card-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+}
+.gate-card { min-width: 0; padding: 16px; }
+.gate-card .card-title { overflow-wrap: anywhere; }
+.gate-card .card-meta { flex-wrap: wrap; gap: 8px 18px; margin-top: auto; }
+.gate-card .card-foot { flex-wrap: wrap; margin-top: 0; }
+.gate-card .card-cta { min-height: 44px; justify-content: center; }
+.gate-pagination:not([hidden]) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+.gate-pagination span { color: var(--muted); font-size: .82rem; }
+.gate-pagination button {
+  min-height: 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  background: var(--surface);
+  padding: 8px 14px;
+  color: var(--text);
+  font: inherit;
+  font-size: .85rem;
+  cursor: pointer;
+}
+.gate-pagination button:disabled { opacity: .45; cursor: default; }
+.gate-pagination button:enabled:hover { background: var(--surface-2); }
 .gate-pyp details { margin-top: 16px; }
 .gate-pyp summary { cursor: pointer; }
 
-#gate-results { max-height: min(480px, 65vh); overflow: auto; }
+@media (max-width: 600px) {
+  .gate-pyp { --gate-scroll-offset: 132px; }
+  .gate-pyp-summary { margin-left: 0; }
+  .gate-pyp-filters label, .gate-pyp-filters select { width: 100%; }
+}

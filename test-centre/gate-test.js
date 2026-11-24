@@ -1,11 +1,11 @@
-import {loadPapers, makeSets, units} from './gate-library.js';
+import {attemptKey, loadPapers, makeSets, units} from './gate-library.js?v=cards2';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const mode = params.get('mode');
 const year = params.get('year') || '';
 const setId = params.get('set');
-const key = 'tclab.gate.attempt.v1.' + JSON.stringify([mode, setId, mode === 'paper' ? '' : year]);
+const key = attemptKey(mode, setId, year);
 const cachedImages = new Map();
 const numeric = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i;
 let set, attempt, clock, renderId = 0;
@@ -261,6 +261,9 @@ try {
   if (!['paper','topic','unit'].includes(mode)) throw new Error();
   set = makeSets(papers, mode, year).find(item => item.id === setId);
   if (!set?.questions.length) throw new Error();
+  const back = new URLSearchParams({mode, set:setId});
+  if (year) back.set('year', year);
+  $('back-to-tests').href = './?' + back + '#/gate-papers';
   document.title = set.name + ' · GATE EC Test Centre';
   $('title').textContent = set.name;
   attempt = restore(); start();

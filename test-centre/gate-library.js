@@ -2,6 +2,10 @@ export const units = new Map(Object.values(window.TEST_CENTRE_SYLLABI.gate.subje
   .flatMap(subject => subject.units.map(unit => [unit.id, unit.title])));
 units.set('legacy', 'Earlier syllabus topics');
 
+export function attemptKey(mode, setId, year) {
+  return 'tclab.gate.attempt.v1.' + JSON.stringify([mode, setId, mode === 'paper' ? '' : year]);
+}
+
 export async function loadPapers() {
   const response = await fetch('gate-pyp-index.json?v=tests1');
   if (!response.ok) throw new Error('Unable to load GATE papers');
