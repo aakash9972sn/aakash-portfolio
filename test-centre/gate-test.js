@@ -9,6 +9,7 @@ const mode = params.get('mode');
 const year = params.get('year') || '';
 const setId = params.get('set');
 const isCS = /^CS\d/.test(setId || '');
+const isEE = /^EE\d/.test(setId || '');
 let key;
 const snapshot = params.get('attempt');
 const historyKey = 'tclab.analysis.history.v1';
@@ -42,6 +43,7 @@ function valid(entry) {
 }
 function outcome(entry) {
   const {type, answers} = entry.question;
+  if (entry.question.marksToAll) return 'correct';
   if (!answers.length) return 'ungraded';
   if (mode === 'paper' && entry.question.linkedPrevious && entry.paper.year >= 2008) {
     const previous = {paper:entry.paper, index:entry.index - 1, question:entry.paper.questions[entry.index - 1]};
@@ -59,6 +61,7 @@ function penalty(entry) {
   return q.type === 'MCQ' && !q.linkedPrevious ? q.marks / (entry.paper.year <= 2008 ? 4 : 3) : 0;
 }
 function keyLabel(question) {
+  if (question.marksToAll) return 'Marks to all (official key)';
   return question.answers.map(answer => {
     if (typeof answer === 'string') return answer.split('').join(' + ');
     return answer[0] === answer[1] ? String(answer[0]) : answer.join(' to ');
@@ -79,7 +82,12 @@ function imageBatch(entry, index) {
 }
 async function questionImage(entry, index = entry.index) {
   if (entry.paper.sourcePdf) return renderCSQuestion(entry.paper,index);
-  const batch = await imageBatch(entry, index);
+  let batch;
+  try { batch = await imageBatch(entry, index); } catch (error) {
+    if (!isEE) throw error;
+    const {renderEEQuestion} = await import('./gate-ee-reader.js?v=1');
+    return renderEEQuestion(entry.paper,index);
+  }
   const img = document.createElement('img');
   img.alt = 'Original question with its printed figures and answer choices, ' + entry.paper.name +
     ', ' + entry.paper.questions[index].number;
@@ -386,11 +394,11 @@ function showQuestion(focus = false) {
   $('palette').children[attempt.current].setAttribute('aria-current','true');
   $('question-content').classList.toggle('with-diagram', Boolean(entry.question.figure || entry.question.digitizedFigure));
   const deduction = penalty(entry);
-  $('marking').textContent = !entry.question.answers.length ? 'Review only · no scorable key' :
+  $('marking').textContent = entry.question.marksToAll ? '+' + entry.question.marks + ' marks to all (official key)' : !entry.question.answers.length ? 'Review only · no scorable key' :
     '+' + entry.question.marks + ' for a correct answer · ' +
     (deduction ? '−' + Number(deduction.toFixed(3)) + ' for an incorrect answer' : 'No negative marking') +
     (entry.question.linkedPrevious && mode === 'paper' && entry.paper.year >= 2008 ? ' · Requires the preceding answer to be correct' : '');
-  $('digitize').hidden = isCS || Boolean(entry.question.native && !entry.question.digitized);
+  $('digitize').hidden = isCS || isEE || Boolean(entry.question.native && !entry.question.digitized);
   $('digitize').textContent = entry.question.digitized ? 'Re-transcribe with AI' : 'Transcribe with AI';
   $('digitize').disabled = false;
   $('explain').hidden = !attempt.finished || !entry.question.native;
@@ -401,7 +409,7 @@ function showQuestion(focus = false) {
   window.TestCentreMath?.render?.($('question-content'));
   const review = {correct:'Correct', incorrect:'Incorrect', skipped:'Skipped', linked:'No credit · preceding linked answer required', ungraded:'Review only · no scorable key'};
   $('feedback').textContent = attempt.finished ? review[outcome(entry)] +
-    (entry.question.answers.length ? ' · Key: ' + keyLabel(entry.question) : '') : '';
+    (entry.question.answers.length || entry.question.marksToAll ? ' · Key: ' + keyLabel(entry.question) : '') : '';
   updateProgress();
   syncReviewPalette();
   revealCurrentCell();
@@ -454,7 +462,7 @@ function recordResult(counts, stats, score, maximum) {
   const ownerUid = window.AakashAccount?.getState()?.uid || null;
   const row = {
     ownerUid, testId:'gate-' + attempt.id, at:attempt.submittedAt, title:set.name,
-    exam:'GATE', examId:'gate', subject:isCS ? 'Computer Science and Information Technology' : 'Electronics and Communication', subjectId:isCS ? 'gate-cs' : 'gate-ec',
+    exam:'GATE', examId:'gate', subject:isEE ? 'Electrical Engineering' : isCS ? 'Computer Science and Information Technology' : 'Electronics and Communication', subjectId:isEE ? 'gate-ee' : isCS ? 'gate-cs' : 'gate-ec',
     gate:{mode, set:setId, year, attempt:attempt.id}, score, total:maximum,
     correct:counts.correct, wrong:counts.incorrect, unattempted:counts.skipped,
     excluded:counts.linked + counts.ungraded,
@@ -608,16 +616,17 @@ palettePanel.addEventListener('close', () => {
 });
 mobile.addEventListener('change', syncPalette);
 try {
-  const papers = isCS ? await fetch('gate-cs-index.json?v=1').then(r=>{if(!r.ok)throw Error('CS index unavailable');return r.json();}) : await loadPapers();
+  const papers = isEE ? await fetch('gate-ee-index.json?v=1').then(r=>{if(!r.ok)throw Error('EE index unavailable');return r.json();}) : isCS ? await fetch('gate-cs-index.json?v=1').then(r=>{if(!r.ok)throw Error('CS index unavailable');return r.json();}) : await loadPapers();
   if (!['paper','topic','unit'].includes(mode)) throw new Error();
   set = makeSets(papers, mode, year).find(item => item.id === setId);
   if (!set?.questions.length) throw new Error();
   const back = new URLSearchParams({mode, set:setId});
   if (year) back.set('year', year);
   $('back-to-tests').href = './?' + back + (isCS ? '#/gate-cs-papers' : '#/gate-papers');
+  if (isEE) $('back-to-tests').href = 'gate-ee.html';
   document.title = set.name + ' · GATE Test Centre';
   $('title').textContent = set.name;
-  if (!isCS) await loadDigitizedSet(set);
+  if (!isCS && !isEE) await loadDigitizedSet(set);
   for (const entry of set.questions) restoreTranscription(entry);
   function openAttempt() {
     key = attemptKey(mode, setId, year);
