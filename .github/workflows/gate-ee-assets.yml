@@ -1,0 +1,64 @@
+name: Generate GATE EE CBT assets
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/gate-ee-assets.yml'
+      - 'scripts/import-gate-ee.py'
+      - 'test-centre/gate-ee-index.json'
+      - 'assets/gate-ee/*.pdf'
+permissions:
+  contents: write
+concurrency:
+  group: gate-ee-assets
+  cancel-in-progress: false
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PDF renderer
+        run: python -m pip install 'PyMuPDF==1.25.5' 'Pillow==11.2.1'
+      - name: Generate verified question images
+        run: python scripts/import-gate-ee.py
+      - name: Validate all generated images
+        run: |
+          python - <<'PY'
+          import base64, io, json, pathlib
+          from PIL import Image
+          root=pathlib.Path('test-centre')
+          for p in json.loads((root/'gate-ee-index.json').read_text()):
+              assert len(p['questions'])==65
+              assert sum(q['marks'] for q in p['questions'])==100
+              for i in range(9):
+                  path=root/'gate-papers'/f"{p['id']}-{i}.json"
+                  batch=json.loads(path.read_text())
+                  assert len(batch)==(1 if i==8 else 8)
+                  for img in batch:
+                      with Image.open(io.BytesIO(base64.b64decode(img,validate=True))) as picture:
+                          assert picture.format=='WEBP' and picture.width>0 and picture.height>0
+                          picture.load()
+              print(p['id'],'65 question images verified')
+          PY
+      - name: Commit generated assets only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add test-centre/gate-papers/EE2024-*.json test-centre/gate-papers/EE2025-*.json
+          if git diff --cached --quiet; then echo "Assets already current"; exit 0; fi
+          git commit -m "Generate verified GATE EE 2024–2025 CBT question images"
+          git pull --rebase origin main
+          git push origin HEAD:main
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ee-cbt-question-assets
+          path: test-centre/gate-papers/EE*.json
+          if-no-files-found: ignore

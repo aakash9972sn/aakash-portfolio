@@ -15,8 +15,21 @@ for paper in papers:
     if file.is_file():
         data=file.read_bytes()
     else:
-        with urllib.request.urlopen(paper['sourceURL'],timeout=60) as response:
-            data=response.read(20_000_001)
+        data=None
+        for url in paper.get('sourceURLs',[paper['sourceURL']]):
+            try:
+                req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 GATE practice archive'})
+                with urllib.request.urlopen(req,timeout=45) as response:
+                    candidate=response.read(20_000_001)
+                if hashlib.sha256(candidate).hexdigest()!=paper['sourceSHA256']:
+                    raise ValueError('Hash mismatch')
+                data=candidate
+                print('Verified official source:',url)
+                break
+            except Exception as exc:
+                print('Source failed:',url,str(exc))
+        if data is None:
+            raise RuntimeError('No exact source available for '+paper['id'])
     if hashlib.sha256(data).hexdigest()!=paper['sourceSHA256']:
         raise ValueError('PDF differs from supplied original: '+paper['id'])
     with fitz.open(stream=data,filetype='pdf') as doc:
