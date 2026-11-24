@@ -225,14 +225,99 @@ function showControls(entry) {
     }
   }
 }
+
+// Review tools use the existing outcome function, including historical linked-question rules.
+let reviewFilter = 'all';
+function matchesReview(entry) {
+  const result = outcome(entry);
+  return reviewFilter === 'all' || (reviewFilter === 'ungraded' ?
+    result === 'ungraded' || result === 'linked' : result === reviewFilter);
+}
+function renderReviewTools(counts) {
+  const attempted = counts.correct + counts.incorrect;
+  const accuracy = attempted ? (100 * counts.correct / attempted).toFixed(1) + '%' : 'Not applicable';
+  const panel = document.createElement('div');
+  panel.id = 'gate-review-tools';
+  const summary = document.createElement('p');
+  summary.textContent = 'Accuracy: ' + accuracy + ' · ' + attempted + ' graded responses (excluding linked/no-key questions)';
+  panel.append(summary);
+  const field = document.createElement('label');
+  field.textContent = 'Review questions: ';
+  const filter = document.createElement('select');
+  filter.setAttribute('aria-label','Filter questions by outcome');
+  for (const [value,label,n] of [['all','All',set.questions.length],['incorrect','Incorrect',counts.incorrect],
+    ['skipped','Skipped',counts.skipped],['correct','Correct',counts.correct],
+    ['ungraded','Ungraded / linked',counts.ungraded+counts.linked]]) {
+    const option = new Option(label+' ('+n+')',value);
+    option.disabled = n === 0;
+    filter.add(option);
+  }
+  reviewFilter = 'all';
+  filter.addEventListener('change', () => {
+    reviewFilter = filter.value;
+    const first = set.questions.findIndex(matchesReview);
+    if (first >= 0) jump(first);
+  });
+  field.append(filter);
+  panel.append(field);
+  for (const [title,group] of [['Unit-wise performance',entry=>units.get(entry.question.unit)||entry.question.unit||'General'],
+    ['Topic-wise performance',entry=>entry.question.topic||'General']]) {
+    const groups = new Map();
+    for (const entry of set.questions) {
+      const name = group(entry);
+      if (!groups.has(name)) groups.set(name,{correct:0,incorrect:0,skipped:0,excluded:0});
+      const status = outcome(entry);
+      groups.get(name)[['correct','incorrect','skipped'].includes(status)?status:'excluded']++;
+    }
+    const details = document.createElement('details');
+    const caption = document.createElement('summary');
+    caption.textContent = title;
+    details.append(caption);
+    const wrap = document.createElement('div');
+    wrap.style.overflowX = 'auto';
+    const table = document.createElement('table');
+    const head = table.createTHead().insertRow();
+    for (const label of ['Topic / unit','Correct','Incorrect','Skipped','Excluded']) {
+      const th = document.createElement('th');
+      th.scope = 'col'; th.textContent = label; head.append(th);
+    }
+    const body = table.createTBody();
+    const ordered = [...groups].sort((a,b)=>(b[1].incorrect+b[1].skipped)-(a[1].incorrect+a[1].skipped)||a[0].localeCompare(b[0]));
+    for (const [name,n] of ordered) {
+      const row = body.insertRow();
+      const th = document.createElement('th'); th.scope='row'; th.textContent=name; row.append(th);
+      for (const value of [n.correct,n.incorrect,n.skipped,n.excluded]) row.insertCell().textContent=String(value);
+    }
+    wrap.append(table); details.append(wrap); panel.append(details);
+  }
+  $('gate-review-tools')?.remove();
+  $('breakdown').after(panel);
+}
+function adjacentReview(direction) {
+  for (let i = attempt.current + direction; i >= 0 && i < set.questions.length; i += direction) {
+    if (!attempt.finished || matchesReview(set.questions[i])) return i;
+  }
+  return -1;
+}
+function syncReviewPalette() {
+  for (const [i,cell] of [...$('palette').children].entries()) {
+    const match = !attempt.finished || matchesReview(set.questions[i]);
+    cell.hidden = !match;
+    if (attempt.finished) {
+      cell.dataset.outcome = outcome(set.questions[i]);
+      cell.setAttribute('aria-label',cell.getAttribute('aria-label')+' · '+outcome(set.questions[i]));
+    } else delete cell.dataset.outcome;
+  }
+}
+
 function showQuestion(focus = false) {
   const entry = set.questions[attempt.current];
   $('position').textContent = 'Question ' + (attempt.current + 1) + ' of ' + set.questions.length;
   $('source').textContent = [entry.paper.name, entry.question.number, entry.question.topic,
     units.get(entry.question.unit), entry.question.type].filter(Boolean).join(' · ');
-  $('prev').disabled = attempt.current === 0;
+  $('prev').disabled = adjacentReview(-1) < 0;
   const last = attempt.current + 1 === set.questions.length;
-  $('next').disabled = last && attempt.finished;
+  $('next').disabled = attempt.finished && adjacentReview(1) < 0;
   $('next').textContent = last && !attempt.finished ? 'Submit test' : attempt.finished ? 'Next →' : 'Save & Next';
   for (const id of ['flag', 'clear', 'submit']) $(id).hidden = attempt.finished;
   const oldCell = $('palette').querySelector('[aria-current]');
@@ -242,10 +327,12 @@ function showQuestion(focus = false) {
   $('question-content').classList.toggle('with-diagram', Boolean(entry.question.figure || entry.question.digitizedFigure));
   showPrompt(entry);
   showControls(entry);
+  window.TestCentreMath?.render?.($('question-content'));
   const review = {correct:'Correct', incorrect:'Incorrect', skipped:'Skipped', linked:'No credit · preceding linked answer required', ungraded:'Review only · no scorable key'};
   $('feedback').textContent = attempt.finished ? review[outcome(entry)] +
     (entry.question.answers.length ? ' · Key: ' + keyLabel(entry.question) : '') : '';
   updateProgress();
+  syncReviewPalette();
   revealCurrentCell();
   if (focus) $('position').focus();
 }
@@ -282,7 +369,8 @@ function finish() {
     'Responses saved for self-review';
   $('breakdown').textContent = counts.incorrect + ' incorrect · ' + counts.skipped +
     ' skipped with keys · ' + counts.ungraded + ' ungraded' + (counts.linked ? ' · ' + counts.linked + ' dependent on a preceding answer' : '');
-  $('status').textContent = 'Submitted · Select a question to review your response.';
+  renderReviewTools(counts);
+  $('status').textContent = 'Submitted · Review questions or filter mistakes and skipped questions.';
   showQuestion();
 }
 function tick() {
@@ -294,6 +382,8 @@ function tick() {
 function start() {
   clearInterval(clock);
   $('result').hidden = true;
+  reviewFilter = 'all';
+  $('gate-review-tools')?.remove();
   $('palette').replaceChildren();
   set.questions.forEach((entry, i) => {
     const button = document.createElement('button');
@@ -323,9 +413,10 @@ function confirm(title, copy, action) {
   $('confirm').showModal();
 }
 $('confirm').addEventListener('close', () => { if ($('confirm').returnValue === 'yes') confirmAction(); });
-$('prev').onclick = () => jump(attempt.current - 1);
+$('prev').onclick = () => { const i = adjacentReview(-1); if (i >= 0) jump(i); };
 $('next').onclick = () => {
-  if (attempt.current + 1 < set.questions.length) jump(attempt.current + 1);
+  const i = adjacentReview(1);
+  if (i >= 0) jump(i);
   else if (!attempt.finished) askSubmit();
 };
 $('flag').onclick = () => {
