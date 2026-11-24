@@ -1,5 +1,7 @@
 import {attemptKey, loadPapers, makeSets, units} from './gate-library.js?v=reader1';
 
+import {loadDigitizedSet} from './gate-digitization.js?v=studio1';
+
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const mode = params.get('mode');
@@ -108,17 +110,17 @@ async function showPrompt(entry) {
     p.textContent = entry.question.native[0];
     prompt.append(p);
   }
-  if (entry.question.figure) {
+  if (entry.question.figure || entry.question.digitizedFigure) {
     const diagram = new Image();
-    diagram.src = entry.question.figure.file;
-    diagram.alt = entry.question.figure.alt;
+    diagram.src = entry.question.figure?.file || entry.question.digitizedFigure;
+    diagram.alt = entry.question.figure?.alt || 'AI-transcribed diagram; compare with the original question.';
     diagram.className = 'gt-diagram';
     prompt.append(imageView(diagram, 'diagram'));
   }
   const source = document.createElement(entry.question.native ? 'details' : 'div');
   if (entry.question.native) {
     const caption = document.createElement('summary');
-    caption.textContent = 'View original question';
+    caption.textContent = entry.question.digitized ? 'View original question (verify AI transcription)' : 'View original question';
     source.append(caption);
   }
   const stage = document.createElement('div');
@@ -211,6 +213,14 @@ function showControls(entry) {
         text.textContent = q.native[i + 1];
         label.append(text);
       }
+      if (q.digitizedOptions?.[i]) {
+        const img = new Image();
+        img.src = q.digitizedOptions[i];
+        img.alt = 'Transcribed diagram for option ' + letter;
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '180px';
+        label.append(img);
+      }
       controls.append(label);
     }
   }
@@ -229,7 +239,7 @@ function showQuestion(focus = false) {
   oldCell?.removeAttribute('aria-current');
   oldCell?.classList.remove('is-current');
   $('palette').children[attempt.current].setAttribute('aria-current','true');
-  $('question-content').classList.toggle('with-diagram', Boolean(entry.question.figure));
+  $('question-content').classList.toggle('with-diagram', Boolean(entry.question.figure || entry.question.digitizedFigure));
   showPrompt(entry);
   showControls(entry);
   const review = {correct:'Correct', incorrect:'Incorrect', skipped:'Skipped', linked:'No credit · preceding linked answer required', ungraded:'Review only · no scorable key'};
@@ -374,6 +384,7 @@ try {
   $('back-to-tests').href = './?' + back + '#/gate-papers';
   document.title = set.name + ' · GATE EC Test Centre';
   $('title').textContent = set.name;
+  await loadDigitizedSet(set);
   attempt = restore();
   if (location.hash) {
     const wanted = location.hash.slice(1);
