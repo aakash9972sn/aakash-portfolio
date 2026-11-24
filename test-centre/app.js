@@ -225,7 +225,7 @@
     const cs = isPaperOnly(filterExam);
     $('.hero-cta-card').hidden = cs;
     $('#subject-chips').closest('.tc-rail-group').hidden = cs;
-    $('[data-view="ai"], [data-view="tests"], [data-view="all"]').forEach(btn => btn.hidden = false);
+    $$('[data-view="ai"], [data-view="tests"], [data-view="all"]').forEach(btn => btn.hidden = false);
     setWorkspaceView(workspaceView);
     window.dispatchEvent(new CustomEvent('tclab:gate-track', {detail:{track:filterExam}}));
   }
