@@ -137,7 +137,6 @@
   const isPaperOnly = t => ['gate-ee','gate-cs'].includes(t);
   let lastGateBranch = store.get(GATE_BRANCH_KEY,'gate');
   if (!isGateTrack(lastGateBranch)) lastGateBranch='gate';
-  let branchExpanded = true;
   const TRACK_META = {
     gate: {
       eyebrow: 'PRACTICE PORTAL · GATE 2027 ECE',
@@ -194,14 +193,11 @@
       btn.classList.toggle('is-active',on);btn.setAttribute('aria-pressed',String(on));
     });
     $('#gate-branch-picker').hidden=!gate;
-    $('#gate-branch-bar').classList.toggle('is-collapsed',!branchExpanded);
     $$('#gate-branch-bar [data-branch]').forEach(btn=>{
       const on=btn.dataset.branch===filterExam;
-      btn.hidden=!branchExpanded&&!on;
+      btn.hidden=false;
       btn.classList.toggle('is-active',on);btn.setAttribute('aria-pressed',String(on));
     });
-    const change=$('#gate-branch-change');
-    change.hidden=branchExpanded;change.setAttribute('aria-expanded',String(branchExpanded));
   }
   function pickTrack(track) {
     if(!TRACK_IDS.includes(track))return;
@@ -339,7 +335,7 @@
     const b=document.createElement('button');
     b.type='button';b.className='tab is-active';b.setAttribute('aria-pressed','true');
     b.textContent=isGateTrack(filterExam)?({gate:'GATE EC','gate-ee':'GATE EE','gate-cs':'GATE CS'}[filterExam]):filterExam==='neet'?'NEET':'CUET PG';
-    b.addEventListener('click',()=>{if(isGateTrack(filterExam)){branchExpanded=true;renderExamPicker();}$('#exam-track-bar').scrollIntoView({block:'center',behavior:'smooth'});});
+    b.addEventListener('click',()=>{$('#exam-track-bar').scrollIntoView({block:'center',behavior:'smooth'});});
     el.append(b);
   }
 
@@ -990,13 +986,11 @@
   /* ------------------------------------------------------------------- wire */
   function wire() {
     $$('#exam-track-bar [data-track]').forEach(btn=>btn.addEventListener('click',()=>{
-      if(btn.dataset.track==='gate'){branchExpanded=true;pickTrack(lastGateBranch);}
-      else {branchExpanded=true;pickTrack(btn.dataset.track);}
+      pickTrack(btn.dataset.track==='gate'?lastGateBranch:btn.dataset.track);
     }));
     $$('#gate-branch-bar [data-branch]').forEach(btn=>btn.addEventListener('click',()=>{
-      branchExpanded=false;pickTrack(btn.dataset.branch);$('#gate-branch-change').focus();
+      pickTrack(btn.dataset.branch);
     }));
-    $('#gate-branch-change').addEventListener('click',()=>{branchExpanded=true;renderExamPicker();$('#gate-branch-bar [data-branch].is-active')?.focus();});
     $$('[data-view]').forEach((btn) => btn.addEventListener('click', () => {
       if ($('#screen-home').hidden) go('#/');
       setWorkspaceView(btn.dataset.view);
