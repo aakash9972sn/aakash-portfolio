@@ -123,8 +123,8 @@
     return item.testId ? '<a href="#/r/' + encodeURIComponent(item.testId) + '">Review latest result</a>' : '';
   }
 
-  function dailyHTML() {
-    const entries = dailyHistory().slice().sort((a,b)=>b.at-a.at);
+  function dailyHTML(track) {
+    const entries = dailyHistory().filter(row=>{if(!track)return true;const exam=row.examId||'';const subject=row.subjectId||'';if(track==='gate-ee'||track==='gate-cs')return exam==='gate'&&subject===track;if(track==='gate')return exam==='gate'&&!['gate-ee','gate-cs'].includes(subject);if(track==='cuet-pg')return ['cuet-pg','cucet'].includes(exam);return exam===track;}).sort((a,b)=>b.at-a.at);
     if (!entries.length) return '<p>No saved daily attempts yet.</p>';
     const grouped = new Map();
     entries.forEach(entry => {
@@ -464,7 +464,7 @@
 
   function mountHistory() {
     const target = document.querySelector('#daily-performance-history');
-    if (target) target.innerHTML = dailyHTML();
+    if (target) target.innerHTML = dailyHTML(document.getElementById('screen-home')?.dataset.activeTrack);
   }
 
   window.addEventListener('aakash:account-state', () => {

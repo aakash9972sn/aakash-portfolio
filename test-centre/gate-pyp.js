@@ -29,8 +29,12 @@ let mode = Object.hasOwn(kinds, params.get('mode')) ? params.get('mode') :
 let papers = [], sets = [], page = 0;
 let activeTrack = '', loadToken = 0, ecMode = mode, csPromise;
 const isCS = () => activeTrack === 'gate-cs';
+const isEE = () => activeTrack === 'gate-ee';
+const paperOnly = () => isCS() || isEE();
+let eePromise;
+function loadEE(){if(!eePromise)eePromise=fetch('gate-ee-index.json?v=1').then(r=>{if(!r.ok)throw Error('EE index unavailable');return r.json();}).catch(e=>{eePromise=null;throw e;});return eePromise;}
 function loadCS(){if(!csPromise)csPromise=fetch('gate-cs-index.json?v=3').then(r=>{if(!r.ok)throw Error('CS index unavailable');return r.json();}).then(async data=>{const checked=await Promise.all(data.map(async paper=>{if(!paper.sourceRequired)return paper;try{const res=await fetch(paper.sourcePdf,{method:'HEAD',cache:'no-store'});return res.ok&&/application\/pdf|application\/octet-stream/i.test(res.headers.get('content-type')||'')?paper:null;}catch{return null;}}));return checked.filter(Boolean);}).catch(e=>{csPromise=null;throw e;});return csPromise;}
-function stats(){if(!isCS()||!papers.length||!document.querySelector('[data-track="gate-cs"].is-active'))return;const all=makeSets(papers,'paper','');const states=all.map(s=>inspectSavedAttempt(s,'paper',''));const count=states.filter(s=>s?.review).length, progress=states.filter(s=>s&&!s.review).length;const el=document.getElementById('home-stats');if(!el)return;el.replaceChildren(...[[all.length,'Tests'],[all.reduce((n,s)=>n+s.questions.length,0),'Questions'],[count,'Attempted'],[progress,'In progress']].map(([v,l])=>{const d=document.createElement('div');d.className='stat';const b=document.createElement('b'),span=document.createElement('span');b.textContent=v;span.textContent=l;d.append(b,span);return d;}));}
+function stats(){if(!paperOnly()||!papers.length||document.getElementById('screen-home')?.dataset.activeTrack!==activeTrack)return;const all=makeSets(papers,'paper','');const states=all.map(s=>inspectSavedAttempt(s,'paper',''));const count=states.filter(s=>s?.review).length, progress=states.filter(s=>s&&!s.review).length;const el=document.getElementById('home-stats');if(!el)return;el.replaceChildren(...[[all.length,'Tests'],[all.reduce((n,s)=>n+s.questions.length,0),'Questions'],[count,'Attempted'],[progress,'In progress']].map(([v,l])=>{const d=document.createElement('div');d.className='stat';const b=document.createElement('b'),span=document.createElement('span');b.textContent=v;span.textContent=l;d.append(b,span);return d;}));}
 
 function createCard(set) {
   const card = template.content.firstElementChild.cloneNode(true);
@@ -130,9 +134,9 @@ function turnPage(delta) {
 prev.addEventListener('click', () => turnPage(-1));
 next.addEventListener('click', () => turnPage(1));
 modeButtons.forEach(button => button.addEventListener('click', () => {
-  if (isCS() && button.dataset.gateMode !== 'paper') return;
+  if (paperOnly() && button.dataset.gateMode !== 'paper') return;
   mode = button.dataset.gateMode;
-  if (!isCS()) ecMode=mode;
+  if (!paperOnly()) ecMode=mode;
   selectMode();
 }));
 year.addEventListener('change', () => selectMode());
@@ -141,13 +145,13 @@ window.addEventListener('aakash:account-state', () => { if (papers.length) rende
 window.addEventListener('pageshow', event => { if (event.persisted && papers.length) renderPage(); });
 
 async function switchTrack(track, initial=false) {
-  if (!['gate','gate-cs'].includes(track)) return;
+  if (!['gate','gate-cs','gate-ee'].includes(track)) return;
   if (activeTrack===track && !initial) {stats();return;}
   if (activeTrack==='gate') ecMode=mode;
   activeTrack=track;
-  const cs=isCS(), token=++loadToken;
+  const cs=paperOnly(), token=++loadToken;
   mode=cs?'paper':ecMode;
-  archive.querySelector('#gate-archive-kicker').textContent=cs?'GATE CS · Previous-year papers':'GATE EC · 2007–2026';
+  archive.querySelector('#gate-archive-kicker').textContent=cs?(isEE()?'GATE EE · Previous-year papers':'GATE CS · Previous-year papers'):'GATE EC · 2007–2026';
   archive.querySelector('#gate-archive-syllabus').hidden=cs;
   archive.querySelector('#gate-ec-scoring').hidden=cs;
   archive.querySelector('#gate-cs-note').hidden=!cs;
@@ -158,7 +162,7 @@ async function switchTrack(track, initial=false) {
   papers=[];sets=[];grid.replaceChildren();pagination.hidden=true;
   summary.textContent='Loading practice tests…';
   try{
-    const data=await (cs?loadCS():loadPapers());
+    const data=await (isEE()?loadEE():isCS()?loadCS():loadPapers());
     if(token!==loadToken)return;
     papers=data;
     const years=new Set(data.map(p=>String(p.year)));
@@ -168,7 +172,7 @@ async function switchTrack(track, initial=false) {
   }catch{if(token===loadToken)summary.textContent='Unable to load the question bank. Reload to try again.';}
 }
 window.addEventListener('tclab:gate-track',e=>switchTrack(e.detail.track));
-window.addEventListener('tclab:gate-search',e=>{if(isCS()){search.value=e.detail;page=0;renderPage();}});
+window.addEventListener('tclab:gate-search',e=>{if(paperOnly()){search.value=e.detail;page=0;renderPage();}});
 window.addEventListener('tclab:cs-stats',stats);
-const initialTrack=document.querySelector('#exam-track-bar .tc-track-btn.is-active')?.dataset.track;
-switchTrack(location.hash==='#/gate-cs-papers'||initialTrack==='gate-cs'?'gate-cs':'gate',true);
+const initialTrack=document.getElementById('screen-home')?.dataset.activeTrack;
+switchTrack(location.hash==='#/gate-ee-papers'?'gate-ee':location.hash==='#/gate-cs-papers'?'gate-cs':initialTrack||'gate',true);

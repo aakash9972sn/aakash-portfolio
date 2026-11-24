@@ -623,7 +623,7 @@ try {
   const back = new URLSearchParams({mode, set:setId});
   if (year) back.set('year', year);
   $('back-to-tests').href = './?' + back + (isCS ? '#/gate-cs-papers' : '#/gate-papers');
-  if (isEE) $('back-to-tests').href = 'gate-ee.html';
+  if (isEE) $('back-to-tests').href = './?' + back + '#/gate-ee-papers';
   document.title = set.name + ' · GATE Test Centre';
   $('title').textContent = set.name;
   if (!isCS && !isEE) await loadDigitizedSet(set);

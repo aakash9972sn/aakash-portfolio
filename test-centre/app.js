@@ -94,12 +94,13 @@
     closeModal(false);
     if (run) { saveProgress(true); run = null; stopTimer(); }
     const hash = location.hash || '#/';
-    if (hash === '#/gate-papers' || hash === '#/gate-cs-papers') {
-      filterExam = hash === '#/gate-cs-papers' ? 'gate-cs' : 'gate';
+    if (['#/gate-papers','#/gate-cs-papers','#/gate-ee-papers'].includes(hash)) {
+      filterExam = hash === '#/gate-cs-papers' ? 'gate-cs' : hash === '#/gate-ee-papers' ? 'gate-ee' : 'gate';
+      lastGateBranch = filterExam;
+      store.set(GATE_BRANCH_KEY, lastGateBranch);
       store.set(EXAM_STORE_KEY, filterExam);
       showHome();
       setWorkspaceView('pyp');
-      document.getElementById('gate-pyp').scrollIntoView({block:'start'});
       return;
     }
     const tMatch = hash.match(/^#\/t\/(.+)$/);
@@ -130,7 +131,13 @@
 
   /* ------------------------------------------------------------------- home */
   const EXAM_STORE_KEY = 'tclab.activeExam';
-  const TRACK_IDS = ['gate', 'gate-cs', 'neet', 'cuet-pg'];
+  const TRACK_IDS = ['gate', 'gate-ee', 'gate-cs', 'neet', 'cuet-pg'];
+  const GATE_BRANCH_KEY = 'tclab.activeGateBranch';
+  const isGateTrack = t => ['gate','gate-ee','gate-cs'].includes(t);
+  const isPaperOnly = t => ['gate-ee','gate-cs'].includes(t);
+  let lastGateBranch = store.get(GATE_BRANCH_KEY,'gate');
+  if (!isGateTrack(lastGateBranch)) lastGateBranch='gate';
+  let branchExpanded = true;
   const TRACK_META = {
     gate: {
       eyebrow: 'PRACTICE PORTAL · GATE 2027 ECE',
@@ -138,6 +145,11 @@
       ctaSub: 'Generate MCQs strictly from the official GATE 2027 EC syllabus.',
       railSub: 'GATE 2027 ECE Track',
       catalogHeading: 'GATE EC subject modules'
+    },
+    'gate-ee': {
+      eyebrow: 'PRACTICE PORTAL · GATE EE',
+      lede: 'Electrical Engineering previous-year tests with live timer, question palette, saved responses and answer review.',
+      ctaSub: '', railSub: 'GATE Electrical Engineering Track', catalogHeading: 'GATE EE practice tests'
     },
     'gate-cs': {
       eyebrow: 'PRACTICE PORTAL · GATE CS',
@@ -161,6 +173,7 @@
   };
   const savedExam = store.get(EXAM_STORE_KEY, 'gate');
   let filterExam = TRACK_IDS.includes(savedExam) ? savedExam : 'gate';
+  if (isGateTrack(filterExam)) lastGateBranch=filterExam;
   let filterSubject = 'all';
   let searchTerm = '';
 
@@ -174,13 +187,36 @@
       ? Core.progress(store.get(PKEY(id), null), questionsOf(entry.test), entry.test.duration * 60) : null;
   }
 
+  function renderExamPicker() {
+    const gate=isGateTrack(filterExam);
+    $('#exam-track-bar [data-track]').forEach(btn=>{
+      const on=btn.dataset.track===(gate?'gate':filterExam);
+      btn.classList.toggle('is-active',on);btn.setAttribute('aria-pressed',String(on));
+    });
+    $('#gate-branch-picker').hidden=!gate;
+    $('#gate-branch-bar').classList.toggle('is-collapsed',!branchExpanded);
+    $('#gate-branch-bar [data-branch]').forEach(btn=>{
+      const on=btn.dataset.branch===filterExam;
+      btn.hidden=!branchExpanded&&!on;
+      btn.classList.toggle('is-active',on);btn.setAttribute('aria-pressed',String(on));
+    });
+    const change=$('#gate-branch-change');
+    change.hidden=branchExpanded;change.setAttribute('aria-expanded',String(branchExpanded));
+  }
+  function pickTrack(track) {
+    if(!TRACK_IDS.includes(track))return;
+    if(isGateTrack(track)) {lastGateBranch=track;store.set(GATE_BRANCH_KEY,track);}
+    if(location.hash && location.hash!=='#/')history.replaceState(history.state,'',location.pathname+'#/');
+    workspaceView=isPaperOnly(track)?'pyp':'all';
+    searchTerm='';$('#search').value='';
+    selectExamTrack(track,false);
+  }
+
   function renderTrackFocus() {
     const meta = TRACK_META[filterExam] || TRACK_META.gate;
-    $$('#exam-track-bar .tc-track-btn').forEach((btn) => {
-      const on = btn.dataset.track === filterExam;
-      btn.classList.toggle('is-active', on);
-      btn.setAttribute('aria-selected', String(on));
-    });
+    $('#screen-home').dataset.activeTrack=filterExam;
+    renderExamPicker();
+    window.TestCentreAI?.mountHistory?.();
     if ($('#hero-eyebrow')) $('#hero-eyebrow').textContent = meta.eyebrow;
     if ($('#hero-lede')) $('#hero-lede').textContent = meta.lede;
     if ($('#hero-cta-sub')) $('#hero-cta-sub').textContent = meta.ctaSub;
@@ -188,9 +224,9 @@
     if ($('#catalog-heading')) $('#catalog-heading').textContent = meta.catalogHeading;
     $$('[data-view="pyp"]').forEach((btn) => {
       btn.hidden = filterExam === 'neet';
-      btn.textContent = filterExam === 'gate' ? 'GATE EC PYQs' : filterExam === 'gate-cs' ? 'GATE CS PYQs' : 'CUET PG Papers';
+      btn.textContent = filterExam === 'gate' ? 'GATE EC PYQs' : filterExam === 'gate-cs' ? 'GATE CS PYQs' : filterExam === 'gate-ee' ? 'GATE EE PYQs' : 'CUET PG Papers';
     });
-    const cs = filterExam === 'gate-cs';
+    const cs = isPaperOnly(filterExam);
     $('.hero-cta-card').hidden = cs;
     $('#subject-chips').closest('.tc-rail-group').hidden = cs;
     $('[data-view="ai"], [data-view="tests"], [data-view="all"]').forEach(btn => btn.hidden = cs);
@@ -200,7 +236,7 @@
 
   function selectExamTrack(trackId, fromGenerator) {
     if (!TRACK_IDS.includes(trackId)) return;
-    const leavingCS = filterExam === 'gate-cs' && trackId !== 'gate-cs';
+    const leavingCS = isPaperOnly(filterExam) && !isPaperOnly(trackId);
     filterExam = trackId;
     filterSubject = 'all';
     store.set(EXAM_STORE_KEY, filterExam);
@@ -211,7 +247,7 @@
     renderResume();
     renderCards();
     renderHomeStats();
-    if (filterExam !== 'gate-cs' && !fromGenerator && generator && typeof generator.setExam === 'function') {
+    if (!isPaperOnly(filterExam) && !fromGenerator && generator && typeof generator.setExam === 'function') {
       generator.setExam(filterExam);
     }
   }
@@ -227,7 +263,7 @@
     renderResume();
     renderCards();
     renderHomeStats();
-    if (generator && filterExam !== 'gate-cs') {
+    if (generator && !isPaperOnly(filterExam)) {
       generator.mount(
         EXAMS,
         registerGenerated,
@@ -246,7 +282,7 @@
   }
 
   function renderHomeStats() {
-    if (filterExam === 'gate-cs') {
+    if (isPaperOnly(filterExam)) {
       $('#home-stats').replaceChildren();
       $('#tc-meter').hidden = true;
       window.dispatchEvent(new Event('tclab:cs-stats'));
@@ -297,17 +333,14 @@
   }
 
   function renderExamTabs() {
-    const tabs = TRACK_IDS.map((id) => id === 'gate-cs' ? {id,name:'GATE CS',accent:'#6988dc'} : EXAMS.find((e) => e.id === id)).filter(Boolean);
-    $('#exam-tabs').innerHTML = tabs.map((t) => {
-      const active = t.id === filterExam ? ' is-active' : '';
-      const style = ' style="--tab-accent:' + t.accent + '"';
-      return '<button type="button" class="tab' + active + '" aria-pressed="' + (t.id === filterExam) + '" data-exam="' + esc(t.id) + '"' + style + '>' + esc(t.name) + '</button>';
-    }).join('');
-    $$('#exam-tabs .tab').forEach((btn) => btn.addEventListener('click', () => {
-      if (btn.dataset.exam === 'gate-cs') { go('#/gate-cs-papers'); return; }
-      if (location.hash === '#/gate-cs-papers') { history.replaceState(history.state,'',location.pathname+'#/'); workspaceView='all'; }
-      selectExamTrack(btn.dataset.exam, false);
-    }));
+    // The main two-step picker is the single navigation control.
+    const el=$('#exam-tabs');
+    el.replaceChildren();
+    const b=document.createElement('button');
+    b.type='button';b.className='tab is-active';b.setAttribute('aria-pressed','true');
+    b.textContent=isGateTrack(filterExam)?({gate:'GATE EC','gate-ee':'GATE EE','gate-cs':'GATE CS'}[filterExam]):filterExam==='neet'?'NEET':'CUET PG';
+    b.addEventListener('click',()=>{if(isGateTrack(filterExam)){branchExpanded=true;renderExamPicker();}$('#exam-track-bar').scrollIntoView({block:'center',behavior:'smooth'});});
+    el.append(b);
   }
 
   function subjectsForFilter() {
@@ -936,7 +969,7 @@
   let workspaceView = 'all';
   function setWorkspaceView(view) {
     const allowPyp = filterExam !== 'neet';
-    workspaceView = filterExam === 'gate-cs' ? 'pyp' : (['all', 'tests', 'ai'].includes(view) || (view === 'pyp' && allowPyp) ? view : 'all');
+    workspaceView = isPaperOnly(filterExam) ? 'pyp' : (['all', 'tests', 'ai'].includes(view) || (view === 'pyp' && allowPyp) ? view : 'all');
     $$('[data-view]').forEach((btn) => {
       const on = btn.dataset.view === workspaceView;
       btn.classList.toggle('is-active', on);
@@ -945,23 +978,25 @@
     const aiSec = $('#ai-generator');
     const pypSec = $('.pyp-library');
     const catSec = $('#tests-catalog');
-    if (aiSec) aiSec.hidden = filterExam === 'gate-cs' || !(workspaceView === 'all' || workspaceView === 'ai');
+    if (aiSec) aiSec.hidden = isPaperOnly(filterExam) || !(workspaceView === 'all' || workspaceView === 'ai');
     const showPyp = workspaceView === 'all' || workspaceView === 'pyp';
     if (pypSec) pypSec.hidden = !(filterExam === 'cuet-pg' && showPyp);
     const gatePyp = $('#gate-pyp');
-    if (gatePyp) gatePyp.hidden = !(['gate','gate-cs'].includes(filterExam) && showPyp);
-    if (catSec) catSec.hidden = filterExam === 'gate-cs' || !(workspaceView === 'all' || workspaceView === 'tests' || workspaceView === 'pyp');
+    if (gatePyp) gatePyp.hidden = !(isGateTrack(filterExam) && showPyp);
+    if (catSec) catSec.hidden = isPaperOnly(filterExam) || !(workspaceView === 'all' || workspaceView === 'tests' || workspaceView === 'pyp');
     renderCards();
   }
 
   /* ------------------------------------------------------------------- wire */
   function wire() {
-    $$('#exam-track-bar .tc-track-btn').forEach((btn) => btn.addEventListener('click', () => {
-      if ($('#screen-home').hidden) go('#/');
-      if (btn.dataset.track === 'gate-cs') { go('#/gate-cs-papers'); return; }
-      if (location.hash === '#/gate-cs-papers') { history.replaceState(history.state,'',location.pathname+'#/'); workspaceView='all'; }
-      selectExamTrack(btn.dataset.track, false);
+    $$('#exam-track-bar [data-track]').forEach(btn=>btn.addEventListener('click',()=>{
+      if(btn.dataset.track==='gate'){branchExpanded=true;pickTrack(lastGateBranch);}
+      else {branchExpanded=true;pickTrack(btn.dataset.track);}
     }));
+    $$('#gate-branch-bar [data-branch]').forEach(btn=>btn.addEventListener('click',()=>{
+      branchExpanded=false;pickTrack(btn.dataset.branch);$('#gate-branch-change').focus();
+    }));
+    $('#gate-branch-change').addEventListener('click',()=>{branchExpanded=true;renderExamPicker();$('#gate-branch-bar [data-branch].is-active')?.focus();});
     $$('[data-view]').forEach((btn) => btn.addEventListener('click', () => {
       if ($('#screen-home').hidden) go('#/');
       setWorkspaceView(btn.dataset.view);
@@ -973,7 +1008,7 @@
 
     $('#search').addEventListener('input', (e) => {
       searchTerm = e.target.value;
-      if (filterExam === 'gate-cs') { window.dispatchEvent(new CustomEvent('tclab:gate-search',{detail:searchTerm})); return; }
+      if (isPaperOnly(filterExam)) { window.dispatchEvent(new CustomEvent('tclab:gate-search',{detail:searchTerm})); return; }
       if (workspaceView !== 'all' && workspaceView !== 'tests' && searchTerm.trim()) {
         setWorkspaceView('tests');
       }
