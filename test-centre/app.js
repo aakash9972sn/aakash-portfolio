@@ -189,13 +189,13 @@
 
   function renderExamPicker() {
     const gate=isGateTrack(filterExam);
-    $('#exam-track-bar [data-track]').forEach(btn=>{
+    $$('#exam-track-bar [data-track]').forEach(btn=>{
       const on=btn.dataset.track===(gate?'gate':filterExam);
       btn.classList.toggle('is-active',on);btn.setAttribute('aria-pressed',String(on));
     });
     $('#gate-branch-picker').hidden=!gate;
     $('#gate-branch-bar').classList.toggle('is-collapsed',!branchExpanded);
-    $('#gate-branch-bar [data-branch]').forEach(btn=>{
+    $$('#gate-branch-bar [data-branch]').forEach(btn=>{
       const on=btn.dataset.branch===filterExam;
       btn.hidden=!branchExpanded&&!on;
       btn.classList.toggle('is-active',on);btn.setAttribute('aria-pressed',String(on));
@@ -229,7 +229,7 @@
     const cs = isPaperOnly(filterExam);
     $('.hero-cta-card').hidden = cs;
     $('#subject-chips').closest('.tc-rail-group').hidden = cs;
-    $('[data-view="ai"], [data-view="tests"], [data-view="all"]').forEach(btn => btn.hidden = cs);
+    $$('[data-view="ai"], [data-view="tests"], [data-view="all"]').forEach(btn => btn.hidden = cs);
     setWorkspaceView(cs ? 'pyp' : workspaceView);
     window.dispatchEvent(new CustomEvent('tclab:gate-track', {detail:{track:filterExam}}));
   }

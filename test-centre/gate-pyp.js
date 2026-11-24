@@ -146,7 +146,7 @@ window.addEventListener('pageshow', event => { if (event.persisted && papers.len
 
 async function switchTrack(track, initial=false) {
   if (!['gate','gate-cs','gate-ee'].includes(track)) return;
-  if (activeTrack===track && !initial) {stats();return;}
+  if (activeTrack===track && !initial) {search.value=document.getElementById('search')?.value||'';page=0;renderPage();return;}
   if (activeTrack==='gate') ecMode=mode;
   activeTrack=track;
   const cs=paperOnly(), token=++loadToken;
