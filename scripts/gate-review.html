@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+  <title>GATE transcription review</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 1rem auto;
+      max-width: 95rem;
+      padding: 0 1rem;
+      font: 1rem/1.5 system-ui;
+      color: #192c35;
+    }
+    header,
+    nav,
+    .tools {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+    }
+    header {
+      justify-content: space-between;
+    }
+    h1 {
+      font-size: 1.45rem;
+    }
+    main {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+    figure {
+      margin: 0;
+      align-self: start;
+    }
+    canvas {
+      width: 100%;
+      height: auto;
+      border: 1px solid #c5ced2;
+      touch-action: pan-y;
+    }
+    textarea,
+    input,
+    select,
+    button {
+      font: inherit;
+    }
+    textarea {
+      display: block;
+      width: 100%;
+      margin: 0.25rem 0 0.7rem;
+      padding: 0.5rem;
+    }
+    button,
+    select {
+      padding: 0.35rem 0.65rem;
+    }
+    label {
+      display: block;
+    }
+    #note {
+      color: #284f59;
+    }
+    #fields {
+      margin-top: 0.6rem;
+    }
+    button:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: 3px solid #118bc5;
+    }
+    @media (max-width: 750px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <header>
+    <h1>GATE transcription review</h1>
+    <button id="download">Download approvals</button>
+  </header>
+  <nav>
+    <button id="prev">Previous</button
+    ><select aria-label="Question" id="items"></select
+    ><button id="next">Next</button><span id="count"></span>
+  </nav>
+  <main>
+    <figure>
+      <canvas id="source" aria-label="Original printed question"></canvas>
+      <figcaption id="reason"></figcaption>
+    </figure>
+    <section>
+      <div id="fields"></div>
+      <label
+        >Printed graphics
+        <select id="graphics">
+          <option value="original">Show original question</option>
+          <option value="none">Text covers the complete question</option>
+          <option value="crops">Use selected image regions</option>
+        </select></label
+      >
+      <div class="tools" id="cropTools" hidden>
+        <label
+          >Region
+          <select id="target">
+            <option>Stem</option>
+            <option>A</option>
+            <option>B</option>
+            <option>C</option>
+            <option>D</option>
+          </select></label
+        ><button id="clear">Clear region</button
+        ><small>Drag a rectangle on the original.</small>
+      </div>
+      <p><button id="approve">Approve this transcription</button></p>
+      <output id="note" aria-live="polite"></output>
+    </section>
+  </main>
+  <script type="application/json" id="gate-records">
+    []
+  </script>
+  <script>
+    const records = JSON.parse(
+      document.getElementById("gate-records").textContent,
+    );
+    const get = (id) => document.getElementById(id),
+      items = get("items"),
+      canvas = get("source"),
+      ctx = canvas.getContext("2d");
+    const edits = new Map(),
+      approvals = new Map();
+    function storageKey(r) {
+      return "gate-review-v1." + r.signature;
+    }
+    records.forEach((r, n) => {
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey(r)));
+        if (saved?.draft) {
+          edits.set(n, saved.draft);
+          if (saved.approved) approvals.set(n, saved.draft);
+        }
+      } catch {}
+    });
+    function remember(approved) {
+      const d = draft();
+      edits.set(current, d);
+      try {
+        localStorage.setItem(
+          storageKey(records[current]),
+          JSON.stringify({ draft: d, approved }),
+        );
+      } catch {}
+    }
+    let current = -1,
+      source = null,
+      start = null,
+      regions = {};
+    function draft() {
+      const r = records[current];
+      return {
+        paper: r.paper,
+        index: r.index,
+        signature: r.signature,
+        native: [...get("fields").querySelectorAll("textarea")].map((t) =>
+          t.value.trim(),
+        ),
+        graphics: get("graphics").value,
+        figureBox: regions.Stem || null,
+        optionBoxes: ["A", "B", "C", "D"].some((k) => regions[k])
+          ? ["A", "B", "C", "D"].map((k) => regions[k] || null)
+          : null,
+      };
+    }
+    function paint() {
+      if (!source) return;
+      ctx.drawImage(source, 0, 0);
+      if (get("graphics").value !== "crops") return;
+      ctx.lineWidth = Math.max(2, canvas.width / 300);
+      ctx.strokeStyle = "#006ad5";
+      for (const box of Object.values(regions)) {
+        ctx.strokeRect(box[0], box[1], box[2] - box[0], box[3] - box[1]);
+      }
+    }
+    function tools() {
+      get("cropTools").hidden = get("graphics").value !== "crops";
+      get("cropTools").style.display = get("cropTools").hidden
+        ? "none"
+        : "flex";
+      canvas.style.touchAction = get("cropTools").hidden ? "pan-y" : "none";
+      paint();
+    }
+    function invalidate() {
+      approvals.delete(current);
+      remember(false);
+      get("note").value = "Edited. Approve again to include this question.";
+      count();
+    }
+    function count() {
+      get("count").textContent = approvals.size + " approved";
+    }
+    function select(n) {
+      if (current >= 0) edits.set(current, draft());
+      current = n;
+      const r = records[n],
+        pub = r.published,
+        d =
+          edits.get(n) ||
+          (pub
+            ? {
+                native: pub.native,
+                figureBox: pub.figureBox,
+                optionBoxes: pub.optionBoxes,
+                graphics:
+                  pub.figureBox || pub.optionBoxes
+                    ? "crops"
+                    : pub.usePrintedFigures
+                      ? "original"
+                      : "none",
+              }
+            : null);
+      items.value = String(n);
+      source = null;
+      start = null;
+      regions = {};
+      get("fields").replaceChildren();
+      (d?.native || r.native).forEach((value, i) => {
+        const label = document.createElement("label"),
+          ta = document.createElement("textarea");
+        label.textContent = i ? "Option " + "ABCD"[i - 1] : "Question";
+        ta.rows = i ? 2 : 6;
+        ta.value = value;
+        label.append(ta);
+        get("fields").append(label);
+      });
+      get("graphics").querySelector("[value=crops]").disabled =
+        !r.image.endsWith(".webp");
+      get("graphics").value = d?.graphics || "original";
+      if (d?.figureBox) regions.Stem = d.figureBox;
+      d?.optionBoxes?.forEach((b, i) => {
+        if (b) regions["ABCD"[i]] = b;
+      });
+      get("target").value = "Stem";
+      for (const opt of get("target").options)
+        opt.disabled = r.type === "NAT" && opt.value !== "Stem";
+      get("reason").textContent = r.reason || "PDF text and OCR agree";
+      get("note").value = approvals.has(n) ? "Approved." : "";
+      get("prev").disabled = n === 0;
+      get("next").disabled = n === records.length - 1;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const img = new Image();
+      img.onload = () => {
+        if (current !== n) return;
+        source = img;
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        paint();
+      };
+      img.onerror = () => {
+        if (current === n) get("note").value = "Original could not be loaded.";
+      };
+      img.src = r.image;
+      tools();
+    }
+    function point(e) {
+      const b = canvas.getBoundingClientRect();
+      return [
+        Math.max(
+          0,
+          Math.min(
+            canvas.width,
+            Math.round(((e.clientX - b.left) * canvas.width) / b.width),
+          ),
+        ),
+        Math.max(
+          0,
+          Math.min(
+            canvas.height,
+            Math.round(((e.clientY - b.top) * canvas.height) / b.height),
+          ),
+        ),
+      ];
+    }
+    canvas.onpointerdown = (e) => {
+      if (source && get("graphics").value === "crops") {
+        start = point(e);
+        canvas.setPointerCapture(e.pointerId);
+      }
+    };
+    canvas.onpointerup = (e) => {
+      if (!start) return;
+      const [x, y] = point(e),
+        [a, b] = start;
+      start = null;
+      if (Math.abs(x - a) > 2 && Math.abs(y - b) > 2) {
+        regions[get("target").value] = [
+          Math.min(x, a),
+          Math.min(y, b),
+          Math.max(x, a),
+          Math.max(y, b),
+        ];
+        invalidate();
+        paint();
+      }
+    };
+    canvas.onpointercancel = () => {
+      start = null;
+    };
+    get("clear").onclick = () => {
+      delete regions[get("target").value];
+      invalidate();
+      paint();
+    };
+    get("fields").oninput = invalidate;
+    get("graphics").onchange = () => {
+      invalidate();
+      tools();
+    };
+    get("approve").onclick = () => {
+      if (!records.length) return;
+      const d = draft();
+      if (
+        !source ||
+        d.native.some((s) => !s) ||
+        (d.graphics === "crops" &&
+          ((!d.figureBox && !d.optionBoxes) || d.optionBoxes?.some((b) => !b)))
+      ) {
+        get("note").value =
+          "Check the source, complete all fields and select all four graphical options if used.";
+        return;
+      }
+      approvals.set(current, d);
+      remember(true);
+      count();
+      get("note").value = "Approved for export.";
+    };
+    get("download").onclick = () => {
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(
+        new Blob([JSON.stringify([...approvals.values()], null, 2)], {
+          type: "application/json",
+        }),
+      );
+      link.download = (records[0]?.paper || "gate") + "-approvals.json";
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    };
+    items.onchange = () => select(Number(items.value));
+    get("prev").onclick = () => select(current - 1);
+    get("next").onclick = () => select(current + 1);
+    records.forEach((r, n) =>
+      items.add(
+        new Option(
+          r.paper + " · " + r.label + " · " + r.status.replace("_", " "),
+          n,
+        ),
+      ),
+    );
+    if (records.length) select(0);
+    else
+      document.querySelector("main").textContent =
+        "No questions awaiting preparation.";
+    count();
+  </script>
+</html>

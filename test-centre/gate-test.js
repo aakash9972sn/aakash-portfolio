@@ -1,7 +1,7 @@
 import {renderCSQuestion} from './gate-cs-reader.js?v=3';
 import {attemptKey, loadPapers, makeSets, units} from './gate-library.js?v=archive4';
 
-import {loadDigitizedSet, restoreTranscription, requestTranscription, usePublishedTranscription} from './gate-digitization.js?v=ec2020-22-v2';
+import {loadDigitizedSet, restoreTranscription, requestTranscription, usePublishedTranscription} from './gate-digitization.js?v=batch1';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -150,7 +150,7 @@ function showPrompt(entry) {
   const token = ++renderId;
   const prompt = $('prompt');
   prompt.replaceChildren();
-  if (entry.question.native) {
+  if (entry.question.native && (!entry.question.printedStem || entry.question.manualTranscript)) {
     const p = document.createElement('p');
     p.textContent = entry.question.native[0];
     prompt.append(p);
@@ -166,8 +166,8 @@ function showPrompt(entry) {
   if (entry.question.originalFigureBox && entry.question.native) {
     const slot=document.createElement('div');
     prompt.append(slot);
-    cropOriginal(entry,entry.question.originalFigureBox,'Original printed diagram')
-      .then(img=>{if(token===renderId){img.className='gt-diagram';slot.replaceChildren(imageView(img,'diagram'));}})
+    cropOriginal(entry,entry.question.originalFigureBox,entry.question.printedStem ? 'Original printed question' : 'Original printed diagram')
+      .then(img=>{if(token===renderId){img.className=entry.question.printedStem?'gt-printed-stem':'gt-diagram';slot.replaceChildren(imageView(img,entry.question.printedStem?'image':'diagram'));}})
       .catch(()=>{if(token===renderId){slot.remove();source.open=true;}});
   }
   const source = document.createElement(entry.question.native ? 'details' : 'div');
@@ -426,7 +426,7 @@ function showQuestion(focus = false) {
   oldCell?.removeAttribute('aria-current');
   oldCell?.classList.remove('is-current');
   $('palette').children[attempt.current].setAttribute('aria-current','true');
-  $('question-content').classList.toggle('with-diagram', Boolean(entry.question.figure || entry.question.printedOptions || entry.question.originalFigureBox));
+  $('question-content').classList.toggle('with-diagram', Boolean(entry.question.figure || entry.question.printedOptions || (entry.question.originalFigureBox && !entry.question.printedStem)));
   const deduction = penalty(entry);
   $('marking').textContent = entry.question.marksToAll ? '+' + entry.question.marks + ' marks to all (official key)' : !entry.question.answers.length ? 'Review only · no scorable key' :
     '+' + entry.question.marks + ' for a correct answer · ' +
@@ -665,7 +665,7 @@ try {
   if (isEE) $('back-to-tests').href = './?' + back + '#/gate-ee-papers';
   document.title = set.name + ' · GATE Test Centre';
   $('title').textContent = set.name;
-  if (!isCS && !isEE) await loadDigitizedSet(set);
+  await loadDigitizedSet(set);
   for (const entry of set.questions) restoreTranscription(entry);
   function openAttempt() {
     key = attemptKey(mode, setId, year);

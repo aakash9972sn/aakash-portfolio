@@ -1,0 +1,64 @@
+name: Prepare GATE papers for review
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/gate_batch.py
+      - scripts/gate-review.html
+      - tests/test_gate_batch.py
+      - .github/workflows/gate-batch.yml
+  workflow_dispatch:
+    inputs:
+      papers:
+        description: Indexed paper IDs separated by spaces, or all
+        required: true
+        default: EC2019 EC2023 EC2024
+      limit:
+        description: Maximum new questions per paper in this run
+        required: true
+        default: '100'
+      resume:
+        description: Previous workflow run ID to resume (optional)
+        required: false
+permissions:
+  contents: read
+  actions: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install local OCR
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
+          python -m pip install 'PyMuPDF>=1.25,<2' 'Pillow>=10,<13'
+      - name: Test resumption, source identity and publication
+        run: python -m unittest discover -s tests -p test_gate_batch.py
+      - uses: actions/download-artifact@v4
+        if: inputs.resume != ''
+        with:
+          name: gate-review
+          path: gate-work
+          run-id: ${{ inputs.resume }}
+          github-token: ${{ github.token }}
+      - name: Prepare and checkpoint questions
+        env:
+          PAPERS: ${{ inputs.papers || 'EC2019 EC2023 EC2024' }}
+          LIMIT: ${{ inputs.limit || '100' }}
+        run: |
+          read -r -a ids <<< "$PAPERS"
+          python scripts/gate_batch.py prepare "${ids[@]}" --limit "$LIMIT" --work gate-work
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gate-review
+          path: gate-work
+          retention-days: 14

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {checkBatchPapers} from './check-gate-batch-browser.mjs';
 import {checkGatePaper} from './check-gate-paper-browser.mjs';
 import {createServer} from 'node:http';
 import {createRequire} from 'node:module';
@@ -138,11 +139,12 @@ try {
     assert.equal(await page.locator('#retake').isVisible(),false);
     console.log('PASS',year,'paper, MCQ/MSQ/NAT, resume, submit, review, history and retake');
   }
+  await checkBatchPapers(page, base);
   // Use an older paper so the test exercises on-demand AI even with both bundled datasets installed.
   await page.setViewportSize({width:1280,height:900});
-  const old = papers.find(p => p.id === 'EC2024');
+  const old = papers.find(p => p.id === 'EC2018');
   const index = old.questions.findIndex(q => q.type === 'MCQ' && !q.native);
-  await open(base + 'gate-test.html?mode=paper&set=EC2024');
+  await open(base + 'gate-test.html?mode=paper&set=EC2018');
   await jump(index,false);
   assert.equal(calls,0);
   await page.locator('#digitize').click();

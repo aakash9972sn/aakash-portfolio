@@ -4,3 +4,7 @@ node_modules/
 !.env.example
 .firebase/
 *-debug.log
+
+.gate-batch/
+__pycache__/
+test-centre/gate-digitized/batch/.lock

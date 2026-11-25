@@ -13,3 +13,5 @@ The script crops the actual PDF, including text, vector drawing and embedded ras
 GATE EC 2025 and 2026 display native question text and lossless WebP crops in the stem and in the corresponding answer controls. The original scan is available under each question. For other papers, a transcription that requires graphics opens the printed question.
 
 To reproduce the 74 published crops, install PyMuPDF and Pillow and run `python scripts/build-gate-ec-ink.py`. The script checks the PDF hashes in `scripts/gate-ec-ink-regions.json`, omits the background seal layer in memory, renders the recorded regions at 216 dpi, and makes pure white transparent. The original paper files retain their full resolution and content. The runner clips trailing page space in the archive preview using each question’s measured `printHeight` in source pixels.
+
+For additional papers, the offline importer prepares text, original-image regions and a review queue. [Batch digitization guide](gate-batch.md)

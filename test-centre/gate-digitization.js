@@ -5,21 +5,32 @@ export {applyDigitizedRecord, svgImageSource} from './gate-transcription.mjs?v=i
 // remain in gate-pyp-index.json; never replace them with generated answers.
 const supported = new Set(['EC2020', 'EC2021', 'EC2022', 'EC2025', 'EC2026']);
 const cache = new Map();
+let batchManifest;
+async function batchPapers() {
+  batchManifest ??= fetch('gate-digitized/batch/manifest.json', {cache:'no-cache', signal:AbortSignal.timeout(6000)})
+    .then(r => r.ok ? r.json() : {}).catch(() => ({}));
+  return batchManifest;
+}
 
-function getPaper(id) {
-  if (!supported.has(id)) return Promise.resolve(null);
-  if (!cache.has(id)) {
-    cache.set(id, (async () => {
-      try {
-        const res = await fetch('gate-digitized/' + encodeURIComponent(id) + '.json?v=ec2020-22-v2',
-          {signal: AbortSignal.timeout(6000)});
-        if (!res.ok) return null;
-        const data = await res.json();
-        return data && typeof data === 'object' && !Array.isArray(data) ? data : null;
-      } catch { return null; }
-    })());
+function bank(url) {
+  if (!cache.has(url)) {
+    cache.set(url, fetch(url, {signal:AbortSignal.timeout(6000)})
+      .then(r => r.ok ? r.json() : null)
+      .catch(() => { cache.delete(url); return null; }));
   }
-  return cache.get(id);
+  return cache.get(url);
+}
+
+async function getPaper(id) {
+  const filename = encodeURIComponent(id) + '.json?v=';
+  const [curated, manifest] = await Promise.all([
+    supported.has(id) ? bank('gate-digitized/' + filename + 'ec2020-22-v2') : null,
+    batchPapers()
+  ]);
+  const version = manifest?.[id];
+  if (!/^[0-9a-f]{16}$/.test(version || '')) return curated;
+  const batch = await bank('gate-digitized/batch/' + filename + version);
+  return {...batch, ...curated};
 }
 
 export async function loadDigitizedSet(set) {
@@ -37,7 +48,10 @@ export async function loadDigitizedSet(set) {
     const stem = validBox(record.figureBox);
     const options = q.type !== 'NAT' && Array.isArray(record.optionBoxes) &&
       record.optionBoxes.length === 4 && record.optionBoxes.every(validBox);
-    if (stem) q.originalFigureBox = record.figureBox;
+    if (stem) {
+      q.originalFigureBox = record.figureBox;
+      q.printedStem = record.printedStem === true;
+    }
     if (options) q.originalOptionBoxes = record.optionBoxes;
     if (stem || options) {
       q.usePrintedFigures = false;
