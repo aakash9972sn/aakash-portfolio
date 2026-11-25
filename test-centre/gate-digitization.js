@@ -1,5 +1,5 @@
-import {applyDigitizedRecord} from './gate-transcription.mjs?v=printed1';
-export {applyDigitizedRecord, svgImageSource} from './gate-transcription.mjs?v=printed1';
+import {applyDigitizedRecord} from './gate-transcription.mjs?v=ink2';
+export {applyDigitizedRecord, svgImageSource} from './gate-transcription.mjs?v=ink2';
 
 // Bundled Google AI Studio transcriptions. Official question metadata and keys
 // remain in gate-pyp-index.json; never replace them with generated answers.
@@ -11,7 +11,7 @@ function getPaper(id) {
   if (!cache.has(id)) {
     cache.set(id, (async () => {
       try {
-        const res = await fetch('gate-digitized/' + encodeURIComponent(id) + '.json?v=2025-2026-1',
+        const res = await fetch('gate-digitized/' + encodeURIComponent(id) + '.json?v=original-ink-2',
           {signal: AbortSignal.timeout(6000)});
         if (!res.ok) return null;
         const data = await res.json();
@@ -27,24 +27,40 @@ export async function loadDigitizedSet(set) {
   const maps = new Map(await Promise.all(ids.map(async id => [id, await getPaper(id)])));
   let imported = 0;
   for (const entry of set.questions) {
-    if (applyDigitizedRecord(entry, maps.get(entry.paper.id)?.[String(entry.index)])) imported++;
+    if (applyDigitizedRecord(entry, maps.get(entry.paper.id)?.[String(entry.index)], true)) imported++;
   }
   return imported;
 }
 
 const requests = new Map();
-const storageKey = entry => 'tclab.gate.transcription.v1.' + entry.paper.id + '.' + entry.index;
+const storageKey = entry => 'tclab.gate.transcription.' +
+  (entry.question.publishedTranscript ? 'ink2.' : 'v1.') + entry.paper.id + '.' + entry.index;
 
 function replaceTranscription(entry, record) {
   const q = entry.question;
   if (q.native && !q.digitized) return false;
   const replacement = {type:q.type, figure:q.figure};
   if (!applyDigitizedRecord({question:replacement}, record)) return false;
-  delete q.usePrintedFigures;
-  delete q.digitizedOptions;
-  delete q.digitizedFigure;
-  Object.assign(q, replacement);
+  if (q.publishedTranscript) {
+    q.native = replacement.native.map((value,i) =>
+      i && q.printedOptions?.[i-1] ? q.publishedTranscript.native[i] : value);
+    q.usePrintedFigures = q.publishedTranscript.usePrintedFigures ||
+      (!q.figure && !q.printedOptions && replacement.usePrintedFigures);
+    q.manualTranscript = true;
+  } else {
+    delete q.usePrintedFigures;
+    Object.assign(q, replacement);
+  }
   return true;
+}
+
+export function usePublishedTranscription(entry) {
+  const q = entry.question;
+  if (!q.publishedTranscript) return;
+  q.native = q.publishedTranscript.native;
+  q.usePrintedFigures = q.publishedTranscript.usePrintedFigures;
+  q.manualTranscript = false;
+  try { localStorage.removeItem(storageKey(entry)); } catch { /* Session reset still applies. */ }
 }
 
 export function restoreTranscription(entry) {

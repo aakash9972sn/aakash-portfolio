@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {checkGatePaper} from './check-gate-paper-browser.mjs';
 import {createServer} from 'node:http';
 import {createRequire} from 'node:module';
 import {chromium} from 'playwright';
@@ -62,6 +63,22 @@ try {
     },paper.id);
     assert.equal(imageCount,65);
     assert.equal(await page.locator('#palette button').count(), 65);
+    const bank = require('../test-centre/gate-digitized/' + paper.id + '.json');
+    await checkGatePaper(page, paper, bank);
+    if (year === 2026) {
+      await jump(21,mobile);
+      await page.locator('#prompt summary').click();
+      const printed = page.locator('#prompt details img');
+      await printed.evaluate(img => img.decode());
+      const sizes = await printed.evaluate(img => ({
+        intrinsic:img.naturalHeight/img.naturalWidth, shown:img.clientHeight/img.clientWidth
+      }));
+      assert.ok(sizes.shown < sizes.intrinsic * .8, 'Q22 retains trailing whitespace');
+      assert.ok(Math.abs(sizes.shown - bank[21].printHeight/927) < .01);
+      await page.getByRole('button',{name:'Enlarge image',exact:true}).click();
+      await page.locator('#image-scroll img').evaluate(img => img.decode());
+      await page.keyboard.press('Escape');
+    }
     // This imported question must be readable on first visit, without AI or a scan.
     await jump(5,mobile);
     const stem = page.locator('#prompt > p');
@@ -153,6 +170,18 @@ try {
     await page.locator('#workbench').waitFor();
     assert.equal(await page.locator('#timer').textContent(),'Untimed practice');
   }
+  // An explicit transcription can be undone; the verified graphical choices stay attached.
+  await open(base + 'gate-test.html?mode=paper&set=EC2026#EC2026-Q3');
+  await page.locator('#controls .gt-printed-option').first().waitFor();
+  const original = await page.locator('#prompt > p').textContent();
+  const originalImages = await page.locator('#controls img').evaluateAll(imgs => imgs.map(img => img.src));
+  await page.locator('#digitize').click();
+  await page.locator('#published-text').waitFor();
+  assert.deepEqual(await page.locator('#controls img').evaluateAll(imgs => imgs.map(img => img.src)),originalImages);
+  await page.reload({waitUntil:'domcontentloaded'});
+  await page.locator('#published-text').click();
+  assert.equal(await page.locator('#prompt > p').textContent(),original);
+  assert.deepEqual(await page.locator('#controls .opt-text').allTextContents(),['P','Q','R','S']);
   // A timed historical paper uses a quarter-mark penalty and linked-question rules.
   const legacy = papers.find(item => item.year === 2008);
   await open(base + 'gate-test.html?mode=paper&set=' + legacy.id);

@@ -81,4 +81,8 @@ body:has(#image-viewer[open]) { overflow: hidden; }
 #marking, #ai-note { color: var(--muted); font-size: .88rem; }
 #ai-note { white-space: pre-wrap; overflow-wrap: anywhere; }
 .gt-main .runner-timer.low-time { color: var(--warn); font-weight: 800; }
-.gt-option-figure { display: grid; color: var(--muted); font-size: .8rem; }
+#controls .gt-printed-option { max-width: min(100%, 260px); max-height: 175px; object-fit: contain; padding: 6px; }
+.gt-image .gt-diagram { padding: 8px; }
+
+html[data-theme="light"] #controls .gt-printed-option,
+html[data-theme="light"] .gt-image .gt-diagram { background: transparent; }

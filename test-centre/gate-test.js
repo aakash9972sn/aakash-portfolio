@@ -1,7 +1,7 @@
 import {renderCSQuestion} from './gate-cs-reader.js?v=3';
 import {attemptKey, loadPapers, makeSets, units} from './gate-library.js?v=archive4';
 
-import {loadDigitizedSet, restoreTranscription, requestTranscription} from './gate-digitization.js?v=printed1';
+import {loadDigitizedSet, restoreTranscription, requestTranscription, usePublishedTranscription} from './gate-digitization.js?v=ink2';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -92,6 +92,15 @@ async function questionImage(entry, index = entry.index) {
   img.alt = 'Original question with its printed figures and answer choices, ' + entry.paper.name +
     ', ' + entry.paper.questions[index].number;
   img.src = 'data:image/webp;base64,' + batch[index % 8];
+  const height = entry.paper.questions[index].printHeight;
+  if (height) {
+    await img.decode();
+    if (height < img.naturalHeight) {
+      img.style.aspectRatio = img.naturalWidth + ' / ' + height;
+      img.style.objectFit = 'cover';
+      img.style.objectPosition = 'top';
+    }
+  }
   return img;
 }
 function imageView(img, name) {
@@ -137,14 +146,14 @@ function showPrompt(entry) {
     diagram.src = entry.question.figure.file;
     diagram.alt = entry.question.figure.alt || 'Original question diagram';
     diagram.className = 'gt-diagram';
+    diagram.onerror = () => { if (token === renderId) source.open = true; };
     prompt.append(imageView(diagram, 'diagram'));
   }
   const source = document.createElement(entry.question.native ? 'details' : 'div');
   if (entry.question.native) {
     const caption = document.createElement('summary');
-    const redrawn = Boolean(entry.question.digitizedFigure || entry.question.digitizedOptions || entry.question.usePrintedFigures);
-    source.open = redrawn;
-    caption.textContent = redrawn ? 'Printed question and original figures' :
+    source.open = Boolean(entry.question.usePrintedFigures);
+    caption.textContent = source.open ? 'Printed question and original figures' :
       entry.question.digitized ? 'View original question (verify AI transcription)' : 'View original question';
     source.append(caption);
   }
@@ -246,11 +255,21 @@ function showControls(entry) {
       letterKey.className = 'opt-key';
       letterKey.textContent = letter;
       label.append(input, letterKey);
-      if (q.native) {
+      if (q.native?.[i + 1]) {
         const text = document.createElement('span');
         text.className = 'opt-text';
         text.textContent = q.native[i + 1];
         label.append(text);
+      }
+      if (q.printedOptions?.[i]) {
+        const img = new Image();
+        img.alt = 'Printed diagram for option ' + letter;
+        img.src = q.printedOptions[i];
+        img.className = 'gt-printed-option';
+        img.onerror = () => {
+          if (label.isConnected) $('prompt').querySelector('details').open = true;
+        };
+        label.append(img);
       }
       controls.append(label);
     }
@@ -371,7 +390,7 @@ function showQuestion(focus = false) {
   oldCell?.removeAttribute('aria-current');
   oldCell?.classList.remove('is-current');
   $('palette').children[attempt.current].setAttribute('aria-current','true');
-  $('question-content').classList.toggle('with-diagram', Boolean(entry.question.figure || entry.question.digitizedFigure));
+  $('question-content').classList.toggle('with-diagram', Boolean(entry.question.figure || entry.question.printedOptions));
   const deduction = penalty(entry);
   $('marking').textContent = entry.question.marksToAll ? '+' + entry.question.marks + ' marks to all (official key)' : !entry.question.answers.length ? 'Review only · no scorable key' :
     '+' + entry.question.marks + ' for a correct answer · ' +
@@ -380,6 +399,7 @@ function showQuestion(focus = false) {
   $('digitize').hidden = isCS || Boolean(entry.question.native && !entry.question.digitized);
   $('digitize').textContent = entry.question.digitized ? 'Re-transcribe with AI' : 'Transcribe with AI';
   $('digitize').disabled = false;
+  $('published-text').hidden = !entry.question.manualTranscript;
   $('explain').hidden = !attempt.finished || !entry.question.native;
   $('explain').disabled = false;
   $('ai-note').textContent = '';
@@ -546,6 +566,10 @@ async function questionAI(kind) {
       ? error.message : 'AI is unavailable. Use the printed question or retry.';
   } finally { if (token === renderId) button.disabled = false; }
 }
+$('published-text').onclick = () => {
+  usePublishedTranscription(set.questions[attempt.current]);
+  showQuestion();
+};
 $('digitize').onclick = () => questionAI('digitize');
 $('explain').onclick = () => questionAI('explain');
 $('flag').onclick = () => {

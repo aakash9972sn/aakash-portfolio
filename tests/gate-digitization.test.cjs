@@ -52,7 +52,7 @@ for (const id of ['EC2025','EC2026']) {
     for (const [index,q] of paper.questions.entries()) {
       const question=structuredClone(q);
       if (!question.native) {
-        assert.equal(applyDigitizedRecord({question},records[String(index)]),true,'Invalid record: '+id+' index '+index);
+        assert.equal(applyDigitizedRecord({question,paper,index},records[String(index)],true),true,'Invalid record: '+id+' index '+index);
         imported++;
       }
       assert.ok(question.native);
@@ -102,5 +102,12 @@ test('concurrent transcription requests share an inference and refresh preserves
   } finally {
     release();
     await new Promise(resolve => server.close(resolve));
+  }
+});
+
+test('invalid math cannot replace the original printed question', async () => {
+  const {applyDigitizedRecord} = await load();
+  for (const stem of [String.raw`\(x \(x\)`, String.raw`\(\frac{1}}{x}\)`, String.raw`\[x\)`]) {
+    assert.equal(applyDigitizedRecord(make('NAT'),{native:[stem]}),false);
   }
 });
