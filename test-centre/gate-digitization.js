@@ -11,7 +11,7 @@ function getPaper(id) {
   if (!cache.has(id)) {
     cache.set(id, (async () => {
       try {
-        const res = await fetch('gate-digitized/' + encodeURIComponent(id) + '.json?v=ec2020-22-v1',
+        const res = await fetch('gate-digitized/' + encodeURIComponent(id) + '.json?v=ec2020-22-v2',
           {signal: AbortSignal.timeout(6000)});
         if (!res.ok) return null;
         const data = await res.json();
@@ -28,11 +28,20 @@ export async function loadDigitizedSet(set) {
   let imported = 0;
   for (const entry of set.questions) {
     const record = maps.get(entry.paper.id)?.[String(entry.index)];
-    if (applyDigitizedRecord(entry, record, true)) imported++;
-    if (record?.figureBox && entry.question.native && Array.isArray(record.figureBox) &&
-        record.figureBox.length === 4 && record.figureBox.every(Number.isFinite)) {
-      entry.question.originalFigureBox = record.figureBox;
-      entry.question.usePrintedFigures = false;
+    if (!applyDigitizedRecord(entry, record, true)) continue;
+    imported++;
+    const q = entry.question;
+    const validBox = box => Array.isArray(box) && box.length === 4 &&
+      box.every(Number.isInteger) && box[0] >= 0 && box[1] >= 0 &&
+      box[2] > box[0] && box[3] > box[1];
+    const stem = validBox(record.figureBox);
+    const options = q.type !== 'NAT' && Array.isArray(record.optionBoxes) &&
+      record.optionBoxes.length === 4 && record.optionBoxes.every(validBox);
+    if (stem) q.originalFigureBox = record.figureBox;
+    if (options) q.originalOptionBoxes = record.optionBoxes;
+    if (stem || options) {
+      q.usePrintedFigures = false;
+      q.publishedTranscript.usePrintedFigures = false;
     }
   }
   return imported;
@@ -49,9 +58,9 @@ function replaceTranscription(entry, record) {
   if (!applyDigitizedRecord({question:replacement}, record)) return false;
   if (q.publishedTranscript) {
     q.native = replacement.native.map((value,i) =>
-      i && q.printedOptions?.[i-1] ? q.publishedTranscript.native[i] : value);
+      i && (q.printedOptions?.[i-1] || q.originalOptionBoxes?.[i-1]) ? q.publishedTranscript.native[i] : value);
     q.usePrintedFigures = q.publishedTranscript.usePrintedFigures ||
-      (!q.figure && !q.printedOptions && replacement.usePrintedFigures);
+      (!q.figure && !q.printedOptions && !q.originalFigureBox && !q.originalOptionBoxes && replacement.usePrintedFigures);
     q.manualTranscript = true;
   } else {
     delete q.usePrintedFigures;

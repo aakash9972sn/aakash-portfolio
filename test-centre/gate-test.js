@@ -1,7 +1,7 @@
 import {renderCSQuestion} from './gate-cs-reader.js?v=3';
 import {attemptKey, loadPapers, makeSets, units} from './gate-library.js?v=archive4';
 
-import {loadDigitizedSet, restoreTranscription, requestTranscription, usePublishedTranscription} from './gate-digitization.js?v=ec2020-22-v1';
+import {loadDigitizedSet, restoreTranscription, requestTranscription, usePublishedTranscription} from './gate-digitization.js?v=ec2020-22-v2';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -175,7 +175,7 @@ function showPrompt(entry) {
     const caption = document.createElement('summary');
     source.open = Boolean(entry.question.usePrintedFigures);
     caption.textContent = source.open ? 'Printed question and original figures' :
-      entry.question.digitized ? 'View original question (verify AI transcription)' : 'View original question';
+      entry.question.digitized ? 'View original question (compare transcription)' : 'View original question';
     source.append(caption);
   }
   const stage = document.createElement('div');
@@ -291,6 +291,21 @@ function showControls(entry) {
           if (label.isConnected) $('prompt').querySelector('details').open = true;
         };
         label.append(img);
+      }
+      if (q.originalOptionBoxes?.[i]) {
+        cropOriginal(entry, q.originalOptionBoxes[i], 'Printed diagram for option ' + letter)
+          .then(img => {
+            if (!label.isConnected) return;
+            img.className = 'gt-printed-option';
+            const placeholder = label.querySelector('.opt-text');
+            if (placeholder?.textContent === 'See printed option ' + letter) placeholder.remove();
+            label.append(img);
+          })
+          .catch(() => {
+            if (!label.isConnected) return;
+            const source = $('prompt').querySelector('details');
+            if (source) source.open = true;
+          });
       }
       controls.append(label);
     }
