@@ -1,7 +1,7 @@
 import {renderCSQuestion} from './gate-cs-reader.js?v=3';
 import {attemptKey, loadPapers, makeSets, units} from './gate-library.js?v=archive4';
 
-import {loadDigitizedSet, restoreTranscription, requestTranscription, usePublishedTranscription} from './gate-digitization.js?v=ink2';
+import {loadDigitizedSet, restoreTranscription, requestTranscription, usePublishedTranscription} from './gate-digitization.js?v=ec2020-22-v1';
 
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -103,6 +103,20 @@ async function questionImage(entry, index = entry.index) {
   }
   return img;
 }
+async function cropOriginal(entry, box, name) {
+  const original = await questionImage(entry);
+  await original.decode();
+  const [x0,y0,x1,y1] = box;
+  if (x0 < 0 || y0 < 0 || x1 > original.naturalWidth || y1 > original.naturalHeight ||
+      x1 <= x0 || y1 <= y0) throw new Error('Invalid printed-image crop');
+  const canvas = document.createElement('canvas');
+  canvas.width=x1-x0; canvas.height=y1-y0;
+  canvas.getContext('2d').drawImage(original,x0,y0,canvas.width,canvas.height,0,0,canvas.width,canvas.height);
+  const img = new Image();
+  img.alt=name;
+  img.src=canvas.toDataURL('image/png');
+  return img;
+}
 function imageView(img, name) {
   const frame = document.createElement('div');
   frame.className = 'gt-image';
@@ -148,6 +162,13 @@ function showPrompt(entry) {
     diagram.className = 'gt-diagram';
     diagram.onerror = () => { if (token === renderId) source.open = true; };
     prompt.append(imageView(diagram, 'diagram'));
+  }
+  if (entry.question.originalFigureBox && entry.question.native) {
+    const slot=document.createElement('div');
+    prompt.append(slot);
+    cropOriginal(entry,entry.question.originalFigureBox,'Original printed diagram')
+      .then(img=>{if(token===renderId){img.className='gt-diagram';slot.replaceChildren(imageView(img,'diagram'));}})
+      .catch(()=>{if(token===renderId){slot.remove();source.open=true;}});
   }
   const source = document.createElement(entry.question.native ? 'details' : 'div');
   if (entry.question.native) {
@@ -390,7 +411,7 @@ function showQuestion(focus = false) {
   oldCell?.removeAttribute('aria-current');
   oldCell?.classList.remove('is-current');
   $('palette').children[attempt.current].setAttribute('aria-current','true');
-  $('question-content').classList.toggle('with-diagram', Boolean(entry.question.figure || entry.question.printedOptions));
+  $('question-content').classList.toggle('with-diagram', Boolean(entry.question.figure || entry.question.printedOptions || entry.question.originalFigureBox));
   const deduction = penalty(entry);
   $('marking').textContent = entry.question.marksToAll ? '+' + entry.question.marks + ' marks to all (official key)' : !entry.question.answers.length ? 'Review only · no scorable key' :
     '+' + entry.question.marks + ' for a correct answer · ' +

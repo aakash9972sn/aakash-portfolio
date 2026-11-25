@@ -3,7 +3,7 @@ export {applyDigitizedRecord, svgImageSource} from './gate-transcription.mjs?v=i
 
 // Bundled Google AI Studio transcriptions. Official question metadata and keys
 // remain in gate-pyp-index.json; never replace them with generated answers.
-const supported = new Set(['EC2025', 'EC2026']);
+const supported = new Set(['EC2020', 'EC2021', 'EC2022', 'EC2025', 'EC2026']);
 const cache = new Map();
 
 function getPaper(id) {
@@ -11,7 +11,7 @@ function getPaper(id) {
   if (!cache.has(id)) {
     cache.set(id, (async () => {
       try {
-        const res = await fetch('gate-digitized/' + encodeURIComponent(id) + '.json?v=original-ink-2',
+        const res = await fetch('gate-digitized/' + encodeURIComponent(id) + '.json?v=ec2020-22-v1',
           {signal: AbortSignal.timeout(6000)});
         if (!res.ok) return null;
         const data = await res.json();
@@ -27,7 +27,13 @@ export async function loadDigitizedSet(set) {
   const maps = new Map(await Promise.all(ids.map(async id => [id, await getPaper(id)])));
   let imported = 0;
   for (const entry of set.questions) {
-    if (applyDigitizedRecord(entry, maps.get(entry.paper.id)?.[String(entry.index)], true)) imported++;
+    const record = maps.get(entry.paper.id)?.[String(entry.index)];
+    if (applyDigitizedRecord(entry, record, true)) imported++;
+    if (record?.figureBox && entry.question.native && Array.isArray(record.figureBox) &&
+        record.figureBox.length === 4 && record.figureBox.every(Number.isFinite)) {
+      entry.question.originalFigureBox = record.figureBox;
+      entry.question.usePrintedFigures = false;
+    }
   }
   return imported;
 }
