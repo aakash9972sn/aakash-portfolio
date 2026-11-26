@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {checkTestCentreHome} from './check-test-centre-home.mjs';
 import {checkBatchPapers} from './check-gate-batch-browser.mjs';
 import {checkGatePaper} from './check-gate-paper-browser.mjs';
 import {createServer} from 'node:http';
@@ -202,6 +203,7 @@ try {
   assert.match(await page.locator('#marks').textContent(),new RegExp('Deductions ' + legacy.questions[wrong].marks / 4));
   assert.match(await page.locator('#breakdown').textContent(),/dependent on a preceding answer/);
   console.log('PASS all 130 original question images, theme switch, timer warning, expiry and historical deductions');
+  await checkTestCentreHome(browser, base);
   assert.deepEqual(errors,[]);
   console.log('PASS transcript cache, manual refresh, MathJax, original printed figures, original zoom, AI explanation and practice modes');
 } finally {

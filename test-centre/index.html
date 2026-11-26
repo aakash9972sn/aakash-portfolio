@@ -16,18 +16,7 @@
   <script src="../theme-sync.js?v=20261121-t1"></script>
   <link rel="stylesheet" href="styles.css?v=20261123-pdf-auto2">
   <link rel="stylesheet" href="gate-pyp.css?v=studio2">
-  <style>
-#screen-home [hidden]{display:none!important}
-.tc-exam-gate{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;padding:18px 20px;align-items:stretch}
-.tc-exam-gate .tc-exam-gate-btns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%;min-width:0}
-.tc-exam-gate .tc-track-btn{min-width:0;min-height:64px;justify-content:center;align-items:flex-start;white-space:normal}
-.tc-exam-gate .tc-track-code{overflow-wrap:anywhere}
-.tc-gate-branch{border-top:1px solid var(--line-strong);padding-top:13px;display:grid;gap:10px;min-width:0}
-.tc-gate-branch-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-#screen-home[data-active-track="gate-cs"] .hero,#screen-home[data-active-track="gate-ee"] .hero{grid-template-columns:minmax(0,1fr)}
-@media(min-width:1000px){.tc-exam-gate .tc-track-btn{padding:12px 16px}.tc-exam-gate .tc-track-code{font-size:.94rem}}
-@media(max-width:600px){.tc-exam-gate{padding:12px;gap:11px}.tc-exam-gate .tc-exam-gate-btns{gap:6px}.tc-exam-gate .tc-track-btn{padding:9px 7px;min-height:52px;align-items:center;text-align:center}.tc-exam-gate .tc-track-code{font-size:.73rem;line-height:1.3}.tc-exam-gate .tc-track-btn small{display:none}.tc-gate-branch-head{gap:6px}}
-</style>
+  <link rel="stylesheet" href="workspace.css?v=1">
 </head>
 <body>
 
@@ -35,16 +24,8 @@
     <div class="topbar-inner wrap">
       <a class="brand" href="#/">
         <span class="brand-mark" aria-hidden="true">TC</span>
-        <span>Test Centre<small>PRACTICE · NEET, GATE &amp; CUET PG</small></span>
+        <span>Test Centre</span>
       </a>
-
-      <nav class="workspace-nav" id="workspace-nav" aria-label="Workspace sections">
-        <button type="button" class="ws-tab is-active" data-view="all" aria-pressed="true">Overview</button>
-        <button type="button" class="ws-tab" data-view="tests" aria-pressed="false">Practice Tests</button>
-        <button type="button" class="ws-tab" id="nav-pyp-btn" data-view="pyp" aria-pressed="false">PYQs</button>
-        <button type="button" class="ws-tab" data-view="ai" aria-pressed="false">AI Generator</button>
-      </nav>
-
       <div class="top-links">
         <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Switch color theme" title="Toggle light or dark theme">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -52,7 +33,7 @@
           </svg>
         </button>
         <a href="../index.html">Portfolio</a>
-        
+
       </div>
     </div>
   </header>
@@ -60,89 +41,61 @@
   <!-- ============================== HOME ============================== -->
   <main id="screen-home" class="screen" hidden>
     <div class="wrap home-shell">
-      <section class="tc-exam-gate" aria-label="Choose your target exam">
-        <div class="tc-exam-gate-copy">
-          <span class="tc-exam-gate-kicker">STEP 1 · SELECT EXAM</span>
-          <strong>Choose your target exam</strong>
-        </div>
-        <div class="tc-exam-gate-btns" id="exam-track-bar" role="group" aria-label="Target exam">
-          <button type="button" class="tc-track-btn is-active" data-track="gate" aria-pressed="true"><span class="tc-track-code">GATE</span><small>Engineering · EC / EE / CS</small></button>
-          <button type="button" class="tc-track-btn" data-track="cuet-pg" aria-pressed="false"><span class="tc-track-code">CUET PG</span><small>Life Sciences · Zoology</small></button>
-          <button type="button" class="tc-track-btn" data-track="neet" aria-pressed="false"><span class="tc-track-code">NEET</span><small>Physics · Chemistry · Biology</small></button>
-        </div>
-        <div class="tc-gate-branch" id="gate-branch-picker">
-          <div class="tc-gate-branch-head"><span class="tc-exam-gate-kicker">STEP 2 · SELECT GATE BRANCH</span></div>
-          <div class="tc-exam-gate-btns" id="gate-branch-bar" role="group" aria-label="GATE branch">
-            <button type="button" class="tc-track-btn is-active" data-branch="gate" aria-pressed="true"><span class="tc-track-code">ELECTRONICS &amp; COMM. (EC)</span><small>Subject modules · PYQs</small></button>
-            <button type="button" class="tc-track-btn" data-branch="gate-ee" aria-pressed="false"><span class="tc-track-code">ELECTRICAL (EE)</span><small>Previous-year tests</small></button>
-            <button type="button" class="tc-track-btn" data-branch="gate-cs" aria-pressed="false"><span class="tc-track-code">COMPUTER SC. (CS)</span><small>Previous-year tests</small></button>
-          </div>
-        </div>
+      <div class="workspace-heading">
+        <div><h1 id="track-title">GATE EC</h1><p id="track-description">Electronics &amp; Communication Engineering</p></div>
+        <button id="change-track" class="track-switch" type="button" aria-expanded="false" aria-controls="track-picker">Change exam <span aria-hidden="true">⌄</span></button>
+      </div>
+      <section id="track-picker" aria-label="Choose your exam" hidden>
+        <div class="picker-row"><span>Exam</span><div id="exam-track-bar" role="group" aria-label="Target exam">
+          <button type="button" data-track="gate" aria-pressed="true">GATE</button>
+          <button type="button" data-track="cuet-pg" aria-pressed="false">CUET PG</button>
+          <button type="button" data-track="neet" aria-pressed="false">NEET UG</button>
+        </div></div>
+        <div id="gate-branch-picker" class="picker-row"><span>Branch</span><div id="gate-branch-bar" role="group" aria-label="GATE branch">
+          <button type="button" data-branch="gate" aria-pressed="true">Electronics &amp; Communication</button>
+          <button type="button" data-branch="gate-ee" aria-pressed="false">Electrical</button>
+          <button type="button" data-branch="gate-cs" aria-pressed="false">Computer Science</button>
+        </div></div>
       </section>
-
-      <section class="hero" aria-labelledby="hero-headline">
-        <div class="hero-copy">
-          <span class="hero-eyebrow" id="hero-eyebrow">PRACTICE PORTAL · GATE EC</span>
-          <h1 id="hero-headline">Train like it <em>counts.</em></h1>
-          <p class="hero-lede" id="hero-lede">Subject-wise practice tests with a live timer, question palette, exam marking, saved progress, and instant solution review.</p>
-          <div id="home-stats" aria-label="Site summary"></div>
+      <nav class="workspace-nav" id="workspace-nav" aria-label="Workspace sections">
+        <button type="button" class="ws-tab is-active" data-view="all" aria-pressed="true">Overview</button>
+        <button type="button" class="ws-tab" data-view="tests" aria-pressed="false">Practice tests</button>
+        <button type="button" class="ws-tab" id="nav-pyp-btn" data-view="pyp" aria-pressed="false">Past papers</button>
+        <button type="button" class="ws-tab" data-view="ai" aria-pressed="false">AI generator</button>
+      </nav>
+      <section id="overview" aria-label="Overview">
+        <div class="continue-area" id="continue-area">
+          <h2>Continue practising</h2>
+          <div id="resume-banner" hidden></div><div id="gate-resume" hidden></div>
         </div>
-        <div class="hero-cta-card">
-          <span class="hero-cta-kicker">SYLLABUS-DRIVEN GEMINI AI</span>
-          <strong>Custom MCQ Sets</strong>
-          <small id="hero-cta-sub">Pick an official syllabus unit and question count — ready in seconds.</small>
-          <button type="button" class="btn-gold" id="jump-ai-gen">Open AI generator <span aria-hidden="true">→</span></button>
+        <div class="overview-grid">
+          <article class="study-feature">
+            <div class="feature-copy">
+              <h2 id="feature-heading">Previous-year<br><em>papers</em></h2>
+              <p id="feature-description">Take a timed paper or practise by topic.</p>
+              <button type="button" id="feature-action" class="btn-gold">Browse papers <span aria-hidden="true">→</span></button>
+            </div>
+            <div class="paper-stack" aria-hidden="true">
+              <div class="sample-paper">
+                <div class="paper-tab"></div>
+                <strong id="sample-title">GATE EC</strong>
+                <div class="sample-rule"></div>
+                <div id="sample-content"></div>
+              </div>
+            </div>
+          </article>
+          <section class="quick-panel" aria-labelledby="quick-title">
+            <h2 id="quick-title">Latest papers</h2>
+            <div id="quick-list"></div>
+          </section>
         </div>
+        <section class="activity-panel" aria-labelledby="activity-title">
+          <div class="activity-heading"><h2 id="activity-title">Your activity</h2><span id="activity-scope"></span></div>
+          <div id="home-stats"></div>
+          <details id="activity-history"><summary>Attempt history</summary><div id="daily-performance-history"></div></details>
+        </section>
       </section>
-
-      <section class="ai-study-coach ai-home-history" aria-label="Saved daily test analysis"><div class="ai-coach-title"><h3>Daily Performance History</h3><span>Saved on this device</span></div><p>Every submitted attempt is recorded by date with topic-wise and mapped unit-wise scores. This history remains available after a test reset.</p><div id="daily-performance-history"></div></section>
-
-      <div class="tc-workbench">
-        <aside class="tc-rail" aria-label="Filters and test progress">
-          <div class="tc-rail-head">
-            <h2>Test workbench</h2>
-            <p id="rail-sub">GATE ECE Track</p>
-          </div>
-
-          <div class="tc-meter" id="tc-meter" aria-label="Preparation progress">
-            <div class="tc-meter-top">
-              <div class="tc-meter-num"><b id="tc-meter-count">0</b><span> / <span id="tc-meter-total">0</span> sets</span></div>
-              <span class="tc-meter-badge" id="tc-meter-badge">READY</span>
-            </div>
-            <div class="tc-meter-bars" id="tc-meter-bars" aria-hidden="true"></div>
-            <div class="tc-meter-foot">
-              <span id="tc-meter-inprog">0 in progress</span>
-              <span id="tc-meter-qs">0 total Qs</span>
-            </div>
-          </div>
-
-          <div class="tc-rail-group">
-            <span class="tc-rail-label">ACTIVE EXAM</span>
-            <div id="exam-tabs" role="group" aria-label="Exams"></div>
-          </div>
-
-          <div class="tc-rail-group">
-            <span class="tc-rail-label">SUBJECT FILTER</span>
-            <div id="subject-chips" aria-label="Subjects"></div>
-          </div>
-        </aside>
-
-        <div class="tc-main">
-          <div class="tc-search-bar">
-            <label class="search">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-              <input id="search" type="search" placeholder="Search tests by subject or paper title…" aria-label="Search tests">
-            </label>
-            <div class="tc-view-pills" role="group" aria-label="Quick view">
-              <button type="button" class="ws-pill is-active" data-view="all">All</button>
-              <button type="button" class="ws-pill" data-view="tests">Tests</button>
-              <button type="button" class="ws-pill" id="pill-pyp-btn" data-view="pyp">PYQs</button>
-              <button type="button" class="ws-pill" data-view="ai">AI Sets</button>
-            </div>
-          </div>
-
-          <div id="resume-banner" hidden></div>
-
+      <div class="tc-main">
           <section class="gate-pyp" id="gate-pyp" aria-labelledby="gate-pyp-title" hidden>
             <header class="gate-pyp-header">
               <div>
@@ -152,9 +105,9 @@
               <a id="gate-archive-syllabus" href="../assets/gate-ec/EC-GATE-2027-syllabus.pdf" target="_blank" rel="noopener">2027 syllabus PDF ↗</a>
             </header>
             <div class="tc-view-pills" role="group" aria-label="Browse GATE papers">
-              <button type="button" class="ws-pill is-active" data-gate-mode="topic" aria-pressed="true">Topic-wise</button>
-              <button type="button" class="ws-pill" data-gate-mode="unit" aria-pressed="false">Unit-wise</button>
-              <button type="button" class="ws-pill" data-gate-mode="paper" aria-pressed="false">Question paper-wise</button>
+              <button type="button" class="ws-pill is-active" data-gate-mode="paper" aria-pressed="true">Full papers</button>
+              <button type="button" class="ws-pill" data-gate-mode="topic" aria-pressed="false">By topic</button>
+              <button type="button" class="ws-pill" data-gate-mode="unit" aria-pressed="false">By unit</button>
             </div>
             <div class="gate-pyp-filters">
               <label id="gate-group-field"><span id="gate-group-label">Topic</span><select id="gate-group"></select></label>
@@ -197,20 +150,20 @@
           </section>
           <section id="branch-ai-notice" class="gate-pyp" aria-labelledby="branch-ai-title" hidden>
             <header class="gate-pyp-header"><div><span class="section-kicker" id="branch-ai-label">GATE</span><h2 id="branch-ai-title">AI Generator</h2></div></header>
-            <p>Custom AI test generation is not yet configured for this branch. Its own syllabus and subject mappings are required; questions from another branch will not be generated here.</p>
+            <p>AI test generation is unavailable for this branch. You can practise with its previous-year papers.</p>
             <button type="button" class="btn btn-primary" id="branch-ai-practice">Browse available practice tests</button>
           </section>
           <section id="ai-generator" class="ai-generator" aria-label="AI test generator"></section>
 
           <section id="tests-catalog" aria-label="Practice test catalog">
-            <div class="catalog-head">
-              <span class="section-kicker" id="catalog-kicker">SUBJECT CATALOG</span>
-              <h3 id="catalog-heading">Available test modules</h3>
+            <div class="catalog-head"><h2 id="catalog-heading" tabindex="-1">Practice tests</h2></div>
+            <div class="catalog-tools">
+              <label>Search tests<input id="search" type="search" placeholder="Title or subject"></label>
+              <label>Subject<select id="subject-filter"></select></label>
             </div>
             <div id="test-grid"></div>
             <p id="home-empty" hidden>No tests match your search or filter. Try another term or reset filters.</p>
           </section>
-        </div>
       </div>
     </div>
   </main>
@@ -281,6 +234,8 @@
     <section class="solutions" id="solutions" hidden></section>
   </main>
 
+  <footer id="study-tools" aria-label="Portfolio tools"></footer>
+
   <!-- ============================== MODAL ============================== -->
   <div id="modal" hidden></div>
 
@@ -318,11 +273,11 @@
   <script src="../ai-config.js?v=20261123-portable1"></script>
   <script src="ai-config.js?v=20261123-portable1"></script>
   <script src="ai-coach.js?v=branchnav1"></script>
-  <script src="ai-generator.js?v=20261121-history3"></script>
-  <script type="module" src="gate-pyp.js?v=branchnav-fix2"></script>
-  <script src="app.js?v=uniform-nav5"></script>
-  <script src="../ai-assistant.js?v=20261123-portable2" defer></script>
+  <script src="ai-generator.js?v=workspace1"></script>
+  <script type="module" src="gate-pyp.js?v=workspace1"></script>
+  <script src="app.js?v=workspace1"></script>
+  <script src="../ai-assistant.js?v=studytools1" defer></script>
   <script src="../ai-tools.js?v=20261123-portable2" defer></script>
-  <script defer src="../command-palette.js"></script>
+  <script defer src="../command-palette.js?v=studytools1"></script>
 </body>
 </html>

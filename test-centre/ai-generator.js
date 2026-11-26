@@ -172,16 +172,12 @@
       : (exams[0] && exams[0].id) || 'gate';
 
     host.innerHTML =
-      '<div class="ai-gen-intro"><span class="ai-gen-kicker">✦ GOOGLE GEMINI · OFFICIAL SYLLABUS GENERATOR</span>' +
-      '<h2 id="ai-gen-heading">Generate syllabus-aligned tests with AI</h2>' +
-      '<p>Strictly constrained to official syllabus units for GATE 2027 ECE, NEET UG, and CUET PG (SCQP17 Life Sciences &amp; SCQP28 Zoology). Every set saves locally too.</p></div>' +
+      '<div class="ai-gen-intro"><h2 id="ai-gen-heading">Generate a practice test</h2>' +
+      '<p>Choose a syllabus unit. Gemini will build a test and save it to this browser.</p></div>' +
       '<form class="ai-gen-form" id="ai-gen-form">' +
       '<label>Exam stream<select id="ai-gen-exam" required></select></label>' +
       '<label>Subject<select id="ai-gen-subject" required></select></label>' +
       '<label>Official syllabus unit<select id="ai-gen-unit"></select></label>' +
-      '<label>Extra subtopic focus (optional)<input id="ai-gen-topic" maxlength="80" placeholder="Narrow focus within unit (optional)"></label>' +
-      '<label>Difficulty<select id="ai-gen-level"><option value="Mixed">Mixed</option>' +
-      '<option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option></select></label>' +
       '<label>Questions per test<select id="ai-gen-count">' +
       '<option value="10" selected>10 questions</option>' +
       '<option value="25">25 questions</option>' +
@@ -189,8 +185,13 @@
       '<option value="75">75 questions</option>' +
       '<option value="100">100 questions</option>' +
       '</select></label>' +
+      '<details class="ai-gen-settings"><summary>More options</summary><div>' +
+      '<label>Extra subtopic focus (optional)<input id="ai-gen-topic" maxlength="80" placeholder="Narrow focus within unit (optional)"></label>' +
+      '<label>Difficulty<select id="ai-gen-level"><option value="Mixed">Mixed</option>' +
+      '<option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option></select></label>' +
       '<label>Number of tests<select id="ai-gen-batch"><option value="1">1 test</option>' +
       '<option value="2">2 different tests</option><option value="3">3 different tests</option></select></label>' +
+      '</div></details>' +
       '<button type="submit" class="btn btn-primary" id="ai-gen-submit">Generate AI tests</button>' +
       '</form>' +
       '<div class="ai-gen-syllabus-box" id="ai-gen-syllabus-box">' +

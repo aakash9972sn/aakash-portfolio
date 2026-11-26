@@ -2,11 +2,34 @@ export const units = new Map(Object.values(window.TEST_CENTRE_SYLLABI?.gate?.sub
   .flatMap(subject => subject.units.map(unit => [unit.id, unit.title])));
 units.set('legacy', 'Earlier syllabus topics');
 
+const attemptPrefix = 'tclab.gate.attempt.v1.';
+
 export function attemptKey(mode, setId, year) {
   const uid = window.AakashAccount?.getState()?.uid;
   const parts = [mode, setId, mode === 'paper' ? '' : year];
   if (uid) parts.push(uid);
-  return 'tclab.gate.attempt.v1.' + JSON.stringify(parts);
+  return attemptPrefix + JSON.stringify(parts);
+}
+
+// Topic and unit attempts may cover all years or a single year.
+export function savedPracticeSets(papers) {
+  const matches = [];
+  const groups = new Map();
+  try {
+    for (const key of Object.keys(localStorage)) {
+      if (!key.startsWith(attemptPrefix)) continue;
+      let parts;
+      try { parts = JSON.parse(key.slice(attemptPrefix.length)); } catch { continue; }
+      if (!Array.isArray(parts)) continue;
+      const [mode, id, year] = parts;
+      if (!['topic', 'unit'].includes(mode) || key !== attemptKey(mode, id, year)) continue;
+      const group = JSON.stringify([mode, year]);
+      if (!groups.has(group)) groups.set(group, makeSets(papers, mode, year));
+      const set = groups.get(group).find(item => item.id === id);
+      if (set) matches.push({set, mode, year, state: inspectSavedAttempt(set, mode, year)});
+    }
+  } catch { /* Storage may be unavailable. */ }
+  return matches;
 }
 
 let cachedPapersPromise;

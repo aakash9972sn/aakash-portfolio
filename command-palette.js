@@ -57,7 +57,8 @@
   footer.textContent='↑↓ Navigate · Enter Open · Esc Close';
   shell.append(head,label,query,results,status,footer);
   dialog.append(shell);
-  document.body.append(trigger,dialog);
+  (document.getElementById('study-tools') || document.body).append(trigger);
+  document.body.append(dialog);
 
   const staticItems=[
     {title:'Portfolio home',detail:'Overview and featured work',href:href('index.html')},

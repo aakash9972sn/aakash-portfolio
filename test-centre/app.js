@@ -94,19 +94,26 @@
     closeModal(false);
     if (run) { saveProgress(true); run = null; stopTimer(); }
     const hash = location.hash || '#/';
-    if (['#/gate-papers','#/gate-cs-papers','#/gate-ee-papers'].includes(hash)) {
-      filterExam = hash === '#/gate-cs-papers' ? 'gate-cs' : hash === '#/gate-ee-papers' ? 'gate-ee' : 'gate';
-      lastGateBranch = filterExam;
-      store.set(GATE_BRANCH_KEY, lastGateBranch);
-      store.set(EXAM_STORE_KEY, filterExam);
+    const workspace = hash.match(/^#\/workspace\/([a-z-]+)\/(all|tests|pyp|ai)$/);
+    const archives = {'#/gate-papers': 'gate', '#/gate-cs-papers': 'gate-cs', '#/gate-ee-papers': 'gate-ee'};
+    const track = archives[hash] || (workspace && TRACK_IDS.includes(workspace[1]) && workspace[1]);
+    if (track) {
+      if (track !== filterExam) resetFilters();
+      filterExam = track;
+      if (isGateTrack(track)) {
+        lastGateBranch = track;
+        store.set(GATE_BRANCH_KEY, track);
+      }
+      store.set(EXAM_STORE_KEY, track);
+      workspaceView = archives[hash] ? 'pyp' : workspace[2];
       showHome();
-      setWorkspaceView('pyp');
       return;
     }
     const tMatch = hash.match(/^#\/t\/(.+)$/);
     const rMatch = hash.match(/^#\/r\/(.+)$/);
     const pdfMatch = hash.match(/^#\/pdf\/(.+)$/);
     if (pdfMatch && findEntry(pdfMatch[1])?.test.pdfOnly) {
+      workspaceView = 'pyp';
       filterExam = 'cuet-pg';
       store.set(EXAM_STORE_KEY, filterExam);
       showHome();
@@ -115,6 +122,7 @@
     }
     if (tMatch && findEntry(tMatch[1])) { openTest(findEntry(tMatch[1])); return; }
     if (rMatch && findEntry(rMatch[1])) { showResult(findEntry(rMatch[1])); return; }
+    workspaceView = 'all';
     showHome();
   }
 
@@ -138,37 +146,11 @@
   let lastGateBranch = store.get(GATE_BRANCH_KEY,'gate');
   if (!isGateTrack(lastGateBranch)) lastGateBranch='gate';
   const TRACK_META = {
-    gate: {
-      eyebrow: 'PRACTICE PORTAL · GATE 2027 ECE',
-      lede: 'Subject-wise GATE Electronics & Communication practice with live timer, +1/−0.33 marking, official syllabus AI sets, and solution review.',
-      ctaSub: 'Generate MCQs strictly from the official GATE 2027 EC syllabus.',
-      railSub: 'GATE 2027 ECE Track',
-      catalogHeading: 'GATE EC subject modules'
-    },
-    'gate-ee': {
-      eyebrow: 'PRACTICE PORTAL · GATE EE',
-      lede: 'Electrical Engineering previous-year tests with live timer, question palette, saved responses and answer review.',
-      ctaSub: '', railSub: 'GATE Electrical Engineering Track', catalogHeading: 'GATE EE practice tests'
-    },
-    'gate-cs': {
-      eyebrow: 'PRACTICE PORTAL · GATE CS',
-      lede: 'Computer Science previous-year tests with the GATE question palette, timer, saved responses and answer review.',
-      ctaSub: '', railSub: 'GATE Computer Science Track', catalogHeading: 'GATE CS practice tests'
-    },
-    neet: {
-      eyebrow: 'PRACTICE PORTAL · NEET UG',
-      lede: 'Focused Physics, Chemistry & Biology practice tests with live timer, +4/−1 NTA marking, NCERT syllabus AI sets, and instant solutions.',
-      ctaSub: 'Generate MCQs strictly from official NTA NEET UG chapters.',
-      railSub: 'NEET UG Track',
-      catalogHeading: 'NEET UG subject modules'
-    },
-    'cuet-pg': {
-      eyebrow: 'PRACTICE PORTAL · CUET PG',
-      lede: 'CUET PG Life Sciences (SCQP17) & Zoology (SCQP28) practice — includes 575 imported previous-year questions (source answer keys not independently verified) and syllabus-driven Gemini AI mocks (+4/−1).',
-      ctaSub: 'Generate MCQs strictly from CUET PG SCQP17 & SCQP28 syllabi.',
-      railSub: 'CUET PG Track',
-      catalogHeading: 'CUET PG & PYP modules'
-    }
+    gate: { title: 'GATE EC', description: 'Electronics & Communication Engineering' },
+    'gate-ee': { title: 'GATE EE', description: 'Electrical Engineering' },
+    'gate-cs': { title: 'GATE CS', description: 'Computer Science & Information Technology' },
+    neet: { title: 'NEET UG', description: 'Biology, Physics & Chemistry' },
+    'cuet-pg': { title: 'CUET PG', description: 'Life Sciences & Zoology' }
   };
   const savedExam = store.get(EXAM_STORE_KEY, 'gate');
   let filterExam = TRACK_IDS.includes(savedExam) ? savedExam : 'gate';
@@ -201,167 +183,137 @@
   }
   function pickTrack(track) {
     if(!TRACK_IDS.includes(track))return;
-    if(isGateTrack(track)) {lastGateBranch=track;store.set(GATE_BRANCH_KEY,track);}
-    if(location.hash && location.hash!=='#/')history.replaceState(history.state,'',location.pathname+'#/');
     workspaceView='all';
-    searchTerm='';$('#search').value='';
     selectExamTrack(track,false);
   }
 
-  function renderTrackFocus() {
-    const meta = TRACK_META[filterExam] || TRACK_META.gate;
-    $('#screen-home').dataset.activeTrack=filterExam;
+  function setPicker(open) {
+    $('#track-picker').hidden = !open;
+    $('#change-track').setAttribute('aria-expanded', String(open));
+    if (!open && $('#track-picker').contains(document.activeElement)) $('#change-track').focus();
+  }
+
+  function renderOverview() {
+    const meta = TRACK_META[filterExam];
+    const gate = isGateTrack(filterExam);
+    const neet = filterExam === 'neet';
+    $('#track-title').textContent = meta.title;
+    $('#track-description').textContent = meta.description;
+    $('#feature-heading').innerHTML = neet ? 'Subject<br><em>practice</em>' : 'Previous-year<br><em>papers</em>';
+    $('#feature-description').textContent = neet ? 'Choose a subject and start a timed test.' :
+      filterExam === 'gate' ? 'Take a full paper or practise by topic.' :
+      gate ? 'Work through a timed paper from the archive.' : 'Practise with CUET PG and CUCET papers.';
+    $('#feature-action').firstChild.textContent = neet ? 'Browse tests ' : 'Browse papers ';
+    $('#sample-title').textContent = meta.title;
+    const sample = $('#sample-content');
+    sample.replaceChildren();
+    if (filterExam === 'gate') {
+      const img = document.createElement('img');
+      img.src = 'gate-digitized/ink/EC2026-Q3-stem.webp';
+      img.alt = '';
+      sample.append(img);
+    } else {
+      for (let row = 0; row < 4; row++) {
+        const line = document.createElement('div');
+        line.className = 'bubble-row';
+        for (const letter of 'ABCD') {
+          const bubble = document.createElement('i');
+          bubble.textContent = letter;
+          line.append(bubble);
+        }
+        sample.append(line);
+      }
+    }
+    $('#quick-title').textContent = gate ? 'Latest papers' : 'Practice by subject';
+    if (!gate) {
+      const available = activeTrackTests();
+      const subjects = subjectsForFilter().map(subject => ({
+        ...subject, count: available.filter(x => x.subject.id === subject.id).length
+      })).filter(subject => subject.count);
+      $('#quick-list').replaceChildren(...subjects.slice(0, 3).map(subject => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'quick-link';
+        button.innerHTML = '<span><strong>' + esc(subject.name) + '</strong><small>' +
+          subject.count + (subject.count === 1 ? ' test' : ' tests') + '</small></span><span aria-hidden="true">→</span>';
+        button.addEventListener('click', () => {
+          openWorkspaceView('tests');
+          filterSubject = subject.id;
+          $('#subject-filter').value = subject.id;
+          renderCards();
+          $('#catalog-heading').focus();
+        });
+        return button;
+      }));
+    }
+  }
+
+  function renderHome() {
+    $('#screen-home').dataset.activeTrack = filterExam;
     renderExamPicker();
+    renderOverview();
+    renderSubjectFilter();
+    renderResume();
+    renderHomeStats();
     window.TestCentreAI?.mountHistory?.();
-    if ($('#hero-eyebrow')) $('#hero-eyebrow').textContent = meta.eyebrow;
-    if ($('#hero-lede')) $('#hero-lede').textContent = meta.lede;
-    if ($('#hero-cta-sub')) $('#hero-cta-sub').textContent = meta.ctaSub;
-    if ($('#rail-sub')) $('#rail-sub').textContent = meta.railSub;
-    if ($('#catalog-heading')) $('#catalog-heading').textContent = meta.catalogHeading;
-    // Navigation is identical across all exam streams; only content is scoped.
-    $$('[data-view="pyp"]').forEach((btn) => {
-      btn.hidden = false;
-      btn.textContent = 'PYQs';
-    });
-    const cs = isPaperOnly(filterExam);
-    $('.hero-cta-card').hidden = cs;
-    $('#subject-chips').closest('.tc-rail-group').hidden = cs;
-    $$('[data-view="ai"], [data-view="tests"], [data-view="all"]').forEach(btn => btn.hidden = false);
     setWorkspaceView(workspaceView);
-    window.dispatchEvent(new CustomEvent('tclab:gate-track', {detail:{track:filterExam}}));
+    window.dispatchEvent(new CustomEvent('tclab:gate-track', {detail: {track: filterExam}}));
   }
 
   function selectExamTrack(trackId, fromGenerator) {
     if (!TRACK_IDS.includes(trackId)) return;
-    const leavingCS = isPaperOnly(filterExam) && !isPaperOnly(trackId);
     filterExam = trackId;
-    filterSubject = 'all';
-    store.set(EXAM_STORE_KEY, filterExam);
-    if (leavingCS) { workspaceView = 'all'; showHome(); return; }
-    renderTrackFocus();
-    renderExamTabs();
-    renderSubjectChips();
-    renderResume();
-    renderCards();
-    renderHomeStats();
-    if (!isPaperOnly(filterExam) && !fromGenerator && generator && typeof generator.setExam === 'function') {
-      generator.setExam(filterExam);
+    if (isGateTrack(trackId)) {
+      lastGateBranch = trackId;
+      store.set(GATE_BRANCH_KEY, trackId);
     }
+    resetFilters();
+    recordWorkspace(workspaceView);
+    store.set(EXAM_STORE_KEY, filterExam);
+    renderHome();
+    if (!isPaperOnly(filterExam) && !fromGenerator) mountGenerator();
   }
 
   function showHome() {
-    window.TestCentreAI?.mountHistory?.();
-    stopTimer();
     run = null;
     setScreen('home');
-    renderTrackFocus();
-    renderExamTabs();
-    renderSubjectChips();
-    renderResume();
-    renderCards();
-    renderHomeStats();
-    if (generator && !isPaperOnly(filterExam)) {
-      generator.mount(
-        EXAMS,
-        registerGenerated,
-        () => {
-          renderResume();
-          renderCards();
-          renderHomeStats();
-        },
-        {
-          activeExam: filterExam,
-          onExamChange: (examId) => selectExamTrack(examId, true)
-        }
-      );
-      if (typeof generator.setExam === 'function') generator.setExam(filterExam);
-    }
+    renderHome();
+    if (!isPaperOnly(filterExam)) mountGenerator();
+  }
+
+  function mountGenerator() {
+    if (!generator) return;
+    generator.mount(EXAMS, registerGenerated, () => {
+      renderOverview();
+      renderResume();
+      renderCards();
+      renderHomeStats();
+    }, {activeExam: filterExam, onExamChange: id => selectExamTrack(id, true)});
+    generator.setExam?.(filterExam);
   }
 
   function renderHomeStats() {
-    if (isPaperOnly(filterExam)) {
-      $('#home-stats').replaceChildren();
-      $('#tc-meter').hidden = true;
-      window.dispatchEvent(new Event('tclab:cs-stats'));
-      return;
-    }
-    $('#tc-meter').hidden = false;
-    const scopedTests = activeTrackTests();
-    const scopedExams = EXAMS.filter((e) => matchesActiveTrack(e.id));
-    const inProgress = scopedTests.filter((x) => progressOf(x.test.id)).length;
-    const attempted = scopedTests.filter((x) => store.get(BKEY(x.test.id), null)).length;
-    const subjectCount = scopedExams.reduce((n, e) => n + e.subjects.length, 0);
-    const digitized = new Set(scopedTests.flatMap((x) => questionsOf(x.test).map((q) => JSON.stringify([q.q, q.o])))).size;
-    const scanOnly = scopedTests.filter(x => x.test.pdfOnly).reduce((total, x) => total + x.test.questionCount, 0);
-    const questions = digitized + scanOnly;
-    const stats = [
-      { v: scopedTests.length, l: 'Tests' },
-      { v: subjectCount, l: 'Subjects' },
-      { v: questions, l: 'Questions' },
-      { v: attempted, l: 'Attempted' },
-      { v: inProgress, l: 'In progress' }
-    ];
-    $('#home-stats').innerHTML = stats.map((s) => '<div class="stat"><b>' + s.v + '</b><span>' + esc(s.l) + '</span></div>').join('');
-
-    const meterCount = $('#tc-meter-count');
-    const meterTotal = $('#tc-meter-total');
-    const meterBadge = $('#tc-meter-badge');
-    const meterBars = $('#tc-meter-bars');
-    const meterInprog = $('#tc-meter-inprog');
-    const meterQs = $('#tc-meter-qs');
-    if (meterCount && meterTotal && meterBars) {
-      meterCount.textContent = String(attempted);
-      meterTotal.textContent = String(scopedTests.length);
-      if (meterBadge) {
-        meterBadge.textContent = attempted >= 3 ? '✓ ON TRACK' : (inProgress ? 'IN PROGRESS' : 'READY TO START');
-      }
-      if (meterInprog) meterInprog.textContent = inProgress + ' in progress';
-      if (meterQs) meterQs.textContent = questions + ' total Qs';
-      const totalBars = 20;
-      const doneBars = scopedTests.length ? Math.round((attempted / scopedTests.length) * totalBars) : 0;
-      const progBars = scopedTests.length ? Math.min(totalBars - doneBars, Math.ceil((inProgress / scopedTests.length) * totalBars)) : 0;
-      let barsHtml = '';
-      for (let i = 0; i < totalBars; i++) {
-        const cls = i < doneBars ? 'is-filled' : (i < doneBars + progBars ? 'is-active' : '');
-        barsHtml += '<i class="' + cls + '"></i>';
-      }
-      meterBars.innerHTML = barsHtml;
-    }
-  }
-
-  function renderExamTabs() {
-    // The main two-step picker is the single navigation control.
-    const el=$('#exam-tabs');
-    el.replaceChildren();
-    const b=document.createElement('button');
-    b.type='button';b.className='tab is-active';b.setAttribute('aria-pressed','true');
-    b.textContent=isGateTrack(filterExam)?({gate:'GATE EC','gate-ee':'GATE EE','gate-cs':'GATE CS'}[filterExam]):filterExam==='neet'?'NEET':'CUET PG';
-    b.addEventListener('click',()=>{$('#exam-track-bar').scrollIntoView({block:'center',behavior:'smooth'});});
-    el.append(b);
+    $('#activity-scope').textContent = isGateTrack(filterExam) ? 'Full papers' : 'Practice tests';
+    if (isGateTrack(filterExam)) return; // The archive owns paper attempts and their account scope.
+    const tests = activeTrackTests();
+    const stats = [[tests.length, 'Available'], [tests.filter(x => progressOf(x.test.id)).length, 'In progress'],
+      [tests.filter(x => store.get(BKEY(x.test.id), null)).length, 'Completed']];
+    $('#home-stats').innerHTML = stats.map(([n, label]) =>
+      '<div class="stat"><b>' + n + '</b><span>' + label + '</span></div>').join('');
   }
 
   function subjectsForFilter() {
-    const exams = EXAMS.filter((e) => matchesActiveTrack(e.id));
-    const out = [];
-    exams.forEach((e) => e.subjects.forEach((s) => out.push({ id: s.id, name: s.name, exam: e })));
-    return out;
+    return EXAMS.filter(e => matchesActiveTrack(e.id)).flatMap(exam =>
+      exam.subjects.map(subject => ({ id: subject.id, name: subject.name, exam })));
   }
 
-  function renderSubjectChips() {
-    const subs = subjectsForFilter();
-    const chips = [{ id: 'all', name: 'All subjects' }].concat(subs.map((s) => ({
-      ...s,
-      name: subs.filter((other) => other.name === s.name).length > 1 ? s.name + ' · ' + s.exam.name : s.name
-    })));
-    $('#subject-chips').innerHTML = chips.map((s) => {
-      const active = s.id === filterSubject ? ' is-active' : '';
-      return '<button type="button" class="chip' + active + '" data-subject="' + esc(s.id) + '">' + esc(s.name) + '</button>';
-    }).join('');
-    $$('#subject-chips .chip').forEach((btn) => btn.addEventListener('click', () => {
-      filterSubject = btn.dataset.subject;
-      renderSubjectChips();
-      renderCards();
+  function renderSubjectFilter() {
+    const subjects = subjectsForFilter();
+    $('#subject-filter').replaceChildren(new Option('All subjects', 'all'), ...subjects.map(subject => {
+      const duplicate = subjects.some(other => other.id !== subject.id && other.name === subject.name);
+      return new Option(duplicate ? subject.name + ' · ' + subject.exam.name : subject.name, subject.id);
     }));
+    $('#subject-filter').value = filterSubject;
   }
 
   function renderResume() {
@@ -370,7 +322,6 @@
     if (!items.length) { banner.hidden = true; banner.innerHTML = ''; return; }
     banner.hidden = false;
     banner.innerHTML =
-      '<div class="resume-head"><span class="resume-dot" aria-hidden="true"></span> Pick up where you left off</div>' +
       '<div class="resume-list">' + items.map((o) => {
         const total = questionsOf(o.x.test).length;
         const done = o.p.responses.filter((r) => r !== null && r !== undefined).length;
@@ -964,6 +915,24 @@
 
   /* ------------------------------------------------------------------- workspace & theme */
   let workspaceView = 'all';
+  function resetFilters() {
+    filterSubject = 'all';
+    searchTerm = '';
+    $('#search').value = '';
+    $('#subject-filter').value = 'all';
+  }
+
+  function recordWorkspace(view) {
+    const hash = '#/workspace/' + filterExam + '/' + view;
+    if (location.hash !== hash) history.pushState(null, '', location.pathname + hash);
+  }
+
+  function openWorkspaceView(view) {
+    if (view !== workspaceView) resetFilters();
+    recordWorkspace(view);
+    setWorkspaceView(view);
+  }
+
   function setWorkspaceView(view) {
     workspaceView = ['all', 'tests', 'pyp', 'ai'].includes(view) ? view : 'all';
     $$('[data-view]').forEach((btn) => {
@@ -971,62 +940,58 @@
       btn.classList.toggle('is-active', on);
       if (btn.hasAttribute('aria-pressed')) btn.setAttribute('aria-pressed', String(on));
     });
-    const aiSec = $('#ai-generator');
-    const pypSec = $('.pyp-library');
-    const catSec = $('#tests-catalog');
+    $('#overview').hidden = workspaceView !== 'all';
     const paperOnly = isPaperOnly(filterExam);
-    if (aiSec) aiSec.hidden = paperOnly || !(workspaceView === 'all' || workspaceView === 'ai');
-    const branchAI = $('#branch-ai-notice');
-    if (branchAI) {
-      branchAI.hidden = !(paperOnly && workspaceView === 'ai');
-      if (paperOnly) $('#branch-ai-label').textContent = filterExam === 'gate-ee' ? 'GATE EE' : 'GATE CS';
-    }
-    const showPyp = workspaceView === 'all' || workspaceView === 'pyp';
-    if (pypSec) pypSec.hidden = !(filterExam === 'cuet-pg' && showPyp);
-    const gatePyp = $('#gate-pyp');
-    if (gatePyp) gatePyp.hidden = !(isGateTrack(filterExam) && (showPyp || (paperOnly && workspaceView === 'tests')));
-    const neetWithoutPYQs = filterExam === 'neet' && workspaceView === 'pyp' &&
-      !activeTrackTests().some(x => x.test.pyp);
-    const neetNotice = $('#neet-pyp-notice');
-    if (neetNotice) neetNotice.hidden = !neetWithoutPYQs;
-    if (catSec) catSec.hidden = neetWithoutPYQs || isPaperOnly(filterExam) || !(workspaceView === 'all' || workspaceView === 'tests' || workspaceView === 'pyp');
-    renderCards();
+    const gate = isGateTrack(filterExam);
+    const past = workspaceView === 'pyp';
+    const tests = workspaceView === 'tests';
+    $('#gate-pyp').hidden = !(gate && (past || (paperOnly && tests)));
+    $('#ai-generator').hidden = workspaceView !== 'ai' || paperOnly;
+    $('#branch-ai-notice').hidden = workspaceView !== 'ai' || !paperOnly;
+    $('#branch-ai-label').textContent = TRACK_META[filterExam].title;
+    const noPapers = filterExam === 'neet' && past && !activeTrackTests().some(x => x.test.pyp);
+    $('#neet-pyp-notice').hidden = !noPapers;
+    $('#tests-catalog').hidden = !((!paperOnly && tests) || (!gate && past && !noPapers));
+    $('#catalog-heading').textContent = past ? 'Previous-year papers' : 'Practice tests';
+    if (!$('#tests-catalog').hidden) renderCards();
   }
 
   /* ------------------------------------------------------------------- wire */
   function wire() {
+    $('#change-track').addEventListener('click', () => setPicker($('#track-picker').hidden));
+    $('#track-picker').addEventListener('keydown', e => {
+      if (e.key === 'Escape') setPicker(false);
+    });
+    $('#feature-action').addEventListener('click', () => {
+      openWorkspaceView(filterExam === 'neet' ? 'tests' : 'pyp');
+      $('.ws-tab.is-active').focus();
+    });
     $$('#exam-track-bar [data-track]').forEach(btn=>btn.addEventListener('click',()=>{
       pickTrack(btn.dataset.track==='gate'?lastGateBranch:btn.dataset.track);
+      if (btn.dataset.track !== 'gate') setPicker(false);
     }));
     $$('#gate-branch-bar [data-branch]').forEach(btn=>btn.addEventListener('click',()=>{
       pickTrack(btn.dataset.branch);
+      setPicker(false);
     }));
     $$('[data-view]').forEach((btn) => btn.addEventListener('click', () => {
       if ($('#screen-home').hidden) go('#/');
-      setWorkspaceView(btn.dataset.view);
+      openWorkspaceView(btn.dataset.view);
     }));
     $('#neet-pyp-practice')?.addEventListener('click', () => {
-      setWorkspaceView('tests');
+      openWorkspaceView('tests');
       $('#tests-catalog')?.scrollIntoView({behavior:'smooth',block:'start'});
     });
     $('#branch-ai-practice')?.addEventListener('click', () => {
-      setWorkspaceView('tests');
+      openWorkspaceView('tests');
       $('#gate-pyp')?.scrollIntoView({behavior:'smooth',block:'start'});
     });
-    $('#jump-ai-gen')?.addEventListener('click', () => {
-      setWorkspaceView('ai');
-      $('#ai-generator')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-
-    $('#search').addEventListener('input', (e) => {
+    $('#search').addEventListener('input', e => {
       searchTerm = e.target.value;
-      if (isPaperOnly(filterExam)) {
-        if (workspaceView === 'ai' && searchTerm.trim()) setWorkspaceView('tests');
-        window.dispatchEvent(new CustomEvent('tclab:gate-search',{detail:searchTerm})); return;
-      }
-      if (workspaceView !== 'all' && workspaceView !== 'tests' && searchTerm.trim()) {
-        setWorkspaceView('tests');
-      }
+      renderCards();
+    });
+    $('#subject-filter').addEventListener('change', e => {
+      filterSubject = e.target.value;
       renderCards();
     });
     $('#btn-prev').addEventListener('click', prevQuestion);

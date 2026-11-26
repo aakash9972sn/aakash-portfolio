@@ -1,4 +1,4 @@
-import {inspectSavedAttempt, summarizeSet, loadPapers, makeSets, units} from './gate-library.js?v=archive4';
+import {savedPracticeSets, inspectSavedAttempt, summarizeSet, loadPapers, makeSets, units} from './gate-library.js?v=workspace1';
 
 const archive = document.getElementById('gate-pyp');
 const year = archive.querySelector('#gate-year');
@@ -24,8 +24,7 @@ statusFilter.addEventListener('change',()=>{page=0;renderPage();});
 search.addEventListener('input',()=>{page=0;renderPage();});
 const params = new URLSearchParams(location.search);
 const kinds = {paper:'paper set', unit:'unit', topic:'topic'};
-let mode = Object.hasOwn(kinds, params.get('mode')) ? params.get('mode') :
-  location.hash === '#/gate-papers' ? 'paper' : 'topic';
+let mode = Object.hasOwn(kinds, params.get('mode')) ? params.get('mode') : 'paper';
 let papers = [], sets = [], page = 0;
 let activeTrack = '', loadToken = 0, ecMode = mode, csPromise;
 const isCS = () => activeTrack === 'gate-cs';
@@ -34,7 +33,67 @@ const paperOnly = () => isCS() || isEE();
 let eePromise;
 function loadEE(){if(!eePromise)eePromise=fetch('gate-ee-index.json?v=2').then(r=>{if(!r.ok)throw Error('EE index unavailable');return r.json();}).catch(e=>{eePromise=null;throw e;});return eePromise;}
 function loadCS(){if(!csPromise)csPromise=fetch('gate-cs-index.json?v=3').then(r=>{if(!r.ok)throw Error('CS index unavailable');return r.json();}).then(async data=>{const checked=await Promise.all(data.map(async paper=>{if(!paper.sourceRequired)return paper;try{const res=await fetch(paper.sourcePdf,{method:'HEAD',cache:'no-store'});return res.ok&&/application\/pdf|application\/octet-stream/i.test(res.headers.get('content-type')||'')?paper:null;}catch{return null;}}));return checked.filter(Boolean);}).catch(e=>{csPromise=null;throw e;});return csPromise;}
-function stats(){if(!paperOnly()||!papers.length||document.getElementById('screen-home')?.dataset.activeTrack!==activeTrack)return;const all=makeSets(papers,'paper','');const states=all.map(s=>inspectSavedAttempt(s,'paper',''));const count=states.filter(s=>s?.review).length, progress=states.filter(s=>s&&!s.review).length;const el=document.getElementById('home-stats');if(!el)return;el.replaceChildren(...[[all.length,'Tests'],[all.reduce((n,s)=>n+s.questions.length,0),'Questions'],[count,'Attempted'],[progress,'In progress']].map(([v,l])=>{const d=document.createElement('div');d.className='stat';const b=document.createElement('b'),span=document.createElement('span');b.textContent=v;span.textContent=l;d.append(b,span);return d;}));}
+function testUrl(set, mode, year) {
+  const target = new URLSearchParams({mode, set: set.id});
+  if (year) target.set('year', year);
+  return 'gate-test.html?' + target;
+}
+
+function overviewLink({set, mode, year, state}, resume) {
+  const link = document.createElement('a');
+  link.href = testUrl(set, mode, year);
+  link.className = 'quick-link';
+  const copy = document.createElement('span');
+  const title = document.createElement('strong');
+  title.textContent = set.name + (mode !== 'paper' && year ? ' · ' + year : '');
+  const meta = document.createElement('small');
+  meta.textContent = resume ? state.answeredCount + '/' + set.questions.length + ' answered' :
+    set.questions.length + ' questions · 180 min';
+  const action = document.createElement('span');
+  action.textContent = resume ? 'Resume →' : '→';
+  if (!resume) action.setAttribute('aria-hidden', 'true');
+  copy.append(title, meta);
+  link.append(copy, action);
+  return link;
+}
+
+function updateOverview() {
+  if (document.getElementById('screen-home').dataset.activeTrack !== activeTrack) return;
+  const all = makeSets(papers, 'paper', '').sort((a, b) =>
+    b.questions[0].paper.year - a.questions[0].paper.year).map(set => ({
+      set, mode: 'paper', year: '', state: inspectSavedAttempt(set, 'paper', '')
+    }));
+  const list = document.getElementById('quick-list');
+  list.replaceChildren(...all.slice(0, 3).map(row => overviewLink(row, false)));
+  if (!all.length) list.textContent = 'No interactive papers are available yet.';
+  const stats = [[all.length, 'Available'],
+    [all.filter(row => row.state && !row.state.review).length, 'In progress'],
+    [all.filter(row => row.state?.review).length, 'Finished']];
+  document.getElementById('home-stats').replaceChildren(...stats.map(([value, label]) => {
+    const stat = document.createElement('div');
+    stat.className = 'stat';
+    const number = document.createElement('b');
+    const caption = document.createElement('span');
+    number.textContent = value;
+    caption.textContent = label;
+    stat.append(number, caption);
+    return stat;
+  }));
+  const saved = [...all, ...(activeTrack === 'gate' ? savedPracticeSets(papers) : [])]
+    .filter(row => row.state && !row.state.review);
+  const resume = document.getElementById('gate-resume');
+  resume.replaceChildren();
+  resume.hidden = !saved.length;
+  if (!saved.length) return;
+  resume.append(overviewLink(saved[0], true));
+  if (saved.length > 1) {
+    const more = document.createElement('details');
+    const summary = document.createElement('summary');
+    summary.textContent = 'Other saved attempts (' + (saved.length - 1) + ')';
+    more.append(summary, ...saved.slice(1).map(row => overviewLink(row, true)));
+    resume.append(more);
+  }
+}
 
 function createCard(set) {
   const card = template.content.firstElementChild.cloneNode(true);
@@ -63,9 +122,7 @@ function createCard(set) {
   if (saved) status.classList.add(review ? 'is-done' : 'is-progress');
 
   const link = card.querySelector('a');
-  const target = new URLSearchParams({mode, set:set.id});
-  if (year.value) target.set('year', year.value);
-  link.href = 'gate-test.html?' + target;
+  link.href = testUrl(set, mode, year.value);
   const action = review ? 'Review result' : saved ? 'Resume test' : 'Start test';
   link.querySelector('[data-action]').textContent = action;
   link.setAttribute('aria-label', action + ' · ' + set.name);
@@ -102,7 +159,6 @@ function renderPage() {
   prev.disabled = page === 0;
   next.disabled = page + 1 >= pages;
   archive.querySelector('#gate-page').textContent = 'Page ' + (page + 1) + ' of ' + pages;
-  stats();
 }
 
 function selectMode(returnTo) {
@@ -141,25 +197,36 @@ modeButtons.forEach(button => button.addEventListener('click', () => {
 }));
 year.addEventListener('change', () => selectMode());
 group.addEventListener('change', () => { page = 0; renderPage(); });
-window.addEventListener('aakash:account-state', () => { if (papers.length) renderPage(); });
-window.addEventListener('pageshow', event => { if (event.persisted && papers.length) renderPage(); });
+function refreshAttempts() {
+  if (papers.length) { renderPage(); updateOverview(); }
+}
+window.addEventListener('aakash:account-state', refreshAttempts);
+window.addEventListener('pageshow', event => { if (event.persisted) refreshAttempts(); });
 
 async function switchTrack(track, initial=false) {
-  if (!['gate','gate-cs','gate-ee'].includes(track)) return;
-  if (activeTrack===track && !initial) {search.value=document.getElementById('search')?.value||'';page=0;renderPage();return;}
+  if (activeTrack === track && !initial && papers.length) { refreshAttempts(); return; }
   if (activeTrack==='gate') ecMode=mode;
   activeTrack=track;
-  const cs=paperOnly(), token=++loadToken;
+  const token = ++loadToken;
+  papers = [];
+  const resume = document.getElementById('gate-resume');
+  resume.hidden = true;
+  resume.replaceChildren();
+  if (!['gate','gate-cs','gate-ee'].includes(track)) return;
+  const list = document.getElementById('quick-list');
+  list.textContent = 'Loading papers…';
+  document.getElementById('home-stats').replaceChildren();
+  const cs=paperOnly();
   mode=cs?'paper':ecMode;
   archive.querySelector('#gate-archive-kicker').textContent=cs?(isEE()?'GATE EE · Previous-year papers':'GATE CS · Previous-year papers'):'GATE EC · 2007–2026';
   archive.querySelector('#gate-archive-syllabus').hidden=cs;
   archive.querySelector('#gate-ec-scoring').hidden=cs;
   archive.querySelector('#gate-cs-note').hidden=!cs;
   modeButtons.forEach(b=>b.hidden=cs&&b.dataset.gateMode!=='paper');
-  search.value=cs?(document.getElementById('search')?.value||''):'';
+  search.value = '';
   statusFilter.value='';
   year.replaceChildren(new Option('All years',''));
-  papers=[];sets=[];grid.replaceChildren();pagination.hidden=true;
+  sets=[];grid.replaceChildren();pagination.hidden=true;
   summary.textContent='Loading practice tests…';
   try{
     const data=await (isEE()?loadEE():isCS()?loadCS():loadPapers());
@@ -169,10 +236,18 @@ async function switchTrack(track, initial=false) {
     for(const v of years)year.add(new Option(v,v));
     if(initial&&years.has(params.get('year')))year.value=params.get('year');
     selectMode(initial?params.get('set'):undefined);
-  }catch{if(token===loadToken)summary.textContent='Unable to load the question bank. Reload to try again.';}
+    updateOverview();
+  } catch {
+    if (token !== loadToken) return;
+    summary.textContent = 'Unable to load the question bank. Reload to try again.';
+    list.textContent = 'The paper list could not load. ';
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.textContent = 'Try again';
+    retry.addEventListener('click', () => switchTrack(track, initial));
+    list.append(retry);
+  }
 }
 window.addEventListener('tclab:gate-track',e=>switchTrack(e.detail.track));
-window.addEventListener('tclab:gate-search',e=>{if(paperOnly()){search.value=e.detail;page=0;renderPage();}});
-window.addEventListener('tclab:cs-stats',stats);
 const initialTrack=document.getElementById('screen-home')?.dataset.activeTrack;
 switchTrack(location.hash==='#/gate-ee-papers'?'gate-ee':location.hash==='#/gate-cs-papers'?'gate-cs':initialTrack||'gate',true);
